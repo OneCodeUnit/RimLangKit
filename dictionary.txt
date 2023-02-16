@@ -1,0 +1,7 @@
+﻿land:ленд,aire:эр,lare:лер,augh:о,aughe:о,wich:идж,chia:шия,chio:шио,eigh:ай,ewer:оуэр,tion:шен,oore:ор,ough:ау,ower:оуэр,ture:чер
+age:идж,ate:эйт,ham:ем,ain:ен,air:эр,ayr:эр,are:эр,lar:лер,cia:шия,ear:ир,eer:ир,eir:ир,ere:ир,ewe:оуэр,iar:айар,ier:ир,igh:ай,mpb:мпб,oar:ор,oor:ор,or:ор,ore:ор,ou:а,our:ор,tch:тч,gue:г,que:к,gua:га,wor:уор,shh:щ
+aa:аа,wa:уо,ai:и,ay:и,ae:а,æ:а,al:ол,ar:эр,au:о,aw:о,ci:си,ce:се,cy:си,ch:ч,ck:к,cz:ц,ea:е,ee:и,ei:и,eo:е,er:ар,eu:ю,ew:ю,ey:и,ge:джо,gi:джи,gy:джи,gg:гг,ia:иа,ie:айе,io:айо,ir:ир,ire:ир,irr:ирр,ll:лл,ng:нг,oa:о,oe:и,œ:и,oi:ой,oy:ой,oo:у,ow:оу,ph:ф,qu:к,sh:ш,ss:сс,th:т,ts:тс,tz:ц,ue:е,ui:и,ur:эр,yr:эр,ya:я,yu:ю,yo:ё,zh:ж
+a:э,b:б,c:к,d:д,e:е,f:ф,g:г,h:х,i:ай,j:дж,k:к,l:л,m:м,n:н,o:о,p:п,q:к,r:р,s:с,t:т,u:у,v:в,w:в,x:кс,y:ай,z:з,ž:ж,č:ч,š:ш,ŝ:щ,è:э,û:ю,â:я,ë:ё,é:е,ï:и,á:э,ö:ё,ç:ц,ó:о,ä:э,ü:у,ã:ы,ô:о,í:и,ò:о
+se:s,gh:=,lh:l,rh:r,kn:n,mn:n,pn:n,ps:s,pt:t
+aa:аа,a:эй,ae:и,æ:и,ai:эй,ay:эй,ire:айр,qu:ку,w:=
+e:=,gh:ф,h:=,ia:ия,ied:ид,ies:ис
