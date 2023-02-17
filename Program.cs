@@ -1,6 +1,6 @@
+using ICSharpCode.SharpZipLib.Zip;
 using System.Globalization;
 using System.Xml.Linq;
-using ICSharpCode.SharpZipLib.Zip;
 
 namespace RTK
 {
@@ -309,14 +309,14 @@ namespace RTK
         internal static (bool, string) CheckConfig(string CurrentFile)
         {
             string error = string.Empty;
+            XDocument xdoc = new();
             if (!File.Exists("config.xml"))
             {
-                XDocument xdoc = new XDocument();
                 XElement configuration = new XElement("configuration");
                 XElement xmlsha = new XElement("sha", "0");
                 XElement xmllanguage = new XElement("language", "Russian(GitHub)");
                 XElement xmldirectory = new XElement("directory", CurrentFile);
-                XElement xmlrepo= new XElement("repo", "RimWorld-ru");
+                XElement xmlrepo = new XElement("repo", "RimWorld-ru");
                 configuration.Add(xmlsha);
                 configuration.Add(xmllanguage);
                 configuration.Add(xmldirectory);
@@ -328,46 +328,22 @@ namespace RTK
             }
             else
             {
-                XDocument xdoc;
-                try
-                {
-                    xdoc = XDocument.Load("config.xml");
-                }
-                catch
-                {
-                    error = "Файл настроек повреждён.";
-                    return (false, error);
-                }
-                XElement? configuration = xdoc.Element("configuration");
-                if (configuration.IsEmpty)
-                {
-                    error = "Файл настроек повреждён.";
-                    return (false, error);
-                }
-                string? sha = configuration.Element("sha")?.Value;
-                if (sha is null)
-                {
-                    error = "Файл настроек повреждён.";
-                    return (false, error);
-                }
-                string? language = configuration.Element("language")?.Value;
-                if (language is null)
-                {
-                    error = "Файл настроек повреждён.";
-                    return (false, error);
-                }
-                string? directory = configuration.Element("directory")?.Value;
-                if (directory is null)
-                {
-                    error = "Файл настроек повреждён.";
-                    return (false, error);
-                }
-                string? repo = configuration.Element("repo")?.Value;
-                if (repo is null)
-                {
-                    error = "Файл настроек повреждён.";
-                    return (false, error);
-                }
+                string? temp;
+                error = "Файл настроек повреждён.";
+                try { xdoc = XDocument.Load("config.xml"); }
+                catch { return (false, error); }
+                try { temp = xdoc.Element("configuration")?.Element("sha")?.Value; }
+                catch { return (false, error); }
+                if (temp is null) return (false, error);
+                try { temp = xdoc.Element("configuration")?.Element("language")?.Value; }
+                catch { return (false, error); }
+                if (temp is null) return (false, error);
+                try { temp = xdoc.Element("configuration")?.Element("directory")?.Value; }
+                catch { return (false, error); }
+                if (temp is null) return (false, error);
+                try { temp = xdoc.Element("configuration")?.Element("repo")?.Value; }
+                catch { return (false, error); }
+                if (temp is null) return (false, error);
             }
             return (true, error);
         }
