@@ -1,4 +1,4 @@
-namespace RTK
+﻿namespace RTK
 {
     internal static class Program
     {

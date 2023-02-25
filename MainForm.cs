@@ -1,4 +1,4 @@
-namespace RTK
+п»їnamespace RTK
 {
     public partial class MainForm : Form
     {
@@ -26,7 +26,7 @@ namespace RTK
             if (Directory.Exists(FolderTextBox.Text))
             {
                 LabelCheck.ForeColor = Color.Green;
-                LabelCheck.Text = "ОК";
+                LabelCheck.Text = "РћРљ";
                 ButtonENGIsert.Enabled = true;
                 ButtonUniqueNames.Enabled = true;
                 ButtonDictionary.Enabled = true;
@@ -35,7 +35,7 @@ namespace RTK
             else
             {
                 LabelCheck.ForeColor = Color.Red;
-                LabelCheck.Text = "Ошибка: папка не найдена";
+                LabelCheck.Text = "РћС€РёР±РєР°: РїР°РїРєР° РЅРµ РЅР°Р№РґРµРЅР°";
                 ButtonENGIsert.Enabled = false;
                 ButtonUniqueNames.Enabled = false;
                 ButtonDictionary.Enabled = false;
@@ -46,10 +46,10 @@ namespace RTK
         private void ButtonENGIsert_Click(object sender, EventArgs e)
         {
             InfoTextBox.Text = string.Empty;
-            InfoTextBox.AppendText("Старт");
+            InfoTextBox.AppendText("РЎС‚Р°СЂС‚");
             (int, int) Count = (0, 0);
             (int, int) tempCount;
-            //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
+            //РџРѕР»СѓС‡РµРЅРёРµ СЃРїРёСЃРєР° РІСЃРµС… С„Р°Р№Р»РѕРІ РІ Р·Р°РґР°РЅРѕР№ РґРёСЂРµРєС‚РѕСЂРёРё Рё РІРѕ РІСЃРµС… РІР»РѕР¶РµРЅРЅС‹С… РїРѕРґРїР°РїРєР°С… Р·Р° СЃС‡С‘С‚ SearchOption
             string[] AllFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
 
             foreach (string TempFile in AllFiles)
@@ -58,16 +58,16 @@ namespace RTK
                 Count.Item1 += tempCount.Item1;
                 Count.Item2 += tempCount.Item2;
             }
-            InfoTextBox.AppendText(Environment.NewLine + "Обработано: " + Count.Item1 + ". Пропущено: " + Count.Item2);
+            InfoTextBox.AppendText(Environment.NewLine + "РћР±СЂР°Р±РѕС‚Р°РЅРѕ: " + Count.Item1 + ". РџСЂРѕРїСѓС‰РµРЅРѕ: " + Count.Item2);
         }
 
         private void ButtonUniqueNames_Click(object sender, EventArgs e)
         {
             InfoTextBox.Text = string.Empty;
-            InfoTextBox.AppendText("Старт");
+            InfoTextBox.AppendText("РЎС‚Р°СЂС‚");
             (int, int) Count = (0, 0);
             (int, int) tempCount;
-            //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
+            //РџРѕР»СѓС‡РµРЅРёРµ СЃРїРёСЃРєР° РІСЃРµС… С„Р°Р№Р»РѕРІ РІ Р·Р°РґР°РЅРѕР№ РґРёСЂРµРєС‚РѕСЂРёРё Рё РІРѕ РІСЃРµС… РІР»РѕР¶РµРЅРЅС‹С… РїРѕРґРїР°РїРєР°С… Р·Р° СЃС‡С‘С‚ SearchOption
             string[] AllFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
 
             foreach (string TempFile in AllFiles)
@@ -76,19 +76,19 @@ namespace RTK
                 Count.Item1 += tempCount.Item1;
                 Count.Item2 += tempCount.Item2;
             }
-            InfoTextBox.AppendText(Environment.NewLine + "Обработано: " + Count.Item1 + ". Пропущено: " + Count.Item2);
+            InfoTextBox.AppendText(Environment.NewLine + "РћР±СЂР°Р±РѕС‚Р°РЅРѕ: " + Count.Item1 + ". РџСЂРѕРїСѓС‰РµРЅРѕ: " + Count.Item2);
         }
 
         private void ButtonDictionary_Click(object sender, EventArgs e)
         {
 
-            DialogResult answer = MessageBox.Show("Нажмите «Да» для транкрипции с английского на русский и «Нет» для обратной.", "Выбор языка", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+            DialogResult answer = MessageBox.Show("РќР°Р¶РјРёС‚Рµ В«Р”Р°В» РґР»СЏ С‚СЂР°РЅРєСЂРёРїС†РёРё СЃ Р°РЅРіР»РёР№СЃРєРѕРіРѕ РЅР° СЂСѓСЃСЃРєРёР№ Рё В«РќРµС‚В» РґР»СЏ РѕР±СЂР°С‚РЅРѕР№.", "Р’С‹Р±РѕСЂ СЏР·С‹РєР°", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
             bool mode = answer == DialogResult.Yes;
             InfoTextBox.Text = string.Empty;
-            InfoTextBox.AppendText("Старт");
+            InfoTextBox.AppendText("РЎС‚Р°СЂС‚");
             (int, int) Count = (0, 0);
             (int, int) tempCount;
-            //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
+            //РџРѕР»СѓС‡РµРЅРёРµ СЃРїРёСЃРєР° РІСЃРµС… С„Р°Р№Р»РѕРІ РІ Р·Р°РґР°РЅРѕР№ РґРёСЂРµРєС‚РѕСЂРёРё Рё РІРѕ РІСЃРµС… РІР»РѕР¶РµРЅРЅС‹С… РїРѕРґРїР°РїРєР°С… Р·Р° СЃС‡С‘С‚ SearchOption
             string[] AllFiles = Directory.GetFiles(DirectoryPath, "*.txt", SearchOption.AllDirectories);
 
             foreach (string TempFile in AllFiles)
@@ -97,19 +97,19 @@ namespace RTK
                 Count.Item1 += tempCount.Item1;
                 Count.Item2 += tempCount.Item2;
             }
-            InfoTextBox.AppendText(Environment.NewLine + "Обработано: " + Count.Item1 + ". Пропущено: " + Count.Item2);
+            InfoTextBox.AppendText(Environment.NewLine + "РћР±СЂР°Р±РѕС‚Р°РЅРѕ: " + Count.Item1 + ". РџСЂРѕРїСѓС‰РµРЅРѕ: " + Count.Item2);
         }
 
         private void ButtonLanguageUpdate_Click(object sender, EventArgs e)
         {
             InfoTextBox.Text = string.Empty;
-            InfoTextBox.AppendText("Старт");
+            InfoTextBox.AppendText("РЎС‚Р°СЂС‚");
 
             (bool, string) result;
             result = LanguageUpdate.LanguageUpdateProcessing(DirectoryPath);
             if (result.Item1)
             {
-                InfoTextBox.AppendText(Environment.NewLine + "Успешно обновлено!");
+                InfoTextBox.AppendText(Environment.NewLine + "РЈСЃРїРµС€РЅРѕ РѕР±РЅРѕРІР»РµРЅРѕ!");
             }
             else
             {
