@@ -1,4 +1,4 @@
-﻿namespace RTK
+﻿namespace RimLangKit
 {
     internal static class Program
     {

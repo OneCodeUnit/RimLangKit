@@ -6,16 +6,17 @@
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <StartupObject>RTK.Program</StartupObject>
+    <StartupObject>RimLangKit.Program</StartupObject>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <Platforms>x64</Platforms>
     <ApplicationIcon>logo.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
-    <Version>$(VersionPrefix)2.0.0</Version>
+    <Version>$(VersionPrefix)2.1.0</Version>
     <RepositoryUrl>https://github.com/OneCodeUnit/RTK</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <NeutralLanguage>ru</NeutralLanguage>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -31,7 +32,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+    <PackageReference Include="Miyconst.Cyriller" Version="0.1.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
   </ItemGroup>
 
@@ -66,6 +68,10 @@
     <None Update="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Update="README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
     </None>
   </ItemGroup>
 

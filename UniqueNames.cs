@@ -1,6 +1,6 @@
 ﻿using System.Xml.Linq;
 
-namespace RTK
+namespace RimLangKit
 {
     internal static class UniqueNames
     {

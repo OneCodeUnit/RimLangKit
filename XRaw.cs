@@ -1,7 +1,7 @@
 ﻿using System.Xml;
 using System.Xml.Linq;
 
-namespace RTK
+namespace RimLangKit
 {
     //Класс, в котором описывается не до конца понятный мне трюк, позволяющий вписывать специальные символы «как есть»
     sealed internal class XRaw : XText
@@ -11,7 +11,7 @@ namespace RTK
 
         public override void WriteTo(XmlWriter writer)
         {
-            writer.WriteRaw(this.Value);
+            writer.WriteRaw(Value);
         }
     }
 }

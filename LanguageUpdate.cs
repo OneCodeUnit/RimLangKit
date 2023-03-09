@@ -1,6 +1,6 @@
 ﻿using ICSharpCode.SharpZipLib.Zip;
 
-namespace RTK
+namespace RimLangKit
 {
     internal static class LanguageUpdate
     {

@@ -1,8 +1,9 @@
-﻿namespace RTK
+﻿namespace RimLangKit
 {
     public partial class MainForm : Form
     {
         private static string DirectoryPath = string.Empty;
+        private static readonly string[] DefTypeList = { "AbilityDef", "BodyDef", "BodyPartDef", "BodyPartGroupDef", "FactionDef", "HediffDef", "MemeDef", "OrderedTakeGroupDef", "PawnCapacityDef", "PawnKindDef", "SitePartDef", "StyleCategoryDef", "ThingDef", "ToolCapacityDef", "WorldObjectDef", "SkillDef" };
 
         public MainForm()
         {
@@ -31,6 +32,7 @@
                 ButtonUniqueNames.Enabled = true;
                 ButtonDictionary.Enabled = true;
                 ButtonLanguageUpdate.Enabled = true;
+                ButtonCase.Enabled = true;
             }
             else
             {
@@ -40,6 +42,7 @@
                 ButtonUniqueNames.Enabled = false;
                 ButtonDictionary.Enabled = false;
                 ButtonLanguageUpdate.Enabled = false;
+                ButtonCase.Enabled = false;
             }
         }
 
@@ -132,6 +135,32 @@
                 InfoTextBox.AppendText(result.Item2);
             }
             return (ProcessedCount, SkipCount);
+        }
+
+        private void ButtonCase_Click(object sender, EventArgs e)
+        {
+            InfoTextBox.Text = string.Empty;
+            InfoTextBox.AppendText("Старт");
+            int Count = 0;
+            string[] AllFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
+            List<string> words = new();
+            foreach (string DefType in DefTypeList)
+            {
+                foreach (string TempFile in AllFiles)
+                {
+                    List<string> tempWords = CaseCreate.FindWordsProcessing(TempFile, DefType);
+                    words.AddRange(tempWords);
+                    Count += tempWords.Count;
+                }
+                if (Count > 0)
+                {
+                    InfoTextBox.AppendText(Environment.NewLine + $"Обработано {Count} объектов типа {DefType}");
+                    CaseCreate.CreateCase(DirectoryPath, words, DefType);
+                    CaseCreate.CreateGender(DirectoryPath, words, DefType);
+                }
+                Count = 0;
+            }
+            InfoTextBox.AppendText(Environment.NewLine + $"Созданы файлы по адресу {DirectoryPath}\\Languages\\Russian\\WordInfo");
         }
     }
 }

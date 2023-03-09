@@ -1,4 +1,4 @@
-﻿namespace RTK
+﻿namespace RimLangKit
 {
     public class Author
     {

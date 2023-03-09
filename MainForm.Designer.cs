@@ -1,4 +1,4 @@
-﻿namespace RTK
+﻿namespace RimLangKit
 {
     partial class MainForm
     {
@@ -36,13 +36,14 @@
             ButtonUniqueNames = new Button();
             ButtonDictionary = new Button();
             ButtonLanguageUpdate = new Button();
+            ButtonCase = new Button();
             SuspendLayout();
             // 
             // FolderButton
             // 
-            FolderButton.Location = new Point(322, 47);
+            FolderButton.Location = new Point(248, 45);
             FolderButton.Name = "FolderButton";
-            FolderButton.Size = new Size(230, 60);
+            FolderButton.Size = new Size(400, 60);
             FolderButton.TabIndex = 0;
             FolderButton.Text = "Выбрать папку";
             FolderButton.UseVisualStyleBackColor = true;
@@ -52,10 +53,10 @@
             // 
             FolderTextBox.AllowDrop = true;
             FolderTextBox.Location = new Point(12, 12);
-            FolderTextBox.MaximumSize = new Size(540, 27);
-            FolderTextBox.MinimumSize = new Size(220, 27);
+            FolderTextBox.MaximumSize = new Size(636, 27);
+            FolderTextBox.MinimumSize = new Size(636, 27);
             FolderTextBox.Name = "FolderTextBox";
-            FolderTextBox.Size = new Size(540, 27);
+            FolderTextBox.Size = new Size(636, 27);
             FolderTextBox.TabIndex = 1;
             FolderTextBox.TextChanged += FolderTextBox_TextChanged;
             // 
@@ -83,12 +84,14 @@
             // 
             InfoTextBox.AcceptsReturn = true;
             InfoTextBox.AcceptsTab = true;
-            InfoTextBox.Location = new Point(248, 113);
+            InfoTextBox.Location = new Point(248, 111);
+            InfoTextBox.MaximumSize = new Size(400, 290);
+            InfoTextBox.MinimumSize = new Size(400, 290);
             InfoTextBox.Multiline = true;
             InfoTextBox.Name = "InfoTextBox";
             InfoTextBox.ReadOnly = true;
             InfoTextBox.ScrollBars = ScrollBars.Vertical;
-            InfoTextBox.Size = new Size(304, 222);
+            InfoTextBox.Size = new Size(400, 290);
             InfoTextBox.TabIndex = 4;
             InfoTextBox.Text = "Прогресс выполнения";
             // 
@@ -125,12 +128,24 @@
             ButtonLanguageUpdate.UseVisualStyleBackColor = true;
             ButtonLanguageUpdate.Click += ButtonLanguageUpdate_Click;
             // 
+            // ButtonCase
+            // 
+            ButtonCase.Enabled = false;
+            ButtonCase.Location = new Point(12, 341);
+            ButtonCase.Name = "ButtonCase";
+            ButtonCase.Size = new Size(230, 60);
+            ButtonCase.TabIndex = 9;
+            ButtonCase.Text = "Создать Case, Plural и Gender";
+            ButtonCase.UseVisualStyleBackColor = true;
+            ButtonCase.Click += ButtonCase_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             AutoScroll = true;
-            ClientSize = new Size(566, 347);
+            ClientSize = new Size(660, 413);
+            Controls.Add(ButtonCase);
             Controls.Add(ButtonLanguageUpdate);
             Controls.Add(ButtonDictionary);
             Controls.Add(ButtonUniqueNames);
@@ -139,8 +154,8 @@
             Controls.Add(LabelCheck);
             Controls.Add(FolderTextBox);
             Controls.Add(FolderButton);
-            MaximumSize = new Size(584, 394);
-            MinimumSize = new Size(584, 394);
+            MaximumSize = new Size(678, 460);
+            MinimumSize = new Size(678, 460);
             Name = "MainForm";
             Text = "RimWorld Language Kit by OliveWizard";
             ResumeLayout(false);
@@ -157,5 +172,6 @@
         private Button ButtonUniqueNames;
         private Button ButtonDictionary;
         private Button ButtonLanguageUpdate;
+        private Button ButtonCase;
     }
 }

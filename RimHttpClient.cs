@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace RTK
+namespace RimLangKit
 {
     internal class RimHttpClient
     {

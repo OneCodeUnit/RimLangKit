@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace RTK
+namespace RimLangKit
 {
     internal static class TextTranslit
     {
