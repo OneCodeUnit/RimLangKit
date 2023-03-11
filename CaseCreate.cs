@@ -10,7 +10,7 @@ namespace RimLangKit
         private static readonly CyrNounCollection cyrNounCollection = new();
         private static readonly CyrAdjectiveCollection cyrAdjectiveCollection = new();
         private static readonly CyrPhrase cyrPhrase = new(cyrNounCollection, cyrAdjectiveCollection);
-        private const string CasePath = "Languages\\Russian\\WordInfo";
+        private const string CasePath = "\\Languages\\Russian\\WordInfo";
 
         private static string[] Declension(string word)
         {

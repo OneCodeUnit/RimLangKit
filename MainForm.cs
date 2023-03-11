@@ -150,12 +150,17 @@ namespace RimLangKit
             List<string> words = new();
 
             // Поиск подходящей директории
-            string directory = string.Empty;
+            string directory;
             if (Directory.Exists(DirectoryPath + "\\Common"))
             {
-                directory = DirectoryPath + "\\Common\\";
+                directory = DirectoryPath + "\\Common";
+            }
+            else
+            {
+                directory = DirectoryPath;
             }
 
+            int globalCount = 0;
             // Проверяется каждый подходящий DefType из списка
             foreach (string defType in DefTypeList)
             {
@@ -170,12 +175,20 @@ namespace RimLangKit
                 // Если нашлись слова в данном DefType, то создаются файлы
                 if (count > 0)
                 {
+                    globalCount++;
                     InfoTextBox.AppendText(Environment.NewLine + $"Обработано {count} объектов типа {defType}");
                     CaseCreate.CreateCase(directory, words, defType);
                     CaseCreate.CreateGender(directory, words, defType);
                 }
             }
-            InfoTextBox.AppendText(Environment.NewLine + $"Созданы файлы по адресу {directory}\\Languages\\Russian\\WordInfo");
+            if (globalCount > 0)
+            {
+                InfoTextBox.AppendText(Environment.NewLine + $"Созданы файлы по адресу {directory}\\Languages\\Russian\\WordInfo");
+            }
+            else
+            {
+                InfoTextBox.AppendText(Environment.NewLine + "Ничего не создано");
+            }
             InfoTextBox.AppendText(Environment.NewLine + "Завершено");
         }
     }
