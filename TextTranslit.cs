@@ -4,7 +4,7 @@ namespace RimLangKit
 {
     internal static class TextTranslit
     {
-        internal static (bool, string) TextTranslitProcessing(string CurrentFile, bool mode)
+        internal static (bool, string) TextTranslitProcessing(string currentFile, bool mode)
         {
             string error = string.Empty;
             CultureInfo culture = CultureInfo.CurrentCulture;
@@ -22,7 +22,7 @@ namespace RimLangKit
             }
 
             //Без повторной обработки файлов
-            if (CurrentFile.EndsWith("_NEW.txt", comparison))
+            if (currentFile.EndsWith("_NEW.txt", comparison))
             {
                 error = "Пропуск созданного ранее файла.";
                 return (false, error);
@@ -45,8 +45,8 @@ namespace RimLangKit
             Dictionary<string, string> dictionaryEnd = new(SetDictionary(lineEnd));
 
             //Открытие файлов
-            StreamReader sourceText = new(CurrentFile);
-            string textFileRus = CurrentFile.Replace(".txt", "_NEW.txt");
+            StreamReader sourceText = new(currentFile);
+            string textFileRus = currentFile.Replace(".txt", "_NEW.txt");
             StreamWriter translatedText = new(textFileRus);
 
             //Процесс транслитерации

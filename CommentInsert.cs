@@ -4,32 +4,32 @@ namespace RimLangKit
 {
     internal static class CommentInsert
     {
-        internal static (bool, string) CommentsInsertProcessing(string CurrentFile)
+        internal static (bool, string) CommentsInsertProcessing(string currentFile)
         {
             string error = string.Empty;
             //Позволяет избежать падения при загрузке сломанного .xml файла
             try
             {
-                XDocument.Load(CurrentFile, LoadOptions.PreserveWhitespace);
+                XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
             }
             catch
             {
-                error = "Не удалось загрузить файл " + CurrentFile;
+                error = "Не удалось загрузить файл " + currentFile;
                 return (false, error);
             }
 
-            XDocument xDoc = XDocument.Load(CurrentFile, LoadOptions.PreserveWhitespace);
+            XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
             //Позволяет избежать обработки пустого или не содержащего нужных тегов файла
             if (xDoc.Element("LanguageData") is null)
             {
-                error = "Не удалось найти LanguageData " + CurrentFile;
+                error = "Не удалось найти LanguageData " + currentFile;
                 return (false, error);
             }
             //Перевод контекста в содержимое тега LanguageData
             XElement? root = xDoc.Element("LanguageData");
             if (root?.Elements() is null)
             {
-                error = "Тег LanguageData пуст " + CurrentFile;
+                error = "Тег LanguageData пуст " + currentFile;
                 return (false, error);
             }
 
@@ -46,7 +46,7 @@ namespace RimLangKit
             root.LastNode?.AddAfterSelf("\n");
 
             //Сохранение файла
-            xDoc.Save(CurrentFile);
+            xDoc.Save(currentFile);
             return (true, error);
         }
     }

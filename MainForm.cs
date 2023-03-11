@@ -1,4 +1,6 @@
-﻿namespace RimLangKit
+﻿using System.IO;
+
+namespace RimLangKit
 {
     public partial class MainForm : Form
     {
@@ -24,6 +26,7 @@
         private void FolderTextBox_TextChanged(object sender, EventArgs e)
         {
             DirectoryPath = FolderTextBox.Text;
+            // Кнопки доступны только, тогда, когда директория существует
             if (Directory.Exists(FolderTextBox.Text))
             {
                 LabelCheck.ForeColor = Color.Green;
@@ -50,36 +53,36 @@
         {
             InfoTextBox.Text = string.Empty;
             InfoTextBox.AppendText("Старт");
-            (int, int) Count = (0, 0);
+            (int, int) count = (0, 0);
             (int, int) tempCount;
             //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
-            string[] AllFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
+            string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
 
-            foreach (string TempFile in AllFiles)
+            foreach (string tempFile in allFiles)
             {
-                tempCount = ResultProcessing(CommentInsert.CommentsInsertProcessing(TempFile));
-                Count.Item1 += tempCount.Item1;
-                Count.Item2 += tempCount.Item2;
+                tempCount = ResultProcessing(CommentInsert.CommentsInsertProcessing(tempFile));
+                count.Item1 += tempCount.Item1;
+                count.Item2 += tempCount.Item2;
             }
-            InfoTextBox.AppendText(Environment.NewLine + "Обработано: " + Count.Item1 + ". Пропущено: " + Count.Item2);
+            InfoTextBox.AppendText(Environment.NewLine + "Обработано: " + count.Item1 + ". Пропущено: " + count.Item2);
         }
 
         private void ButtonUniqueNames_Click(object sender, EventArgs e)
         {
             InfoTextBox.Text = string.Empty;
             InfoTextBox.AppendText("Старт");
-            (int, int) Count = (0, 0);
+            (int, int) count = (0, 0);
             (int, int) tempCount;
             //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
-            string[] AllFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
+            string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
 
-            foreach (string TempFile in AllFiles)
+            foreach (string tempFile in allFiles)
             {
-                tempCount = ResultProcessing(UniqueNames.UniqueNamesProcessing(TempFile));
-                Count.Item1 += tempCount.Item1;
-                Count.Item2 += tempCount.Item2;
+                tempCount = ResultProcessing(UniqueNames.UniqueNamesProcessing(tempFile));
+                count.Item1 += tempCount.Item1;
+                count.Item2 += tempCount.Item2;
             }
-            InfoTextBox.AppendText(Environment.NewLine + "Обработано: " + Count.Item1 + ". Пропущено: " + Count.Item2);
+            InfoTextBox.AppendText(Environment.NewLine + "Обработано: " + count.Item1 + ". Пропущено: " + count.Item2);
         }
 
         private void ButtonDictionary_Click(object sender, EventArgs e)
@@ -89,18 +92,18 @@
             bool mode = answer == DialogResult.Yes;
             InfoTextBox.Text = string.Empty;
             InfoTextBox.AppendText("Старт");
-            (int, int) Count = (0, 0);
+            (int, int) count = (0, 0);
             (int, int) tempCount;
             //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
-            string[] AllFiles = Directory.GetFiles(DirectoryPath, "*.txt", SearchOption.AllDirectories);
+            string[] allFiles = Directory.GetFiles(DirectoryPath, "*.txt", SearchOption.AllDirectories);
 
-            foreach (string TempFile in AllFiles)
+            foreach (string tempFile in allFiles)
             {
-                tempCount = ResultProcessing(TextTranslit.TextTranslitProcessing(TempFile, mode));
-                Count.Item1 += tempCount.Item1;
-                Count.Item2 += tempCount.Item2;
+                tempCount = ResultProcessing(TextTranslit.TextTranslitProcessing(tempFile, mode));
+                count.Item1 += tempCount.Item1;
+                count.Item2 += tempCount.Item2;
             }
-            InfoTextBox.AppendText(Environment.NewLine + "Обработано: " + Count.Item1 + ". Пропущено: " + Count.Item2);
+            InfoTextBox.AppendText(Environment.NewLine + "Обработано: " + count.Item1 + ". Пропущено: " + count.Item2);
         }
 
         private void ButtonLanguageUpdate_Click(object sender, EventArgs e)
@@ -120,47 +123,60 @@
             }
         }
 
+        // Обработка ошибок. Позволяется выводить полученные от функции сообщения
         private (int, int) ResultProcessing((bool, string) result)
         {
-            int ProcessedCount = 0;
-            int SkipCount = 0;
+            int processedCount = 0;
+            int skipCount = 0;
             if (result.Item1)
             {
-                ProcessedCount++;
+                processedCount++;
             }
             else
             {
-                SkipCount++;
+                skipCount++;
                 InfoTextBox.AppendText(Environment.NewLine);
                 InfoTextBox.AppendText(result.Item2);
             }
-            return (ProcessedCount, SkipCount);
+            return (processedCount, skipCount);
         }
 
         private void ButtonCase_Click(object sender, EventArgs e)
         {
             InfoTextBox.Text = string.Empty;
             InfoTextBox.AppendText("Старт");
-            int Count = 0;
-            string[] AllFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
+            //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
+            string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
             List<string> words = new();
-            foreach (string DefType in DefTypeList)
+
+            // Поиск подходящей директории
+            string directory = string.Empty;
+            if (Directory.Exists(DirectoryPath + "\\Common"))
             {
-                foreach (string TempFile in AllFiles)
-                {
-                    List<string> tempWords = CaseCreate.FindWordsProcessing(TempFile, DefType);
-                    words.AddRange(tempWords);
-                    Count += tempWords.Count;
-                }
-                if (Count > 0)
-                {
-                    InfoTextBox.AppendText(Environment.NewLine + $"Обработано {Count} объектов типа {DefType}");
-                    CaseCreate.CreateCase(DirectoryPath, words, DefType);
-                    CaseCreate.CreateGender(DirectoryPath, words, DefType);
-                }
-                Count = 0;
+                directory = DirectoryPath + "\\Common\\";
             }
-            InfoTextBox.AppendText(Environment.NewLine + $"Созданы файлы по адресу {DirectoryPath}\\Languages\\Russian\\WordInfo");
+
+            // Проверяется каждый подходящий DefType из списка
+            foreach (string defType in DefTypeList)
+            {
+                int count = 0;
+                foreach (string tempFile in allFiles)
+                {
+                    // Каждый файл проверяется на соотвествие этому типу. Если не соотвествует, возвращает пустой список
+                    List<string> tempWords = CaseCreate.FindWordsProcessing(tempFile, defType);
+                    words.AddRange(tempWords);
+                    count += tempWords.Count;
+                }
+                // Если нашлись слова в данном DefType, то создаются файлы
+                if (count > 0)
+                {
+                    InfoTextBox.AppendText(Environment.NewLine + $"Обработано {count} объектов типа {defType}");
+                    CaseCreate.CreateCase(directory, words, defType);
+                    CaseCreate.CreateGender(directory, words, defType);
+                }
+            }
+            InfoTextBox.AppendText(Environment.NewLine + $"Созданы файлы по адресу {directory}\\Languages\\Russian\\WordInfo");
+            InfoTextBox.AppendText(Environment.NewLine + "Завершено");
         }
     }
 }

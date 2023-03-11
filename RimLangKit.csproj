@@ -11,7 +11,7 @@
     <Platforms>x64</Platforms>
     <ApplicationIcon>logo.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
-    <Version>$(VersionPrefix)2.1.0</Version>
+    <Version>$(VersionPrefix)2.2.0</Version>
     <RepositoryUrl>https://github.com/OneCodeUnit/RTK</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <NeutralLanguage>ru</NeutralLanguage>

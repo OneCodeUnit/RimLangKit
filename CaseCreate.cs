@@ -1,5 +1,6 @@
 ﻿using Cyriller;
 using Cyriller.Model;
+using System.IO;
 using System.Xml.Linq;
 
 namespace RimLangKit
@@ -9,39 +10,70 @@ namespace RimLangKit
         private static readonly CyrNounCollection cyrNounCollection = new();
         private static readonly CyrAdjectiveCollection cyrAdjectiveCollection = new();
         private static readonly CyrPhrase cyrPhrase = new(cyrNounCollection, cyrAdjectiveCollection);
+        private const string CasePath = "Languages\\Russian\\WordInfo";
 
         private static string[] Declension(string word)
         {
-            CyrNoun nouns = cyrNounCollection.Get(word, out string foundWord, out CasesEnum @case, out NumbersEnum number);
-            string[] result = nouns.Decline().ToArray();
-            result[0] = word;
-
-            string[] resultP = nouns.DeclinePlural().ToArray();
-            string[] attributes = { resultP[0], nouns.Gender.ToString() };
-
-            return result;
+            // try-catch - неэффективно, но слово может совсем не найтись. Вот бы просто возвращало что-то вроде -1
+            try
+            {
+                CyrNoun nouns = cyrNounCollection.Get(word, out string foundWord, out CasesEnum @case, out NumbersEnum number);
+                string[] result = nouns.Decline().ToArray();
+                result[0] = word;
+                return result;
+            }
+            catch 
+            {
+                string[] result = { word, word, word, word, word, word };
+                return result;
+            }
         }
         private static string[] DeclensionComposite(string word)
         {
-            CyrResult nouns = cyrPhrase.Decline(word, GetConditionsEnum.Similar);
-            string[] result = nouns.ToArray();
-            result[0] = word;
-            return result;
+            try
+            {
+                CyrResult nouns = cyrPhrase.Decline(word, GetConditionsEnum.Similar);
+                string[] result = nouns.ToArray();
+                result[0] = word;
+                return result;
+            }
+            catch
+            {
+                string[] result = { word, word, word, word, word, word };
+                return result;
+            }
         }
 
+        // Возвращает форму множественного числа и пол под позициями 0 и 1 соотвественно 
         private static string[] Attributes(string word)
         {
-            CyrNoun nouns = cyrNounCollection.Get(word, out string foundWord, out CasesEnum @case, out NumbersEnum number);
-            string[] result = nouns.DeclinePlural().ToArray();
-            string[] attributes = { result[0], nouns.Gender.ToString() };
-            return attributes;
+            try
+            {
+                CyrNoun nouns = cyrNounCollection.Get(word, out string foundWord, out CasesEnum @case, out NumbersEnum number);
+                string[] result = nouns.DeclinePlural().ToArray();
+                string[] attributes = { result[0], nouns.Gender.ToString() };
+                return attributes;
+            }
+            catch
+            {
+                string[] attributes = { word, "Undefined" };
+                return attributes;
+            }
         }
         private static string[] AttributesComposite(string word)
         {
-            CyrResult nouns = cyrPhrase.DeclinePlural(word, GetConditionsEnum.Similar);
-            string[] result = nouns.ToArray();
-            string[] attributes = { result[0], "Composite" };
-            return attributes;
+            try
+            {
+                CyrResult nouns = cyrPhrase.DeclinePlural(word, GetConditionsEnum.Similar);
+                string[] result = nouns.ToArray();
+                string[] attributes = { result[0], "Composite" };
+                return attributes;
+            }
+            catch
+            {
+                string[] attributes = { word, "Undefined" };
+                return attributes;
+            }
         }
 
         private static List<string> WordsExtract(string file)
@@ -59,21 +91,24 @@ namespace RimLangKit
             return words;
         }
         
-        internal static List<string> FindWordsProcessing(string CurrentFile, string DefType)
+        internal static List<string> FindWordsProcessing(string currentFile, string defType)
         {
             List<string> words = new();
-            if (CurrentFile.Contains(DefType, StringComparison.OrdinalIgnoreCase))
+            // Если файл соответствует заданному defType, то запускатся в работу
+            if (currentFile.Contains(defType, StringComparison.OrdinalIgnoreCase))
             {
-                words.AddRange(WordsExtract(CurrentFile));
+                words.AddRange(WordsExtract(currentFile));
             }
             return words;
         }
 
-        internal static void CreateCase(string DirectoryPath, List<string> words, string DefType)
+        internal static void CreateCase(string directoryPath, List<string> words, string defType)
         {
-            string pathCase = DirectoryPath + "\\Languages\\Russian\\WordInfo\\Case.txt";
-            StreamWriter writerCase = new(pathCase, true, System.Text.Encoding.UTF8);
-            writerCase.WriteLine(Environment.NewLine + "// " + DefType);
+            string path = directoryPath + CasePath;
+            Directory.CreateDirectory(path); // Созданиие директории, которая наверняка отсутствует
+            path += "\\Case.txt";
+            StreamWriter writerCase = new(path, true, System.Text.Encoding.UTF8);
+            writerCase.WriteLine("// " + defType);
 
             foreach (string word in words)
             {
@@ -95,27 +130,34 @@ namespace RimLangKit
                 }
                 writerCase.WriteLine(tempStringCase[..^2]);
             }
+            writerCase.WriteLine();
             writerCase.Close();
         }
 
-        internal static void CreateGender(string DirectoryPath, List<string> words, string DefType)
+        internal static void CreateGender(string directoryPath, List<string> words, string defType)
         {
-            string pathPlural = DirectoryPath + "\\Languages\\Russian\\WordInfo\\Plural.txt";
+            string pathPlural = directoryPath + CasePath + "\\Plural.txt";
             StreamWriter writerPlural = new(pathPlural, true, System.Text.Encoding.UTF8);
-            writerPlural.WriteLine(Environment.NewLine + "// " + DefType);
+            writerPlural.WriteLine("// " + defType);
 
-            string pathGenderFemale = DirectoryPath + "\\Languages\\Russian\\WordInfo\\Gender\\Female.txt";
+            string pathGender = directoryPath + CasePath + "\\Gender";
+            Directory.CreateDirectory(pathGender);
+
+            string pathGenderFemale = pathGender + "\\Female.txt";
             StreamWriter writerFemale = new(pathGenderFemale, true, System.Text.Encoding.UTF8);
-            writerFemale.WriteLine(Environment.NewLine + "// " + DefType);
-            string pathGenderMale = DirectoryPath + "\\Languages\\Russian\\WordInfo\\Gender\\Male.txt";
+            writerFemale.WriteLine("// " + defType);
+
+            string pathGenderMale = pathGender + "\\Male.txt";
             StreamWriter writerMale = new(pathGenderMale, true, System.Text.Encoding.UTF8);
-            writerMale.WriteLine(Environment.NewLine + "// " + DefType);
-            string pathGenderNeuter = DirectoryPath + "\\Languages\\Russian\\WordInfo\\Gender\\Neuter.txt";
+            writerMale.WriteLine("// " + defType);
+
+            string pathGenderNeuter = pathGender + "\\Neuter.txt";
             StreamWriter writerNeuter = new(pathGenderNeuter, true, System.Text.Encoding.UTF8);
-            writerNeuter.WriteLine(Environment.NewLine + "// " + DefType);
-            string pathGenderUndefined = DirectoryPath + "\\Languages\\Russian\\WordInfo\\Gender\\Undefined.txt";
+            writerNeuter.WriteLine("// " + defType);
+
+            string pathGenderUndefined = pathGender + "\\Undefined.txt";
             StreamWriter writerUndefined = new(pathGenderUndefined, true, System.Text.Encoding.UTF8);
-            writerUndefined.WriteLine(Environment.NewLine + "// " + DefType);
+            writerUndefined.WriteLine("// " + defType);
 
             foreach (string word in words)
             {
@@ -152,10 +194,15 @@ namespace RimLangKit
                         break;
                 }
             }
+            writerPlural.WriteLine();
             writerPlural.Close();
+            writerFemale.WriteLine();
             writerFemale.Close();
+            writerMale.WriteLine();
             writerMale.Close();
+            writerNeuter.WriteLine();
             writerNeuter.Close();
+            writerUndefined.WriteLine();
             writerUndefined.Close();
         }
     }
