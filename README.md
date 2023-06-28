@@ -1,4 +1,6 @@
 ﻿Набор инструментов для работы с локализацией игры RimWorld.
++ [Для пользователей](https://github.com/OneCodeUnit/RimLangKit#для-пользователей)
++ [Для переводчиков](https://github.com/OneCodeUnit/RimLangKit#для-переводчиков)
 
 # Для пользователей
 
