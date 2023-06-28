@@ -6,7 +6,7 @@
 
 ## Системные требования
 
-### Основная версия программы (LanguageUpdate.exe):
+### Основная версия программы (LanguageUpdate.exe)
 + Windows 10 (версия 1607) и новее
 + [.Net 7](https://dotnet.microsoft.com/en-us/download) (любой вариант)
 
