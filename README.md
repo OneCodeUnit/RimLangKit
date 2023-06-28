@@ -10,7 +10,7 @@
 + Windows 10 (версия 1607) и новее
 + [.Net 7](https://dotnet.microsoft.com/en-us/download) (любой вариант)
 
-### Версия для старых систем (LanguageUpdate.exeLegacy.zip)
+### Версия для старых систем (LanguageUpdateLegacy.zip)
 + Windows 10 (версия 1903) и новее
 
 или
