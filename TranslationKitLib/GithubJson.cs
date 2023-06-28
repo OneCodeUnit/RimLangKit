@@ -1,4 +1,7 @@
-﻿namespace RimLangKit
+﻿using System;
+using System.Collections.Generic;
+
+namespace TranslationKitLib
 {
     public class Author
     {

@@ -28,6 +28,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="LanguageUpdate\**" />
+    <Compile Remove="TranslationKitLib\**" />
+    <EmbeddedResource Remove="LanguageUpdate\**" />
+    <EmbeddedResource Remove="TranslationKitLib\**" />
+    <None Remove="LanguageUpdate\**" />
+    <None Remove="TranslationKitLib\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="logo.ico" />
   </ItemGroup>
 

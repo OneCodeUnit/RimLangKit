@@ -108,19 +108,19 @@ namespace RimLangKit
 
         private void ButtonLanguageUpdate_Click(object sender, EventArgs e)
         {
-            InfoTextBox.Text = string.Empty;
-            InfoTextBox.AppendText("Старт");
+            //InfoTextBox.Text = string.Empty;
+            //InfoTextBox.AppendText("Старт");
 
-            (bool, string) result;
-            result = LanguageUpdate.LanguageUpdateProcessing(DirectoryPath);
-            if (result.Item1)
-            {
-                InfoTextBox.AppendText(Environment.NewLine + "Успешно обновлено!");
-            }
-            else
-            {
-                InfoTextBox.AppendText(Environment.NewLine + result.Item2);
-            }
+            //(bool, string) result;
+            //result = LanguageUpdate.LanguageUpdateProcessing(DirectoryPath);
+            //if (result.Item1)
+            //{
+            //    InfoTextBox.AppendText(Environment.NewLine + "Успешно обновлено!");
+            //}
+            //else
+            //{
+            //    InfoTextBox.AppendText(Environment.NewLine + result.Item2);
+            //}
         }
 
         // Обработка ошибок. Позволяется выводить полученные от функции сообщения
