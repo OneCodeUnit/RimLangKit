@@ -1,4 +1,5 @@
-﻿Набор инструментов для работы с локализацией игры RimWorld.
+﻿Набор инструментов для работы с локализацией игры RimWorld от создателя сервера [Vanilla Russian Expanded](https://discord.gg/GB2e2VhgVE) и проекта переводов модов [Vanilla Russian Expanded](https://github.com/OneCodeUnit/VanillaRussianExpanded).
+
 + [Для пользователей](https://github.com/OneCodeUnit/RimLangKit#для-пользователей)
 + [Для переводчиков](https://github.com/OneCodeUnit/RimLangKit#для-переводчиков)
 
