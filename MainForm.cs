@@ -1,4 +1,7 @@
 ﻿using System.IO;
+using System.Windows.Forms;
+using TranslationKitLib;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace RimLangKit
 {
@@ -6,6 +9,7 @@ namespace RimLangKit
     {
         private static string DirectoryPath = string.Empty;
         private static readonly string[] DefTypeList = { "AbilityDef", "BodyDef", "BodyPartDef", "BodyPartGroupDef", "FactionDef", "HediffDef", "MemeDef", "OrderedTakeGroupDef", "PawnCapacityDef", "PawnKindDef", "SitePartDef", "StyleCategoryDef", "ThingDef", "ToolCapacityDef", "WorldObjectDef", "SkillDef" };
+        private static bool IsStarted = false;
 
         public MainForm()
         {
@@ -34,8 +38,8 @@ namespace RimLangKit
                 ButtonENGIsert.Enabled = true;
                 ButtonUniqueNames.Enabled = true;
                 ButtonDictionary.Enabled = true;
-                ButtonLanguageUpdate.Enabled = true;
                 ButtonCase.Enabled = true;
+                ButtonEncoding.Enabled = true;
             }
             else
             {
@@ -44,8 +48,8 @@ namespace RimLangKit
                 ButtonENGIsert.Enabled = false;
                 ButtonUniqueNames.Enabled = false;
                 ButtonDictionary.Enabled = false;
-                ButtonLanguageUpdate.Enabled = false;
                 ButtonCase.Enabled = false;
+                ButtonEncoding.Enabled = false;
             }
         }
 
@@ -104,23 +108,6 @@ namespace RimLangKit
                 count.Item2 += tempCount.Item2;
             }
             InfoTextBox.AppendText(Environment.NewLine + "Обработано: " + count.Item1 + ". Пропущено: " + count.Item2);
-        }
-
-        private void ButtonLanguageUpdate_Click(object sender, EventArgs e)
-        {
-            //InfoTextBox.Text = string.Empty;
-            //InfoTextBox.AppendText("Старт");
-
-            //(bool, string) result;
-            //result = LanguageUpdate.LanguageUpdateProcessing(DirectoryPath);
-            //if (result.Item1)
-            //{
-            //    InfoTextBox.AppendText(Environment.NewLine + "Успешно обновлено!");
-            //}
-            //else
-            //{
-            //    InfoTextBox.AppendText(Environment.NewLine + result.Item2);
-            //}
         }
 
         // Обработка ошибок. Позволяется выводить полученные от функции сообщения
@@ -190,6 +177,19 @@ namespace RimLangKit
                 InfoTextBox.AppendText(Environment.NewLine + "Ничего не создано");
             }
             InfoTextBox.AppendText(Environment.NewLine + "Завершено");
+        }
+
+        private void ButtonEncoding_Click(object sender, EventArgs e)
+        {
+            InfoTextBox.Text = $"{Messages.PlaceTime()}Исправление кодировки";
+            string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
+            int count = 0;
+            foreach (string tempFile in allFiles)
+            {
+                EncodingFix.EncodingFixProcessing(tempFile, InfoTextBox);
+                count++;
+            }
+            InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Успешно завершено. Обработано файлов - {count}");
         }
     }
 }

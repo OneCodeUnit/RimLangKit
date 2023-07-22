@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net6.0-windows</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -11,12 +11,17 @@
     <Platforms>x64</Platforms>
     <ApplicationIcon>logo.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
-    <Version>$(VersionPrefix)2.2.0</Version>
+    <Version>$(VersionPrefix)3.0.0</Version>
     <RepositoryUrl>https://github.com/OneCodeUnit/RTK</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <NeutralLanguage>ru</NeutralLanguage>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Authors>OliveWizard</Authors>
+    <Description>Программа для работы с локализацией RimWorld</Description>
+    <PackageProjectUrl>https://github.com/OneCodeUnit/RimLangKit</PackageProjectUrl>
+    <PackageTags>RimWorld, Translation, Localization, git, xml</PackageTags>
+    <Title>Mod Translation Tool</Title>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -28,12 +33,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="LanguageUpdateLegacy\**" />
     <Compile Remove="LanguageUpdate\**" />
     <Compile Remove="TranslationKitLib\**" />
+    <Compile Remove="TranslationKit\**" />
+    <EmbeddedResource Remove="LanguageUpdateLegacy\**" />
     <EmbeddedResource Remove="LanguageUpdate\**" />
     <EmbeddedResource Remove="TranslationKitLib\**" />
+    <EmbeddedResource Remove="TranslationKit\**" />
+    <None Remove="LanguageUpdateLegacy\**" />
     <None Remove="LanguageUpdate\**" />
     <None Remove="TranslationKitLib\**" />
+    <None Remove="TranslationKit\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,23 +58,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Properties\Resources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <Compile Update="Properties\Settings.Designer.cs">
-      <DesignTimeSharedInput>True</DesignTimeSharedInput>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Settings.settings</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Update="Properties\Resources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
+    <ProjectReference Include="TranslationKitLib\TranslationKitLib.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -73,10 +68,6 @@
     <None Update="LICENSE.txt">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
-    </None>
-    <None Update="Properties\Settings.settings">
-      <Generator>SettingsSingleFileGenerator</Generator>
-      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <None Update="README.md">
       <Pack>True</Pack>

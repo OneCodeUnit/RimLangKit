@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             FolderButton = new Button();
             FolderTextBox = new TextBox();
             LabelCheck = new Label();
@@ -35,8 +36,8 @@
             InfoTextBox = new TextBox();
             ButtonUniqueNames = new Button();
             ButtonDictionary = new Button();
-            ButtonLanguageUpdate = new Button();
             ButtonCase = new Button();
+            ButtonEncoding = new Button();
             SuspendLayout();
             // 
             // FolderButton
@@ -117,21 +118,10 @@
             ButtonDictionary.UseVisualStyleBackColor = true;
             ButtonDictionary.Click += ButtonDictionary_Click;
             // 
-            // ButtonLanguageUpdate
-            // 
-            ButtonLanguageUpdate.Enabled = false;
-            ButtonLanguageUpdate.Location = new Point(12, 275);
-            ButtonLanguageUpdate.Name = "ButtonLanguageUpdate";
-            ButtonLanguageUpdate.Size = new Size(230, 60);
-            ButtonLanguageUpdate.TabIndex = 8;
-            ButtonLanguageUpdate.Text = "Обновить локализацию";
-            ButtonLanguageUpdate.UseVisualStyleBackColor = true;
-            ButtonLanguageUpdate.Click += ButtonLanguageUpdate_Click;
-            // 
             // ButtonCase
             // 
             ButtonCase.Enabled = false;
-            ButtonCase.Location = new Point(12, 341);
+            ButtonCase.Location = new Point(12, 275);
             ButtonCase.Name = "ButtonCase";
             ButtonCase.Size = new Size(230, 60);
             ButtonCase.TabIndex = 9;
@@ -139,14 +129,25 @@
             ButtonCase.UseVisualStyleBackColor = true;
             ButtonCase.Click += ButtonCase_Click;
             // 
+            // ButtonEncoding
+            // 
+            ButtonEncoding.Enabled = false;
+            ButtonEncoding.Location = new Point(12, 341);
+            ButtonEncoding.Name = "ButtonEncoding";
+            ButtonEncoding.Size = new Size(230, 60);
+            ButtonEncoding.TabIndex = 10;
+            ButtonEncoding.Text = "Исправить кодировку";
+            ButtonEncoding.UseVisualStyleBackColor = true;
+            ButtonEncoding.Click += ButtonEncoding_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             AutoScroll = true;
-            ClientSize = new Size(660, 413);
+            ClientSize = new Size(660, 586);
+            Controls.Add(ButtonEncoding);
             Controls.Add(ButtonCase);
-            Controls.Add(ButtonLanguageUpdate);
             Controls.Add(ButtonDictionary);
             Controls.Add(ButtonUniqueNames);
             Controls.Add(InfoTextBox);
@@ -154,8 +155,7 @@
             Controls.Add(LabelCheck);
             Controls.Add(FolderTextBox);
             Controls.Add(FolderButton);
-            MaximumSize = new Size(678, 460);
-            MinimumSize = new Size(678, 460);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "MainForm";
             Text = "RimWorld Language Kit by OliveWizard";
             ResumeLayout(false);
@@ -171,7 +171,7 @@
         private TextBox InfoTextBox;
         private Button ButtonUniqueNames;
         private Button ButtonDictionary;
-        private Button ButtonLanguageUpdate;
         private Button ButtonCase;
+        private Button ButtonEncoding;
     }
 }

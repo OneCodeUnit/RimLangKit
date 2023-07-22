@@ -38,7 +38,7 @@ namespace RimLangKit
                 //Получение содержимого текущего тега
                 string content = node.Value;
                 //Создание комментария с ним
-                XRaw comment = new("<!-- EN: " + content + " -->\n\t");
+                TranslationKitLib.XRaw comment = new("<!-- EN: " + content + " -->\n\t");
                 //Добавление этого комментария перед текущим тегом
                 node.AddBeforeSelf(comment);
             }

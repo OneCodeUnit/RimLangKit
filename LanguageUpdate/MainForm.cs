@@ -60,7 +60,7 @@ namespace LanguageUpdate
 
         private void ButtonLanguageUpdate_Click(object sender, EventArgs e)
         {
-            InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Запуск");
+            InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Запуск");
 
             string sha = Settings.Default.sha;
             string repo = Settings.Default.repo;
@@ -69,20 +69,20 @@ namespace LanguageUpdate
             List<Root>? json = RimHttpClient.GetGithubJson(repo);
             string currentSha = json[0].sha;
 
-            InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Ваша версия - {sha[..6]}, доступная версия - {currentSha[..6]}");
+            InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Ваша версия - {sha[..6]}, доступная версия - {currentSha[..6]}");
 
             if (currentSha == sha)
             {
-                InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Обновление не требуется");
+                InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Обновление не требуется");
                 return;
             }
 
             Stream stream = RimHttpClient.GetGithubArchive(repo);
-            InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Обновление загружено");
+            InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Обновление загружено");
             FastZip archive = new();
             string tempDir = "temp";
             archive.ExtractZip(stream, tempDir, FastZip.Overwrite.Always, null, null, null, true, true, true);
-            InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Обновление извлечено");
+            InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Обновление извлечено");
             stream.Close();
 
             string[] baseDir = Directory.GetDirectories(tempDir);
@@ -93,36 +93,29 @@ namespace LanguageUpdate
                 if (dirEntry.EndsWith("Biotech", comparison))
                 {
                     FolderUpdate("Biotech", dirEntry);
-                    InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Biotech обновлено");
+                    InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Biotech обновлено");
                 }
                 else if (dirEntry.EndsWith("Core", comparison))
                 {
                     FolderUpdate("Core", dirEntry);
-                    InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Игра обновлена");
+                    InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Игра обновлена");
                 }
                 else if (dirEntry.EndsWith("Ideology", comparison))
                 {
                     FolderUpdate("Ideology", dirEntry);
-                    InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Ideology обновлено");
+                    InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Ideology обновлено");
                 }
                 else if (dirEntry.EndsWith("Royalty", comparison))
                 {
                     FolderUpdate("Royalty", dirEntry);
-                    InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Royalty обновлено");
+                    InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Royalty обновлено");
                 }
             }
             Directory.Delete(tempDir, true);
-            InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Успешно обновлено!");
+            InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Успешно обновлено!");
 
             Settings.Default["sha"] = currentSha;
             Settings.Default.Save();
-        }
-
-        private static string PlaceTime()
-        {
-            DateTime time = DateTime.Now;
-            string result = time.ToString("HH:mm:ss", CultureInfo.InvariantCulture) + " - ";
-            return result;
         }
 
         private static void FolderUpdate(string type, string tempPath)

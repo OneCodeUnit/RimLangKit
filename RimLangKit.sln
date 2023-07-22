@@ -4,6 +4,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.4.33213.308
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RimLangKit", "RimLangKit.csproj", "{1EA90D52-515C-4EAB-B106-F25FDA2826BD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B866E1D5-E876-476B-8C13-E0726F0317C7} = {B866E1D5-E876-476B-8C13-E0726F0317C7}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LanguageUpdate", "LanguageUpdate\LanguageUpdate.csproj", "{445BFC05-BEFF-45B7-BC3E-CE028494D86A}"
 EndProject
