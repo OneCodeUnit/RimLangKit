@@ -6,18 +6,12 @@
 # Для пользователей
 
 ## Системные требования
-
-### Основная версия программы (LanguageUpdate.exe)
-+ Windows 10 (версия 1607) и новее
-+ [.Net 7](https://dotnet.microsoft.com/en-us/download) (любой вариант)
-
-### Версия для старых систем (LanguageUpdateLegacy.zip)
-+ Windows 10 (версия 1903) и новее
-
-или
-
-+ Windows 7 и новее
-+ [.NET Framework 4.8](https://dotnet.microsoft.com/en-us/download/dotnet-framework) (любой вариант)
+| Версия  | Windows (минимальная) | .Net |
+| ------------- | ------------- | ------------- |
+| LanguageUpdate.exe | Windows 10 (версия 1607) | [.Net 7](https://dotnet.microsoft.com/en-us/download) (любой вариант) |
+| LanguageUpdate.7z | Windows 10 (версия 1607) | - |
+| LanguageUpdateLegacy.7z | Windows 10 (версия 1903) | - |
+| LanguageUpdateLegacy.7z | Windows 7 | [.NET Framework 4.8](https://dotnet.microsoft.com/en-us/download/dotnet-framework) (любой вариант) |
 
 ## [Скачать программу](https://github.com/OneCodeUnit/RimLangKit/releases/latest)
 
@@ -39,9 +33,13 @@
 # Для переводчиков
 
 ## Системные требования
-+ Windows 10 (версия 1607) и новее
-+ [.Net 7](https://dotnet.microsoft.com/en-us/download) (любой вариант)
-+ Для создания Case, Plural и Gender файлов потребуется до 800 Мбайт ОЗУ.
+| Версия  | Windows (минимальная) | .Net |
+| ------------- | ------------- | ------------- |
+| RimLangKit.exe | Windows 10 (версия 1607) | [.Net 7](https://dotnet.microsoft.com/en-us/download) (любой вариант) |
+| RimLangKit.7z | Windows 10 (версия 1607) | - |
+
+Для создания Case, Plural и Gender файлов потребуется до 800 Мбайт ОЗУ.
+## [Скачать программу](https://github.com/OneCodeUnit/RimLangKit/releases/latest)
 
 ## Работа программы
 Программа позволяет выбрать папку и применить ко всем файлам в ней одно из действий:
