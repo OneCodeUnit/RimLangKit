@@ -145,7 +145,7 @@
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             AutoScroll = true;
-            ClientSize = new Size(660, 586);
+            ClientSize = new Size(660, 413);
             Controls.Add(ButtonEncoding);
             Controls.Add(ButtonCase);
             Controls.Add(ButtonDictionary);
@@ -156,6 +156,8 @@
             Controls.Add(FolderTextBox);
             Controls.Add(FolderButton);
             Icon = (Icon)resources.GetObject("$this.Icon");
+            MaximumSize = new Size(678, 460);
+            MinimumSize = new Size(678, 460);
             Name = "MainForm";
             Text = "RimWorld Language Kit by OliveWizard";
             ResumeLayout(false);

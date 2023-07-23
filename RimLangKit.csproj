@@ -58,10 +58,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="TranslationKitLib\TranslationKitLib.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="dictionary.txt">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>

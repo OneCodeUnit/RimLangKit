@@ -1,6 +1,5 @@
 ﻿using Cyriller;
 using Cyriller.Model;
-using System.IO;
 using System.Xml.Linq;
 
 namespace RimLangKit
@@ -102,7 +101,7 @@ namespace RimLangKit
             return words;
         }
 
-        internal static void CreateCase(string directoryPath, List<string> words, string defType)
+        internal static void CreateCase(string directoryPath, Dictionary<string, string> words, string defType)
         {
             string path = directoryPath + CasePath;
             Directory.CreateDirectory(path); // Созданиие директории, которая наверняка отсутствует
@@ -110,16 +109,19 @@ namespace RimLangKit
             StreamWriter writerCase = new(path, true, System.Text.Encoding.UTF8);
             writerCase.WriteLine("// " + defType);
 
-            foreach (string word in words)
+            foreach(var word in words)
             {
+                if (word.Value != defType)
+                    continue;
+
                 string[] declinations;
-                if (word.Contains('-') || word.Contains(' '))
+                if (word.Key.Contains('-') || word.Key.Contains(' '))
                 {
-                    declinations = DeclensionComposite(word);
+                    declinations = DeclensionComposite(word.Key);
                 }
                 else
                 {
-                    declinations = Declension(word);
+                    declinations = Declension(word.Key);
                 }
 
                 // Case.txt
@@ -134,7 +136,7 @@ namespace RimLangKit
             writerCase.Close();
         }
 
-        internal static void CreateGender(string directoryPath, List<string> words, string defType)
+        internal static void CreateGender(string directoryPath, Dictionary<string, string> words, string defType)
         {
             string pathPlural = directoryPath + CasePath + "\\Plural.txt";
             StreamWriter writerPlural = new(pathPlural, true, System.Text.Encoding.UTF8);
@@ -159,38 +161,41 @@ namespace RimLangKit
             StreamWriter writerUndefined = new(pathGenderUndefined, true, System.Text.Encoding.UTF8);
             writerUndefined.WriteLine("// " + defType);
 
-            foreach (string word in words)
+            foreach (var word in words)
             {
+                if (word.Value != defType)
+                    continue;
+
                 string[] attributes;
-                if (word.Contains('-') || word.Contains(' '))
+                if (word.Key.Contains('-') || word.Key.Contains(' '))
                 {
-                    attributes = AttributesComposite(word);
+                    attributes = AttributesComposite(word.Key);
                 }
                 else
                 {
-                    attributes = Attributes(word);
+                    attributes = Attributes(word.Key);
                 }
 
                 // Plural.txt
-                string tempStringPlural = $"{word}; {attributes[0]}";
+                string tempStringPlural = $"{word.Key}; {attributes[0]}";
                 writerPlural.WriteLine(tempStringPlural);
                 // Gender.txt
                 switch (attributes[1])
                 {
                     case "Feminine":
-                        writerFemale.WriteLine(word);
+                        writerFemale.WriteLine(word.Key);
                         break;
                     case "Masculine":
-                        writerMale.WriteLine(word);
+                        writerMale.WriteLine(word.Key);
                         break;
                     case "Neuter":
-                        writerNeuter.WriteLine(word);
+                        writerNeuter.WriteLine(word.Key);
                         break;
                     case "Undefined":
-                        writerUndefined.WriteLine(word);
+                        writerUndefined.WriteLine(word.Key);
                         break;
                     case "Composite":
-                        writerUndefined.WriteLine(word);
+                        writerUndefined.WriteLine(word.Key);
                         break;
                 }
             }

@@ -4,9 +4,8 @@ namespace RimLangKit
 {
     internal static class TextTranslit
     {
-        internal static (bool, string) TextTranslitProcessing(string currentFile, bool mode)
+        internal static bool TextTranslitProcessing(string currentFile, bool mode, TextBox textBox)
         {
-            string error = string.Empty;
             CultureInfo culture = CultureInfo.CurrentCulture;
             StringComparison comparison = StringComparison.OrdinalIgnoreCase;
             //Чтение файла словаря
@@ -17,15 +16,15 @@ namespace RimLangKit
             }
             catch
             {
-                error = "Не удалось открыть словарь.";
-                return (false, error);
+                textBox.AppendText($"{Environment.NewLine}Не удалось открыть словарь.");
+                return false;
             }
 
             //Без повторной обработки файлов
             if (currentFile.EndsWith("_NEW.txt", comparison))
             {
-                error = "Пропуск созданного ранее файла.";
-                return (false, error);
+                textBox.AppendText($"{Environment.NewLine}Пропуск созданного ранее файла.");
+                return false;
             }
 
             //Перенос строк
@@ -170,7 +169,7 @@ namespace RimLangKit
             //Завершение работы
             sourceText.Close();
             translatedText.Close();
-            return (true, error);
+            return true;
         }
 
         private static string SetLine(string? line)

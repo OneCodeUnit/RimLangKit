@@ -1,15 +1,11 @@
-﻿using System.IO;
-using System.Windows.Forms;
-using TranslationKitLib;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+﻿using System.Collections.Generic;
+using System.Globalization;
 
 namespace RimLangKit
 {
     public partial class MainForm : Form
     {
         private static string DirectoryPath = string.Empty;
-        private static readonly string[] DefTypeList = { "AbilityDef", "BodyDef", "BodyPartDef", "BodyPartGroupDef", "FactionDef", "HediffDef", "MemeDef", "OrderedTakeGroupDef", "PawnCapacityDef", "PawnKindDef", "SitePartDef", "StyleCategoryDef", "ThingDef", "ToolCapacityDef", "WorldObjectDef", "SkillDef" };
-        private static bool IsStarted = false;
 
         public MainForm()
         {
@@ -55,38 +51,36 @@ namespace RimLangKit
 
         private void ButtonENGIsert_Click(object sender, EventArgs e)
         {
-            InfoTextBox.Text = string.Empty;
-            InfoTextBox.AppendText("Старт");
-            (int, int) count = (0, 0);
-            (int, int) tempCount;
+            InfoTextBox.Text = $"{PlaceTime()}Добавление комментариев";
             //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
             string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
-
+            int count = 0;
+            int errCount = 0;
+            bool result;
             foreach (string tempFile in allFiles)
             {
-                tempCount = ResultProcessing(CommentInsert.CommentsInsertProcessing(tempFile));
-                count.Item1 += tempCount.Item1;
-                count.Item2 += tempCount.Item2;
+                result = CommentInsert.CommentsInsertProcessing(tempFile, InfoTextBox);
+                if (result) count++;
+                else errCount++;
             }
-            InfoTextBox.AppendText(Environment.NewLine + "Обработано: " + count.Item1 + ". Пропущено: " + count.Item2);
+            InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Успешно завершено. Обработано файлов - {count}, пропущено - {errCount}");
         }
 
         private void ButtonUniqueNames_Click(object sender, EventArgs e)
         {
-            InfoTextBox.Text = string.Empty;
-            InfoTextBox.AppendText("Старт");
-            (int, int) count = (0, 0);
-            (int, int) tempCount;
+            InfoTextBox.Text = $"{PlaceTime()}Переименование файлов";
             //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
             string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
-
+            int count = 0;
+            int errCount = 0;
+            bool result;
             foreach (string tempFile in allFiles)
             {
-                tempCount = ResultProcessing(UniqueNames.UniqueNamesProcessing(tempFile));
-                count.Item1 += tempCount.Item1;
-                count.Item2 += tempCount.Item2;
+                result = UniqueNames.UniqueNamesProcessing(tempFile, InfoTextBox);
+                if (result) count++;
+                else errCount++;
             }
-            InfoTextBox.AppendText(Environment.NewLine + "Обработано: " + count.Item1 + ". Пропущено: " + count.Item2);
+            InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Успешно завершено. Обработано файлов - {count}, пропущено - {errCount}");
         }
 
         private void ButtonDictionary_Click(object sender, EventArgs e)
@@ -94,47 +88,30 @@ namespace RimLangKit
 
             DialogResult answer = MessageBox.Show("Нажмите «Да» для транкрипции с английского на русский и «Нет» для обратной.", "Выбор языка", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
             bool mode = answer == DialogResult.Yes;
-            InfoTextBox.Text = string.Empty;
-            InfoTextBox.AppendText("Старт");
-            (int, int) count = (0, 0);
-            (int, int) tempCount;
+            InfoTextBox.Text = $"{PlaceTime()}Транскрипция файлов";
+            int count = 0;
+            int errCount = 0;
+            bool result;
             //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
             string[] allFiles = Directory.GetFiles(DirectoryPath, "*.txt", SearchOption.AllDirectories);
 
             foreach (string tempFile in allFiles)
             {
-                tempCount = ResultProcessing(TextTranslit.TextTranslitProcessing(tempFile, mode));
-                count.Item1 += tempCount.Item1;
-                count.Item2 += tempCount.Item2;
+                result = TextTranslit.TextTranslitProcessing(tempFile, mode, InfoTextBox);
+                if (result) count++;
+                else errCount++;
             }
-            InfoTextBox.AppendText(Environment.NewLine + "Обработано: " + count.Item1 + ". Пропущено: " + count.Item2);
-        }
-
-        // Обработка ошибок. Позволяется выводить полученные от функции сообщения
-        private (int, int) ResultProcessing((bool, string) result)
-        {
-            int processedCount = 0;
-            int skipCount = 0;
-            if (result.Item1)
-            {
-                processedCount++;
-            }
-            else
-            {
-                skipCount++;
-                InfoTextBox.AppendText(Environment.NewLine);
-                InfoTextBox.AppendText(result.Item2);
-            }
-            return (processedCount, skipCount);
+            InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Успешно завершено. Обработано файлов - {count}, пропущено - {errCount}");
         }
 
         private void ButtonCase_Click(object sender, EventArgs e)
         {
-            InfoTextBox.Text = string.Empty;
-            InfoTextBox.AppendText("Старт");
+            InfoTextBox.Text = $"{PlaceTime()}Создание вспомогательных файлов";
+            string[] defTypeList = { "ThingDef", "PawnKindDef", "AbilityDef", "BodyDef", "BodyPartDef", "BodyPartGroupDef", "FactionDef", "HediffDef", "MemeDef", "OrderedTakeGroupDef", "PawnCapacityDef", "SitePartDef", "StyleCategoryDef", "ToolCapacityDef", "WorldObjectDef", "SkillDef" };
             //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
             string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
-            List<string> words = new();
+            Dictionary<string, string> words = new();
+            //List<string> words = new();
 
             // Поиск подходящей директории
             string directory;
@@ -147,41 +124,44 @@ namespace RimLangKit
                 directory = DirectoryPath;
             }
 
-            int globalCount = 0;
+            int typeCount = 0;
             // Проверяется каждый подходящий DefType из списка
-            foreach (string defType in DefTypeList)
+            foreach (string defType in defTypeList)
             {
                 int count = 0;
                 foreach (string tempFile in allFiles)
                 {
                     // Каждый файл проверяется на соотвествие этому типу. Если не соотвествует, возвращает пустой список
                     List<string> tempWords = CaseCreate.FindWordsProcessing(tempFile, defType);
-                    words.AddRange(tempWords);
-                    count += tempWords.Count;
+                    foreach (string word in tempWords)
+                    {
+                        bool result = words.TryAdd(word, defType);
+                        if (result) { count++; }
+                    }
                 }
                 // Если нашлись слова в данном DefType, то создаются файлы
                 if (count > 0)
                 {
-                    globalCount++;
-                    InfoTextBox.AppendText(Environment.NewLine + $"Обработано {count} объектов типа {defType}");
                     CaseCreate.CreateCase(directory, words, defType);
                     CaseCreate.CreateGender(directory, words, defType);
+                    InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Обработано {count} объектов типа {defType}");
+                    typeCount++;
                 }
             }
-            if (globalCount > 0)
+            if (typeCount > 0)
             {
-                InfoTextBox.AppendText(Environment.NewLine + $"Созданы файлы по адресу {directory}\\Languages\\Russian\\WordInfo");
+                InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Созданы файлы по адресу {directory}\\Languages\\Russian\\WordInfo");
             }
             else
             {
-                InfoTextBox.AppendText(Environment.NewLine + "Ничего не создано");
+                InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Файлы не созданы");
             }
-            InfoTextBox.AppendText(Environment.NewLine + "Завершено");
+            InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Завершено");
         }
 
         private void ButtonEncoding_Click(object sender, EventArgs e)
         {
-            InfoTextBox.Text = $"{Messages.PlaceTime()}Исправление кодировки";
+            InfoTextBox.Text = $"{PlaceTime()}Исправление кодировки";
             string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
             int count = 0;
             foreach (string tempFile in allFiles)
@@ -189,7 +169,14 @@ namespace RimLangKit
                 EncodingFix.EncodingFixProcessing(tempFile, InfoTextBox);
                 count++;
             }
-            InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Успешно завершено. Обработано файлов - {count}");
+            InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Успешно завершено. Обработано файлов - {count}");
+        }
+
+        public static string PlaceTime()
+        {
+            DateTime time = DateTime.Now;
+            string result = time.ToString("HH:mm:ss", CultureInfo.InvariantCulture) + " - ";
+            return result;
         }
     }
 }

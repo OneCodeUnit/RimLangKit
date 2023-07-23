@@ -1,12 +1,12 @@
-﻿using System.Xml.Linq;
+﻿using System.Xml;
+using System.Xml.Linq;
 
 namespace RimLangKit
 {
     internal static class CommentInsert
     {
-        internal static (bool, string) CommentsInsertProcessing(string currentFile)
+        internal static bool CommentsInsertProcessing(string currentFile, TextBox textBox)
         {
-            string error = string.Empty;
             //Позволяет избежать падения при загрузке сломанного .xml файла
             try
             {
@@ -14,23 +14,23 @@ namespace RimLangKit
             }
             catch
             {
-                error = "Не удалось загрузить файл " + currentFile;
-                return (false, error);
+                textBox.AppendText($"{Environment.NewLine}Не удалось загрузить файл {currentFile}");
+                return false;
             }
 
             XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
             //Позволяет избежать обработки пустого или не содержащего нужных тегов файла
             if (xDoc.Element("LanguageData") is null)
             {
-                error = "Не удалось найти LanguageData " + currentFile;
-                return (false, error);
+                textBox.AppendText($"{Environment.NewLine}Не удалось найти LanguageData {currentFile}");
+                return false;
             }
             //Перевод контекста в содержимое тега LanguageData
             XElement? root = xDoc.Element("LanguageData");
             if (root?.Elements() is null)
             {
-                error = "Тег LanguageData пуст " + currentFile;
-                return (false, error);
+                textBox.AppendText($"{Environment.NewLine}Тег LanguageData пуст  {currentFile}");
+                return false;
             }
 
             foreach (XElement node in root.Elements())
@@ -38,7 +38,7 @@ namespace RimLangKit
                 //Получение содержимого текущего тега
                 string content = node.Value;
                 //Создание комментария с ним
-                TranslationKitLib.XRaw comment = new("<!-- EN: " + content + " -->\n\t");
+                XRaw comment = new("<!-- EN: " + content + " -->\n\t");
                 //Добавление этого комментария перед текущим тегом
                 node.AddBeforeSelf(comment);
             }
@@ -47,7 +47,19 @@ namespace RimLangKit
 
             //Сохранение файла
             xDoc.Save(currentFile);
-            return (true, error);
+            return true;
+        }
+    }
+
+    //Класс, в котором описывается не до конца понятный мне трюк, позволяющий вписывать специальные символы «как есть»
+    internal class XRaw : XText
+    {
+        public XRaw(string text) : base(text) { }
+        public XRaw(XText text) : base(text) { }
+
+        public override void WriteTo(XmlWriter writer)
+        {
+            writer.WriteRaw(Value);
         }
     }
 }
