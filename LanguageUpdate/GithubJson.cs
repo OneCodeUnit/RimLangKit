@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace TranslationKitLib
+﻿namespace LanguageUpdate
 {
+#pragma warning disable IDE1006, CA1707, CS8600, CS8603, CS8604, CS8618
     public class Author
     {
         public string name { get; set; }
@@ -97,4 +95,5 @@ namespace TranslationKitLib
         public string signature { get; set; }
         public string payload { get; set; }
     }
+#pragma warning restore IDE1006, CA1707, CS8600, CS8603, CS8604, CS8618
 }

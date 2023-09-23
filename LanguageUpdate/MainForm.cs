@@ -1,6 +1,4 @@
-﻿using ICSharpCode.SharpZipLib.Zip;
-using System.Globalization;
-using TranslationKitLib;
+﻿using System.IO.Compression;
 
 namespace LanguageUpdate
 {
@@ -67,6 +65,11 @@ namespace LanguageUpdate
 
             // Проверка обновлений
             List<Root>? json = RimHttpClient.GetGithubJson(repo);
+            if (json is null)
+            {
+                InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Ошибка получения данных с GitHub");
+                return;
+            }
             string currentSha = json[0].sha;
 
             InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Ваша версия - {sha[..6]}, доступная версия - {currentSha[..6]}");
@@ -76,43 +79,60 @@ namespace LanguageUpdate
                 InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Обновление не требуется");
                 return;
             }
-
-            Stream stream = RimHttpClient.GetGithubArchive(repo);
+            // Получения списка дополнений
+            string[] modules = Directory.GetDirectories($"{DirectoryPath}\\Data");
+            if (modules.Length == 0) 
+            {
+                InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}В указанной папке не обнаружены модули");
+                return;
+            }
+            for (int i = 0; i < modules.Length; i++)
+            {
+                modules[i] = modules[i].Replace($"{DirectoryPath}\\Data\\", string.Empty);
+            }
+            // Получение файлов перевода
+            Stream? stream = RimHttpClient.GetGithubArchive(repo);
+            if (stream is null)
+            {
+                InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Ошибка получения файлов с GitHub");
+                return;
+            }
             InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Обновление загружено");
-            FastZip archive = new();
             string tempDir = "temp";
-            archive.ExtractZip(stream, tempDir, FastZip.Overwrite.Always, null, null, null, true, true, true);
+            ZipArchive zipArchive = new (stream);
+            if (Directory.Exists(tempDir))
+            {
+                Directory.Delete(tempDir, true);
+            }
+            zipArchive.ExtractToDirectory(tempDir);
             InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Обновление извлечено");
             stream.Close();
 
             string[] baseDir = Directory.GetDirectories(tempDir);
             string[] dir = Directory.GetDirectories(baseDir[0]);
             StringComparison comparison = StringComparison.OrdinalIgnoreCase;
+            bool ok;
             foreach (string dirEntry in dir)
             {
-                if (dirEntry.EndsWith("Biotech", comparison))
+                ok = false;
+                foreach (string module in modules)
                 {
-                    FolderUpdate("Biotech", dirEntry);
-                    InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Biotech обновлено");
+                    if (dirEntry.EndsWith(module, comparison))
+                    {
+                        FolderUpdate(module, dirEntry);
+                        InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Модуль {module} обновлён");
+                        ok = true;
+                        break;
+                    }
                 }
-                else if (dirEntry.EndsWith("Core", comparison))
+                if ((!dirEntry.EndsWith("RimWorldUniverse", comparison)) && (ok == false))
                 {
-                    FolderUpdate("Core", dirEntry);
-                    InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Игра обновлена");
-                }
-                else if (dirEntry.EndsWith("Ideology", comparison))
-                {
-                    FolderUpdate("Ideology", dirEntry);
-                    InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Ideology обновлено");
-                }
-                else if (dirEntry.EndsWith("Royalty", comparison))
-                {
-                    FolderUpdate("Royalty", dirEntry);
-                    InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Royalty обновлено");
+                    string module = dirEntry.Replace($"{baseDir[0]}\\", string.Empty);
+                    InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Не найден модуль {module}");
                 }
             }
             Directory.Delete(tempDir, true);
-            InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Успешно обновлено!");
+            InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Обновление завершено!");
 
             Settings.Default["sha"] = currentSha;
             Settings.Default.Save();
@@ -160,24 +180,44 @@ namespace LanguageUpdate
             RepoInput.Text = Settings.Default.repo;
             LanguageInput.Text = Settings.Default.language;
             FolderTextBox.Text = DirectoryPath;
+            InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Сохранённые настройки возвращены к исходным значениям");
         }
 
         private void ResetButton_Click(object sender, EventArgs e)
         {
             string language = Settings.Default.language;
-            string biotechFolder = $"{DirectoryPath}\\Data\\Biotech\\Languages\\{language}";
-            string coreFolder = $"{DirectoryPath}\\Data\\Core\\Languages\\{language}";
-            string ideologyFolder = $"{DirectoryPath}\\Data\\Ideology\\Languages\\{language}";
-            string royaltyFolder = $"{DirectoryPath}\\Data\\Royalty\\Languages\\{language}";
-            DialogResult res = MessageBox.Show($"Будут удалены следующие папки:{Environment.NewLine}{biotechFolder}{Environment.NewLine}{coreFolder}{Environment.NewLine}{ideologyFolder}{Environment.NewLine}{royaltyFolder}", "Подтверждение", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
+            // Получения списка дополнений
+            string[] modules = Directory.GetDirectories($"{DirectoryPath}\\Data");
+            if (modules.Length == 0)
+            {
+                InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}В указанной папке не обнаружены модули");
+                return;
+            }
+            string resultString = "Будут удалены следующие папки:";
+            for (int i = 0; i < modules.Length; i++)
+            {
+                modules[i] += $"\\Languages\\{language}";
+                resultString += $"{Environment.NewLine}{modules[i]}";
+            }
+            DialogResult res = MessageBox.Show(resultString, "Подтверждение", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
             if (res == DialogResult.OK)
             {
                 Settings.Default["sha"] = "00000000";
-                Directory.Delete(biotechFolder, true);
-                Directory.Delete(coreFolder, true);
-                Directory.Delete(ideologyFolder, true);
-                Directory.Delete(royaltyFolder, true);
+                Settings.Default.Save();
+                for (int i = 0; i < modules.Length; i++)
+                {
+                    if (Directory.Exists(modules[i]))
+                    {
+                        Directory.Delete(modules[i], true);
+                        InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Папка {modules[i]} удалена");
+                    }
+                    else
+                    {
+                        InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Папка {modules[i]} не найдена");
+                    }
+                }
             }
+            InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Удаление перевода завершено!");
         }
     }
 }

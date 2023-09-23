@@ -1,7 +1,6 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 
-namespace TranslationKitLib
+namespace LanguageUpdate
 {
     public class Messages
     {
