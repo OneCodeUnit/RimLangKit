@@ -7,6 +7,8 @@ namespace TagCollector
         static List<string> Tags = new();
         static List<string> Defs = new();
         static Dictionary<string, List<string>> TagList = new();
+        static Dictionary<string, int> TagSpread = new();
+        static Dictionary<string, int> DefsSpread = new();
 
         static void Main()
         {
@@ -47,13 +49,13 @@ namespace TagCollector
             }
 
             // Вывод в консоль
-            foreach (string def in Defs)
-            {
-                Console.WriteLine($"**{def}**");
-                List<string> tag = TagList[def];
-                tag.ForEach(Console.WriteLine);
-                Console.WriteLine();
-            }
+            //foreach (string def in Defs)
+            //{
+            //    Console.WriteLine($"**{def}**");
+            //    List<string> tag = TagList[def];
+            //    tag.ForEach(Console.WriteLine);
+            //    Console.WriteLine();
+            //}
 
             // Запись в файл
             StreamWriter sw = new(Path.Combine(Directory.GetCurrentDirectory() + "\\TagsByDefs.txt"), false);
@@ -71,6 +73,31 @@ namespace TagCollector
             StreamWriter swDefs = new(Path.Combine(Directory.GetCurrentDirectory() + "\\UniqueDefs.txt"), false);
             Defs.ForEach(swDefs.WriteLine);
             swDefs.Close();
+
+            // Статистика по тегам
+            var spreadList = TagSpread.ToList();
+            spreadList.Sort((pair1, pair2) => pair1.Value.CompareTo(pair2.Value));
+            spreadList.Reverse();
+            StreamWriter swSpread = new(Path.Combine(Directory.GetCurrentDirectory() + "\\SpreadTags.txt"), false);
+            foreach (var spread in spreadList)
+            {
+                if (spread.Value > 1)
+                    swSpread.WriteLine($"{spread.Key} - {spread.Value}");
+            }
+            swSpread.Close();
+
+            // Статистика по дефам
+            var defSpreadList = DefsSpread.ToList();
+            defSpreadList.Sort((pair1, pair2) => pair1.Value.CompareTo(pair2.Value));
+            defSpreadList.Reverse();
+            StreamWriter swDefSpread = new(Path.Combine(Directory.GetCurrentDirectory() + "\\SpreadDefs.txt"), false);
+            foreach (var spread in defSpreadList)
+            {
+                if (spread.Value > 1)
+                    swDefSpread.WriteLine($"{spread.Key} - {spread.Value}");
+            }
+            swDefSpread.Close();
+
             Console.WriteLine($"Результат записан в файлы TagsByDefs.txt, UniqueTags.txt, UniqueDefs.txt папки {Directory.GetCurrentDirectory()}");
             Console.ReadKey();
         }
@@ -82,6 +109,11 @@ namespace TagCollector
             if (!Defs.Contains(def))
             {
                 Defs.Add(def);
+                DefsSpread.Add(def, 1);
+            }
+            else
+            {
+                DefsSpread[def]++;
             }
             if (!TagList.ContainsKey(def))
             {
@@ -93,6 +125,11 @@ namespace TagCollector
         // Поиск тегов в текущем файле
         static bool TagSearch(string currentFile, string def)
         {
+            if (currentFile.Contains("LoadFolders.xml", StringComparison.OrdinalIgnoreCase) || currentFile.Contains("About.xml", StringComparison.OrdinalIgnoreCase) || currentFile.Contains("Keyed.xml", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
             // Позволяет избежать падения при загрузке сломанного .xml файла
             try
             {
@@ -108,15 +145,8 @@ namespace TagCollector
             //Позволяет избежать обработки пустого или не содержащего нужных тегов файла
             if (xDoc.Element("LanguageData") is null)
             {
-                if (currentFile.Contains("LoadFolders.xml", StringComparison.OrdinalIgnoreCase) || currentFile.Contains("About.xml", StringComparison.OrdinalIgnoreCase))
-                {
-                    return false;
-                }
-                else
-                {
-                    Console.WriteLine($"Не удалось найти LanguageData {currentFile}");
-                    return false;
-                }
+                Console.WriteLine($"Не удалось найти LanguageData {currentFile}");
+                return false;
             }
             //Перевод контекста в содержимое тега LanguageData
             XElement? root = xDoc.Element("LanguageData");
@@ -136,6 +166,11 @@ namespace TagCollector
                     if (!Tags.Contains(content))
                     {
                         Tags.Add(content);
+                        TagSpread.Add(content, 1);
+                    }
+                    else
+                    {
+                        TagSpread[content]++;
                     }
                     List<string> checkTag = TagList[def];
                     if (!checkTag.Contains(content))
