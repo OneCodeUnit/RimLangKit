@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace RimLangKit
 {
-    internal class EncodingFix
+    internal sealed class EncodingFix
     {
         internal static void EncodingFixProcessing(string currentFile, TextBox textBox)
         {

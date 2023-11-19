@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 
 namespace RimLangKit
 {
@@ -107,7 +106,7 @@ namespace RimLangKit
         private void ButtonCase_Click(object sender, EventArgs e)
         {
             InfoTextBox.Text = $"{PlaceTime()}Создание вспомогательных файлов";
-            string[] defTypeList = { "ThingDef", "PawnKindDef", "AbilityDef", "BodyDef", "BodyPartDef", "BodyPartGroupDef", "FactionDef", "HediffDef", "MemeDef", "OrderedTakeGroupDef", "PawnCapacityDef", "SitePartDef", "StyleCategoryDef", "ToolCapacityDef", "WorldObjectDef", "SkillDef" };
+            string[] defTypeList = ["AbilityDef", "BodyDef", "BodyPartDef", "BodyPartGroupDef", "ChemicalDef", "FactionDef", "HediffDef", "MemeDef", "MentalBreakDef", "MentalFitDef", "MentalStateDef", "OrderedTakeGroupDef", "PawnCapacityDef", "PawnKindDef", "ScenarioDef", "SitePartDef", "SkillDef", "StyleCategoryDef", "ThingDef", "ToolCapacityDef", "WorldObjectDef", "XenotypeDef"];
             //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
             string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
             Dictionary<string, string> words = new();

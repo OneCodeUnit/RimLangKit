@@ -8,10 +8,8 @@
 ## Системные требования
 | Версия  | Windows (минимальная) | .Net |
 | ------------- | ------------- | ------------- |
-| LanguageUpdate.exe | Windows 10 (версия 1607) | [.Net 7](https://dotnet.microsoft.com/en-us/download) (любой вариант) |
+| LanguageUpdate.exe | Windows 10 (версия 1607) | [.Net 8](https://dotnet.microsoft.com/en-us/download) (любой вариант) |
 | LanguageUpdate.7z | Windows 10 (версия 1607) | - |
-| LanguageUpdateLegacy.7z | Windows 10 (версия 1903) | - |
-| LanguageUpdateLegacy.7z | Windows 7 | [.NET Framework 4.8](https://dotnet.microsoft.com/en-us/download/dotnet-framework) (любой вариант) |
 
 ## [Скачать программу](https://github.com/OneCodeUnit/RimLangKit/releases/latest)
 
@@ -20,7 +18,6 @@
 Для работы необходимо указать путь до корневой папки с игрой (та, где есть папка "Data" и файл "RimWorldWin64.exe"), а потом выбрать в игре язык "Russian (GitHub)" вместо "Russian (Русский)".
 
 Преимущества по сравнению с [консольным скриптом](https://github.com/asidsx/RimWorldRuslangAutoUpdater/blob/main/auto.bat) заключаются в том, что:
-+ Работает со всеми версиями Windows, начиная с Windows 7
 + Ничего не скачивает, если нет новой версии
 + Не записывает данные лишний раз
 + Может использоваться для обновления не только русской локализации игры
@@ -35,7 +32,7 @@
 ## Системные требования
 | Версия  | Windows (минимальная) | .Net |
 | ------------- | ------------- | ------------- |
-| RimLangKit.exe | Windows 10 (версия 1607) | [.Net 7](https://dotnet.microsoft.com/en-us/download) (любой вариант) |
+| RimLangKit.exe | Windows 10 (версия 1607) | [.Net 8](https://dotnet.microsoft.com/en-us/download) (любой вариант) |
 | RimLangKit.7z | Windows 10 (версия 1607) | - |
 
 Для создания Case, Plural и Gender файлов потребуется до 800 Мбайт ОЗУ.

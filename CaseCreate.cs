@@ -23,7 +23,7 @@ namespace RimLangKit
             }
             catch 
             {
-                string[] result = { word, word, word, word, word, word };
+                string[] result = [word, word, word, word, word, word];
                 return result;
             }
         }
@@ -38,7 +38,7 @@ namespace RimLangKit
             }
             catch
             {
-                string[] result = { word, word, word, word, word, word };
+                string[] result = [word, word, word, word, word, word];
                 return result;
             }
         }
@@ -50,12 +50,12 @@ namespace RimLangKit
             {
                 CyrNoun nouns = cyrNounCollection.Get(word, out string foundWord, out CasesEnum @case, out NumbersEnum number);
                 string[] result = nouns.DeclinePlural().ToArray();
-                string[] attributes = { result[0], nouns.Gender.ToString() };
+                string[] attributes = [result[0], nouns.Gender.ToString()];
                 return attributes;
             }
             catch
             {
-                string[] attributes = { word, "Undefined" };
+                string[] attributes = [word, "Undefined"];
                 return attributes;
             }
         }
@@ -65,12 +65,12 @@ namespace RimLangKit
             {
                 CyrResult nouns = cyrPhrase.DeclinePlural(word, GetConditionsEnum.Similar);
                 string[] result = nouns.ToArray();
-                string[] attributes = { result[0], "Composite" };
+                string[] attributes = [result[0], "Composite"];
                 return attributes;
             }
             catch
             {
-                string[] attributes = { word, "Undefined" };
+                string[] attributes = [word, "Undefined"];
                 return attributes;
             }
         }
@@ -80,6 +80,7 @@ namespace RimLangKit
             XDocument xDoc = XDocument.Load(file, LoadOptions.PreserveWhitespace);
             XElement? root = xDoc.Element("LanguageData");
             List<string> words = new();
+            if (root is null) { return words; }
             foreach (XElement node in root.Elements())
             {
                 if (node.Name.ToString().EndsWith("label", StringComparison.OrdinalIgnoreCase) || node.Name.ToString().EndsWith("chargeNoun", StringComparison.OrdinalIgnoreCase))
