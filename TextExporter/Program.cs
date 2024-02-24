@@ -1,4 +1,6 @@
-﻿using System.Xml.Linq;
+﻿using System;
+using System.Xml.Linq;
+using System.Xml.Serialization;
 
 namespace TextExporter
 {
@@ -15,32 +17,31 @@ namespace TextExporter
 
         static void Main()
         {
-            Console.WriteLine("Путь к папке мода:");
+            //Console.WriteLine("Путь к папке мода:");
             //string? modPath = Console.ReadLine();
-            string? modPath = "C:\\Users\\inqui\\Desktop\\2975771801";
-            if (modPath == null)
-            {
-                Console.WriteLine("Путь не введён");
-                return;
-            }
-            if (!Directory.Exists(modPath))
-            {
-                Console.WriteLine("Папка не существует");
-                return;
-            }
-            string[] allDirectories = Directory.GetDirectories(modPath, "defs", SearchOption.AllDirectories);
-            string? defPath = allDirectories.OrderBy(directory => directory.Length).FirstOrDefault();
-            if (defPath == null)
-            {
-                Console.WriteLine("defs не найдена");
-                return;
-            }
+            //if (modPath == null)
+            //{
+            //    Console.WriteLine("Путь не введён");
+            //    return;
+            //}
+            //if (!Directory.Exists(modPath))
+            //{
+            //    Console.WriteLine("Папка не существует");
+            //    return;
+            //}
+            //string[] allDirectories = Directory.GetDirectories(modPath, "defs", SearchOption.AllDirectories);
+            //string? defPath = allDirectories.OrderBy(directory => directory.Length).FirstOrDefault();
+            //if (defPath == null)
+            //{
+            //    Console.WriteLine("defs не найдена");
+            //    return;
+            //}
 
-            string[] allFiles = Directory.GetFiles(defPath, "*.xml", SearchOption.AllDirectories);
+            //string[] allFiles = Directory.GetFiles(defPath, "*.xml", SearchOption.AllDirectories);
             int count = 0;
             int errCount = 0;
             bool result;
-            result = FindDefs("C:\\Users\\inqui\\Desktop\\2975771801\\1.4\\Defs\\DamageDefs\\Damages_Misc.xml");
+            result = FindDefs("C:\\Users\\inqui\\Desktop\\Новая папка\\GeneDefs_Aging.xml");
             //foreach (string tempFile in allFiles)
             //{
             //    result = FindDefs(tempFile);
@@ -70,45 +71,35 @@ namespace TextExporter
                 Console.WriteLine($"Не удалось найти Defs {currentFile}");
                 return false;
             }
-            // Перевод контекста в тег Defs
+            // Проверка Defs
             XElement? root = xDoc.Element("Defs");
             if (root?.Elements() is null)
             {
                 Console.WriteLine($"Тег Defs пуст {currentFile}");
                 return false;
             }
-            // Перевод контекста в Def класс
-            foreach (var defClass in root.Elements())
+            // Выгрузка тегов
+            FileStream fs = new (currentFile, FileMode.OpenOrCreate);
+            XmlSerializer serializer = new (typeof(Defs));
+            Defs? tags = (Defs?)serializer.Deserialize(fs);
+
+            // Сложно. Как это сделать?
+            foreach (var def in tags.GeneDef) 
             {
-                Dictionary<string, string> block = new();
-                string currentDefClass = defClass.Name.ToString();
-                // Поиск типичных тегов
-                if (TagsToDefs.ContainsKey(currentDefClass))
-                {
-                    // Перевод контекста в Def тег
-                    foreach (var tag in defClass.Elements())
-                    {
-                        // Поиск нужных тегов
-                        if (TagsToDefs[currentDefClass].Contains(tag.Name.ToString()))
-                            block.Add(tag.Name.ToString(), tag.Value.ToString());
-                    }
-                }
-                else
-                {
-                    foreach (var tag in defClass.Elements())
-                    {
-                        if (CommonTags.Contains(tag.Name.ToString()))
-                            block.Add(tag.Name.ToString(), tag.Value.ToString());
-                    }
-                }
-                // Запуск дополнительной логики
 
-                // Сохранение в файл
-                if (block.Count > 2)
-                {
-
-                }
             }
+
+
+
+            Console.WriteLine(tags);
+
+
+
+
+
+
+
+
             return true;
         }
     }
