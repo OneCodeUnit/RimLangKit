@@ -26,6 +26,7 @@ namespace RimLangKit
             if (Declaration is null)
             {
                 BrokenFiles.Add(currentFile, "Отсутствует декларация");
+                return false;
             }
             else if (!Declaration.StartsWith("<?xml version=\"1.0\" encoding=\"utf-8\"", StringComparison.OrdinalIgnoreCase))
             {

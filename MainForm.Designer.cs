@@ -53,9 +53,9 @@
             VersionLabel.AutoSize = true;
             VersionLabel.Location = new Point(654, 9);
             VersionLabel.Name = "VersionLabel";
-            VersionLabel.Size = new Size(82, 20);
+            VersionLabel.Size = new Size(93, 20);
             VersionLabel.TabIndex = 12;
-            VersionLabel.Text = "Версия 3.3";
+            VersionLabel.Text = "Версия 3.3.1";
             // 
             // FolderButton
             // 
