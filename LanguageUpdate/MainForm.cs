@@ -1,4 +1,5 @@
-﻿using System.IO.Compression;
+﻿using System.Diagnostics;
+using System.IO.Compression;
 
 namespace LanguageUpdate
 {
@@ -81,7 +82,7 @@ namespace LanguageUpdate
             }
             // Получения списка дополнений
             string[] modules = Directory.GetDirectories($"{DirectoryPath}\\Data");
-            if (modules.Length == 0) 
+            if (modules.Length == 0)
             {
                 InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}В указанной папке не обнаружены модули");
                 return;
@@ -99,7 +100,7 @@ namespace LanguageUpdate
             }
             InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Обновление загружено");
             string tempDir = "temp";
-            ZipArchive zipArchive = new (stream);
+            ZipArchive zipArchive = new(stream);
             if (Directory.Exists(tempDir))
             {
                 Directory.Delete(tempDir, true);
@@ -218,6 +219,70 @@ namespace LanguageUpdate
                 }
             }
             InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Удаление перевода завершено!");
+        }
+
+        private void LinkLabelInfo_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            LinkLabelGithub.LinkVisited = true;
+            try
+            {
+                Process.Start(new ProcessStartInfo { FileName = @"https://github.com/OneCodeUnit/RimLangKit/blob/master/README.md", UseShellExecute = true });
+            }
+            catch
+            {
+                MessageBox.Show("Сайт не открылся :(");
+            }
+        }
+
+        private void LinkLabelGithub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            LinkLabelGithub.LinkVisited = true;
+            try
+            {
+                Process.Start(new ProcessStartInfo { FileName = @"https://github.com/OneCodeUnit/RimLangKit/releases/latest", UseShellExecute = true });
+            }
+            catch
+            {
+                InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Сайт не открылся :(");
+            }
+        }
+
+        private void ButtonProgramUpdate_Click(object sender, EventArgs e)
+        {
+            // Проверка обновлений
+            Root? json = RimHttpClient.GetGithubVersionJson();
+            if (json is null)
+            {
+                InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Ошибка получения данных с GitHub");
+                return;
+            }
+            string newVersion = json.tag_name.ToString()[1..];
+            string? oldVersion = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Version?.ToString();
+            if (oldVersion is null || oldVersion.Length < 5)
+            {
+                InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Неправильная версия программы");
+                return;
+            }
+            else
+            {
+                oldVersion = oldVersion[..5];
+            }
+            if (oldVersion.EndsWith(".0", StringComparison.OrdinalIgnoreCase))
+            {
+                oldVersion = oldVersion[..^2];
+            }
+            InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Ваша версия - {oldVersion}, доступная версия - {newVersion}");
+
+            if (oldVersion == newVersion)
+            {
+                InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Обновление не требуется");
+                LinkLabelGithub.Visible = false;
+            }
+            else
+            {
+                InfoTextBox.AppendText($"{Environment.NewLine}{Messages.PlaceTime()}Доступна новая версия программы. Её можно скачать на GitHub по ссылке");
+                LinkLabelGithub.Visible = true;
+            }
         }
     }
 }

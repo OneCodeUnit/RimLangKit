@@ -9,7 +9,7 @@
     <StartupObject>LanguageUpdate.Program</StartupObject>
     <PlatformTarget>x64</PlatformTarget>
     <ApplicationIcon>logo.ico</ApplicationIcon>
-    <Version>$(VersionPrefix)3.2.1</Version>
+    <Version>$(VersionPrefix)3.3</Version>
     <Authors>OliveWizard</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/OneCodeUnit/RimLangKit</RepositoryUrl>

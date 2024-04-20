@@ -1,8 +1,8 @@
 ﻿using System.Xml.Linq;
 
-namespace TagCollector
+namespace RimLangKit
 {
-    internal class Program
+    internal sealed class TagCollector
     {
         static List<string> Tags = new();
         static List<string> Defs = new();
@@ -10,34 +10,8 @@ namespace TagCollector
         static Dictionary<string, int> TagSpread = new();
         static Dictionary<string, int> DefsSpread = new();
 
-        static void Main()
+        internal static void WriteTags(TextBox textBox)
         {
-            Console.WriteLine("Путь к папке с извлечёнными xml:");
-            string? DirectoryPath = Console.ReadLine();
-            if (DirectoryPath == null)
-            {
-                Console.WriteLine("Путь не введён");
-                return;
-            }
-            if (!Directory.Exists(DirectoryPath))
-            {
-                Console.WriteLine("Папка не существует");
-                return;
-            }
-            // Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
-            string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
-            int count = 0;
-            int errCount = 0;
-            bool result;
-            foreach (string tempFile in allFiles)
-            {
-                string def = CheckDef(tempFile);
-                result = TagSearch(tempFile, def);
-                if (result) count++;
-                else errCount++;
-            }
-            Console.WriteLine($"Успешно завершено. Обработано файлов - {count}, пропущено - {errCount}");
-
             // Удаление пустых
             foreach (KeyValuePair<string, List<string>> tag in TagList)
             {
@@ -47,15 +21,6 @@ namespace TagCollector
                     Defs.Remove(tag.Key);
                 }
             }
-
-            // Вывод в консоль
-            //foreach (string def in Defs)
-            //{
-            //    Console.WriteLine($"**{def}**");
-            //    List<string> tag = TagList[def];
-            //    tag.ForEach(Console.WriteLine);
-            //    Console.WriteLine();
-            //}
 
             // Запись в файл
             StreamWriter sw = new(Path.Combine(Directory.GetCurrentDirectory() + "\\TagsByDefs.txt"), false);
@@ -98,11 +63,15 @@ namespace TagCollector
             }
             swDefSpread.Close();
 
-            Console.WriteLine($"Результат записан в файлы TagsByDefs.txt, UniqueTags.txt, UniqueDefs.txt папки {Directory.GetCurrentDirectory()}");
-            Console.ReadKey();
+            textBox.AppendText($"{Environment.NewLine}Результат записан в файлы TagsByDefs.txt, UniqueTags.txt, UniqueDefs.txt папки {Directory.GetCurrentDirectory()}");
+            TagList.Clear();
+            TagSpread.Clear();
+            DefsSpread.Clear();
+            Tags.Clear();
+            Defs.Clear();
         }
 
-        static string CheckDef(string currentFile)
+        internal static string CheckDef(string currentFile)
         {
             string[] path = currentFile.Split('\\');
             string def = path[^2];
@@ -123,7 +92,7 @@ namespace TagCollector
         }
 
         // Поиск тегов в текущем файле
-        static bool TagSearch(string currentFile, string def)
+        internal static bool TagSearch(string currentFile, string def, TextBox textBox)
         {
             if (currentFile.Contains("LoadFolders.xml", StringComparison.OrdinalIgnoreCase) || currentFile.Contains("About.xml", StringComparison.OrdinalIgnoreCase) || currentFile.Contains("Keyed.xml", StringComparison.OrdinalIgnoreCase))
             {
@@ -137,7 +106,7 @@ namespace TagCollector
             }
             catch
             {
-                Console.WriteLine($"Не удалось загрузить файл {currentFile}");
+                textBox.AppendText($"{Environment.NewLine}Не удалось загрузить файл {currentFile}");
                 return false;
             }
             XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
@@ -145,14 +114,14 @@ namespace TagCollector
             //Позволяет избежать обработки пустого или не содержащего нужных тегов файла
             if (xDoc.Element("LanguageData") is null)
             {
-                Console.WriteLine($"Не удалось найти LanguageData {currentFile}");
+                textBox.AppendText($"{Environment.NewLine}Не удалось найти LanguageData {currentFile}");
                 return false;
             }
             //Перевод контекста в содержимое тега LanguageData
             XElement? root = xDoc.Element("LanguageData");
             if (root?.Elements() is null)
             {
-                Console.WriteLine($"Тег LanguageData пуст {currentFile}");
+                textBox.AppendText($"{Environment.NewLine}Тег LanguageData пуст {currentFile}");
                 return false;
             }
 
@@ -185,7 +154,7 @@ namespace TagCollector
                 }
                 else
                 {
-                    Console.WriteLine($"Неправильный тег? {content} в {currentFile}");
+                    textBox.AppendText($"{Environment.NewLine}Неправильный тег? {content} в {currentFile}");
                 }
             }
             return true;

@@ -37,6 +37,9 @@
             LanguageInput = new TextBox();
             DefaultButton = new Button();
             ResetButton = new Button();
+            ButtonProgramUpdate = new Button();
+            LinkLabelGithub = new LinkLabel();
+            LinkLabelInfo = new LinkLabel();
             SuspendLayout();
             // 
             // FolderButton
@@ -53,7 +56,7 @@
             // FolderTextBox
             // 
             FolderTextBox.AllowDrop = true;
-            FolderTextBox.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            FolderTextBox.Font = new Font("Segoe UI", 12F);
             FolderTextBox.Location = new Point(16, 17);
             FolderTextBox.Margin = new Padding(4);
             FolderTextBox.Name = "FolderTextBox";
@@ -90,7 +93,7 @@
             // RepoInput
             // 
             RepoInput.AllowDrop = true;
-            RepoInput.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            RepoInput.Font = new Font("Segoe UI", 12F);
             RepoInput.Location = new Point(13, 298);
             RepoInput.Margin = new Padding(4);
             RepoInput.Name = "RepoInput";
@@ -101,7 +104,7 @@
             // LanguageInput
             // 
             LanguageInput.AllowDrop = true;
-            LanguageInput.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            LanguageInput.Font = new Font("Segoe UI", 12F);
             LanguageInput.Location = new Point(13, 340);
             LanguageInput.Margin = new Padding(4);
             LanguageInput.Name = "LanguageInput";
@@ -131,10 +134,47 @@
             ResetButton.UseVisualStyleBackColor = true;
             ResetButton.Click += ResetButton_Click;
             // 
+            // ButtonProgramUpdate
+            // 
+            ButtonProgramUpdate.Location = new Point(13, 240);
+            ButtonProgramUpdate.Margin = new Padding(4);
+            ButtonProgramUpdate.Name = "ButtonProgramUpdate";
+            ButtonProgramUpdate.Size = new Size(200, 50);
+            ButtonProgramUpdate.TabIndex = 13;
+            ButtonProgramUpdate.Text = "Новая версия";
+            ButtonProgramUpdate.UseVisualStyleBackColor = true;
+            ButtonProgramUpdate.Click += ButtonProgramUpdate_Click;
+            // 
+            // LinkLabelGithub
+            // 
+            LinkLabelGithub.AutoSize = true;
+            LinkLabelGithub.Location = new Point(130, 208);
+            LinkLabelGithub.Name = "LinkLabelGithub";
+            LinkLabelGithub.Size = new Size(83, 28);
+            LinkLabelGithub.TabIndex = 15;
+            LinkLabelGithub.TabStop = true;
+            LinkLabelGithub.Text = "Скачать";
+            LinkLabelGithub.Visible = false;
+            LinkLabelGithub.LinkClicked += LinkLabelGithub_LinkClicked;
+            // 
+            // LinkLabelInfo
+            // 
+            LinkLabelInfo.AutoSize = true;
+            LinkLabelInfo.Location = new Point(13, 208);
+            LinkLabelInfo.Name = "LinkLabelInfo";
+            LinkLabelInfo.Size = new Size(122, 28);
+            LinkLabelInfo.TabIndex = 17;
+            LinkLabelInfo.TabStop = true;
+            LinkLabelInfo.Text = "Инструкция";
+            LinkLabelInfo.LinkClicked += LinkLabelInfo_LinkClicked;
+            // 
             // MainForm
             // 
             AutoScaleMode = AutoScaleMode.None;
             ClientSize = new Size(782, 503);
+            Controls.Add(LinkLabelInfo);
+            Controls.Add(LinkLabelGithub);
+            Controls.Add(ButtonProgramUpdate);
             Controls.Add(ResetButton);
             Controls.Add(DefaultButton);
             Controls.Add(LanguageInput);
@@ -143,7 +183,7 @@
             Controls.Add(InfoTextBox);
             Controls.Add(FolderTextBox);
             Controls.Add(FolderButton);
-            Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point);
+            Font = new Font("Segoe UI", 12F);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(4);
@@ -164,5 +204,8 @@
         private TextBox LanguageInput;
         private Button DefaultButton;
         private Button ResetButton;
+        private Button ButtonProgramUpdate;
+        private LinkLabel LinkLabelGithub;
+        private LinkLabel LinkLabelInfo;
     }
 }

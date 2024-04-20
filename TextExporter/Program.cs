@@ -84,10 +84,10 @@ namespace TextExporter
             Defs? tags = (Defs?)serializer.Deserialize(fs);
 
             // Сложно. Как это сделать?
-            foreach (var def in tags.GeneDef) 
-            {
+            //foreach (var def in tags.GeneDef) 
+            //{
 
-            }
+            //}
 
 
 

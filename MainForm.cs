@@ -1,10 +1,14 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 
 namespace RimLangKit
 {
     public partial class MainForm : Form
     {
         private static string DirectoryPath = string.Empty;
+        bool FindChangesFirst = true;
+        string TranslationPath = string.Empty;
+        string ModPath = string.Empty;
 
         public MainForm()
         {
@@ -35,6 +39,9 @@ namespace RimLangKit
                 ButtonDictionary.Enabled = true;
                 ButtonCase.Enabled = true;
                 ButtonEncoding.Enabled = true;
+                ButtonTagCollector.Enabled = true;
+                ButtonFileFix.Enabled = true;
+                ButtonFindChanges.Enabled = true;
             }
             else
             {
@@ -45,64 +52,28 @@ namespace RimLangKit
                 ButtonDictionary.Enabled = false;
                 ButtonCase.Enabled = false;
                 ButtonEncoding.Enabled = false;
+                ButtonTagCollector.Enabled = false;
+                ButtonFileFix.Enabled = false;
+                ButtonFindChanges.Enabled = false;
             }
         }
 
+        private void ButtonEncoding_Click(object sender, EventArgs e)
+        {
+            ActionHandler("Исправление кодировки", 1);
+        }
         private void ButtonENGIsert_Click(object sender, EventArgs e)
         {
-            InfoTextBox.Text = $"{PlaceTime()}Добавление комментариев";
-            //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
-            string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
-            int count = 0;
-            int errCount = 0;
-            bool result;
-            foreach (string tempFile in allFiles)
-            {
-                result = CommentInsert.CommentsInsertProcessing(tempFile, InfoTextBox);
-                if (result) count++;
-                else errCount++;
-            }
-            InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Успешно завершено. Обработано файлов - {count}, пропущено - {errCount}");
+            ActionHandler("Добавление комментариев", 2);
         }
-
         private void ButtonUniqueNames_Click(object sender, EventArgs e)
         {
-            InfoTextBox.Text = $"{PlaceTime()}Переименование файлов";
-            //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
-            string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
-            int count = 0;
-            int errCount = 0;
-            bool result;
-            foreach (string tempFile in allFiles)
-            {
-                result = UniqueNames.UniqueNamesProcessing(tempFile, InfoTextBox);
-                if (result) count++;
-                else errCount++;
-            }
-            InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Успешно завершено. Обработано файлов - {count}, пропущено - {errCount}");
+            ActionHandler("Переименование файлов", 3);
         }
-
         private void ButtonDictionary_Click(object sender, EventArgs e)
         {
-
-            DialogResult answer = MessageBox.Show("Нажмите «Да» для транкрипции с английского на русский и «Нет» для обратной.", "Выбор языка", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
-            bool mode = answer == DialogResult.Yes;
-            InfoTextBox.Text = $"{PlaceTime()}Транскрипция файлов";
-            int count = 0;
-            int errCount = 0;
-            bool result;
-            //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
-            string[] allFiles = Directory.GetFiles(DirectoryPath, "*.txt", SearchOption.AllDirectories);
-
-            foreach (string tempFile in allFiles)
-            {
-                result = TextTranslit.TextTranslitProcessing(tempFile, mode, InfoTextBox);
-                if (result) count++;
-                else errCount++;
-            }
-            InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Успешно завершено. Обработано файлов - {count}, пропущено - {errCount}");
+            ActionHandler("Транскрипция имён", 4);
         }
-
         private void ButtonCase_Click(object sender, EventArgs e)
         {
             InfoTextBox.Text = $"{PlaceTime()}Создание вспомогательных файлов";
@@ -157,18 +128,71 @@ namespace RimLangKit
             }
             InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Завершено");
         }
-
-        private void ButtonEncoding_Click(object sender, EventArgs e)
+        private void ButtonTagCollector_Click(object sender, EventArgs e)
         {
-            InfoTextBox.Text = $"{PlaceTime()}Исправление кодировки";
+            ActionHandler("Сбор статистики тегов", 5);
+        }
+        private void ButtonFileFix_Click(object sender, EventArgs e)
+        {
+            ActionHandler("Поиск сломанных файлов", 6);
+        }
+
+        private void ActionHandler(string name, int code)
+        {
+            InfoTextBox.Text = $"{PlaceTime()}{name}";
+            bool mode = false;
+            if (code == 4)
+            {
+                DialogResult answer = MessageBox.Show("Нажмите «Да» для транкрипции с английского на русский и «Нет» для обратной.", "Выбор языка", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+                mode = answer == DialogResult.Yes;
+            }
+            // Получение списка всех файлов в заданой папке и во всех вложенных подпапках за счёт SearchOption
             string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
             int count = 0;
+            int errCount = 0;
+            bool result = true;
             foreach (string tempFile in allFiles)
             {
-                EncodingFix.EncodingFixProcessing(tempFile, InfoTextBox);
-                count++;
+                switch (code)
+                {
+                    case 1:
+                        result = EncodingFix.EncodingFixProcessing(tempFile);
+                        break;
+                    case 2:
+                        result = CommentInsert.CommentsInsertProcessing(tempFile, InfoTextBox);
+                        break;
+                    case 3:
+                        result = UniqueNames.UniqueNamesProcessing(tempFile, InfoTextBox);
+                        break;
+                    case 4:
+                        result = TextTranslit.TextTranslitProcessing(tempFile, mode, InfoTextBox);
+                        break;
+                    case 5:
+                        string def = TagCollector.CheckDef(tempFile);
+                        result = TagCollector.TagSearch(tempFile, def, InfoTextBox);
+                        break;
+                    case 6:
+                        result = FileFix.FileFixProcessing(tempFile);
+                        break;
+                    default:
+                        break;
+                }
+                if (result) count++;
+                else errCount++;
             }
+            if (code == 5)
+            {
+                TagCollector.WriteTags(InfoTextBox);
+            }
+
             InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Успешно завершено. Обработано файлов - {count}");
+            if (errCount != 0)
+                InfoTextBox.AppendText($"{Environment.NewLine}Пропущено файлов - {errCount}");
+
+            if (code == 6)
+            {
+                FileFix.WriteBrokenFiles(InfoTextBox);
+            }
         }
 
         public static string PlaceTime()
@@ -176,6 +200,104 @@ namespace RimLangKit
             DateTime time = DateTime.Now;
             string result = time.ToString("HH:mm:ss", CultureInfo.InvariantCulture) + " - ";
             return result;
+        }
+
+        private void UpdateButton_Click(object sender, EventArgs e)
+        {
+            Root? json = HttpClient.GetGithubJson();
+            if (json != null)
+            {
+                string newVersion = json.tag_name[1..];
+                UpdateLabel.Text = $"Последняя {newVersion}";
+                string oldVersion = VersionLabel.Text[7..];
+                if (oldVersion == newVersion)
+                {
+                    UpdateButton.BackgroundImage = Properties.Resources.yes_c;
+                }
+                else
+                {
+                    UpdateButton.BackgroundImage = Properties.Resources.warn_c;
+                    LinkLabelGithub.Visible = true;
+                }
+
+            }
+            else
+            {
+                UpdateButton.BackgroundImage = Properties.Resources.no_c;
+                LinkLabelGithub.Visible = true;
+            }
+        }
+
+        private void LinkLabelGithub_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            LinkLabelGithub.LinkVisited = true;
+            try
+            {
+                Process.Start(new ProcessStartInfo { FileName = @"https://github.com/OneCodeUnit/RimLangKit/releases/latest", UseShellExecute = true });
+            }
+            catch
+            {
+                MessageBox.Show("Сайт не открылся :(");
+            }
+        }
+
+        private void LinkLabelInfo_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            LinkLabelGithub.LinkVisited = true;
+            try
+            {
+                Process.Start(new ProcessStartInfo { FileName = @"https://github.com/OneCodeUnit/RimLangKit/blob/master/README.md", UseShellExecute = true });
+            }
+            catch
+            {
+                MessageBox.Show("Сайт не открылся :(");
+            }
+        }
+
+        private void ButtonFindChanges_Click(object sender, EventArgs e)
+        {
+            if (FindChangesFirst)
+            {
+                TranslationPath = DirectoryPath;
+                InfoTextBox.AppendText($"{Environment.NewLine}Файлы перевода - {TranslationPath}.{Environment.NewLine}Выберите пусть к файлам мода.");
+                DirectoryPath = string.Empty;
+                FolderTextBox.Text = string.Empty;
+                FindChangesFirst = false;
+            }
+            else
+            {
+                ModPath = DirectoryPath;
+                InfoTextBox.AppendText($"{Environment.NewLine}Файлы перевода - {TranslationPath}.{Environment.NewLine}Файлы мода - {ModPath}");
+                DirectoryPath = TranslationPath;
+                FindChangesFirst = true;
+
+                InfoTextBox.Text = $"{PlaceTime()}Поиск изменений в переводе";
+                string[] allFiles = Directory.GetFiles(TranslationPath, "*.xml", SearchOption.AllDirectories);
+                int count = 0;
+                int errCount = 0;
+                bool result;
+                foreach (string tempFile in allFiles)
+                {
+                    result = FindChanges.GetTranslationData(tempFile, InfoTextBox);
+                    if (result) count++;
+                    else errCount++;
+                }
+                InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Собраны данные перевода. Обработано файлов - {count}.{Environment.NewLine}Пропущено файлов - {errCount}.");
+                
+                allFiles = Directory.GetFiles(ModPath, "*.xml", SearchOption.AllDirectories);
+                count = 0;
+                errCount = 0;
+                foreach (string tempFile in allFiles)
+                {
+                    result = FindChanges.GetModData(tempFile, InfoTextBox);
+                    if (result) count++;
+                    else errCount++;
+                }
+                InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Собраны исходные данные. Обработано файлов - {count}.{Environment.NewLine}Пропущено файлов - {errCount}.");
+
+                FindChanges.FindChangesInFiles();
+                FindChanges.WriteChanges(InfoTextBox);
+            }
         }
     }
 }

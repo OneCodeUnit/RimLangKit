@@ -26,9 +26,24 @@ namespace LanguageUpdate
             return json;
         }
 
+        public static Root? GetGithubVersionJson()
+        {
+            HttpResponseMessage response;
+            try
+            {
+                response = Client.GetAsync("https://api.github.com/repos/OneCodeUnit/RimLangKit/releases/latest").Result;
+            }
+            catch
+            {
+                return null;
+            }
+            string? text = response.Content.ReadAsStringAsync().Result;
+            Root? json = JsonSerializer.Deserialize<Root?>(text);
+            return json;
+        }
+
         public static Stream? GetGithubArchive(string repo)
         {
-            // HttpResponseMessage response = Client.GetAsync("https://api.github.com/repos/Ludeon/" + repo + "/zipball/master").Result;
             HttpResponseMessage response;
             try
             {

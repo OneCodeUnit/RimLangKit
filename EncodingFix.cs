@@ -5,7 +5,7 @@ namespace RimLangKit
 {
     internal sealed class EncodingFix
     {
-        internal static void EncodingFixProcessing(string currentFile, TextBox textBox)
+        internal static bool EncodingFixProcessing(string currentFile)
         {
             string text = File.ReadAllText(currentFile);
             // Замена табов на пробелы
@@ -21,6 +21,8 @@ namespace RimLangKit
             text = encoder.GetString(result);
 
             File.WriteAllText(currentFile, text);
+
+            return true;
         }
     }
 }

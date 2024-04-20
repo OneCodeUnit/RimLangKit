@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
+            VersionLabel = new Label();
             FolderButton = new Button();
             FolderTextBox = new TextBox();
             LabelCheck = new Label();
@@ -38,7 +39,23 @@
             ButtonDictionary = new Button();
             ButtonCase = new Button();
             ButtonEncoding = new Button();
+            UpdateButton = new Button();
+            UpdateLabel = new Label();
+            LinkLabelGithub = new LinkLabel();
+            ButtonTagCollector = new Button();
+            LinkLabelInfo = new LinkLabel();
+            ButtonFileFix = new Button();
+            ButtonFindChanges = new Button();
             SuspendLayout();
+            // 
+            // VersionLabel
+            // 
+            VersionLabel.AutoSize = true;
+            VersionLabel.Location = new Point(654, 9);
+            VersionLabel.Name = "VersionLabel";
+            VersionLabel.Size = new Size(82, 20);
+            VersionLabel.TabIndex = 12;
+            VersionLabel.Text = "Версия 3.3";
             // 
             // FolderButton
             // 
@@ -86,15 +103,14 @@
             InfoTextBox.AcceptsReturn = true;
             InfoTextBox.AcceptsTab = true;
             InfoTextBox.Location = new Point(248, 111);
-            InfoTextBox.MaximumSize = new Size(400, 290);
-            InfoTextBox.MinimumSize = new Size(400, 290);
+            InfoTextBox.MaximumSize = new Size(543, 488);
+            InfoTextBox.MinimumSize = new Size(543, 488);
             InfoTextBox.Multiline = true;
             InfoTextBox.Name = "InfoTextBox";
             InfoTextBox.ReadOnly = true;
             InfoTextBox.ScrollBars = ScrollBars.Vertical;
-            InfoTextBox.Size = new Size(400, 290);
+            InfoTextBox.Size = new Size(543, 488);
             InfoTextBox.TabIndex = 4;
-            InfoTextBox.Text = "Прогресс выполнения";
             // 
             // ButtonUniqueNames
             // 
@@ -140,12 +156,98 @@
             ButtonEncoding.UseVisualStyleBackColor = true;
             ButtonEncoding.Click += ButtonEncoding_Click;
             // 
+            // UpdateButton
+            // 
+            UpdateButton.BackColor = SystemColors.Control;
+            UpdateButton.BackgroundImage = Properties.Resources.wait_c;
+            UpdateButton.BackgroundImageLayout = ImageLayout.Center;
+            UpdateButton.FlatAppearance.BorderSize = 0;
+            UpdateButton.Location = new Point(654, 52);
+            UpdateButton.Name = "UpdateButton";
+            UpdateButton.Size = new Size(40, 40);
+            UpdateButton.TabIndex = 11;
+            UpdateButton.UseVisualStyleBackColor = false;
+            UpdateButton.Click += UpdateButton_Click;
+            // 
+            // UpdateLabel
+            // 
+            UpdateLabel.AutoSize = true;
+            UpdateLabel.Location = new Point(654, 29);
+            UpdateLabel.Name = "UpdateLabel";
+            UpdateLabel.Size = new Size(92, 20);
+            UpdateLabel.TabIndex = 13;
+            UpdateLabel.Text = "Последняя?";
+            // 
+            // LinkLabelGithub
+            // 
+            LinkLabelGithub.AutoSize = true;
+            LinkLabelGithub.Location = new Point(700, 52);
+            LinkLabelGithub.Name = "LinkLabelGithub";
+            LinkLabelGithub.Size = new Size(63, 20);
+            LinkLabelGithub.TabIndex = 14;
+            LinkLabelGithub.TabStop = true;
+            LinkLabelGithub.Text = "Скачать";
+            LinkLabelGithub.Visible = false;
+            LinkLabelGithub.LinkClicked += LinkLabelGithub_LinkClicked;
+            // 
+            // ButtonTagCollector
+            // 
+            ButtonTagCollector.Enabled = false;
+            ButtonTagCollector.Location = new Point(12, 407);
+            ButtonTagCollector.Name = "ButtonTagCollector";
+            ButtonTagCollector.Size = new Size(230, 60);
+            ButtonTagCollector.TabIndex = 15;
+            ButtonTagCollector.Text = "Проанализировать теги";
+            ButtonTagCollector.UseVisualStyleBackColor = true;
+            ButtonTagCollector.Click += ButtonTagCollector_Click;
+            // 
+            // LinkLabelInfo
+            // 
+            LinkLabelInfo.AutoSize = true;
+            LinkLabelInfo.Location = new Point(700, 72);
+            LinkLabelInfo.Name = "LinkLabelInfo";
+            LinkLabelInfo.Size = new Size(91, 20);
+            LinkLabelInfo.TabIndex = 16;
+            LinkLabelInfo.TabStop = true;
+            LinkLabelInfo.Text = "Инструкция";
+            LinkLabelInfo.LinkClicked += LinkLabelInfo_LinkClicked;
+            // 
+            // ButtonFileFix
+            // 
+            ButtonFileFix.Enabled = false;
+            ButtonFileFix.Location = new Point(12, 473);
+            ButtonFileFix.Name = "ButtonFileFix";
+            ButtonFileFix.Size = new Size(230, 60);
+            ButtonFileFix.TabIndex = 17;
+            ButtonFileFix.Text = "Найти сломанные файлы";
+            ButtonFileFix.UseVisualStyleBackColor = true;
+            ButtonFileFix.Click += ButtonFileFix_Click;
+            // 
+            // ButtonFindChanges
+            // 
+            ButtonFindChanges.Enabled = false;
+            ButtonFindChanges.Location = new Point(12, 539);
+            ButtonFindChanges.Name = "ButtonFindChanges";
+            ButtonFindChanges.Size = new Size(230, 60);
+            ButtonFindChanges.TabIndex = 18;
+            ButtonFindChanges.Text = "Найти изменения текста";
+            ButtonFindChanges.UseVisualStyleBackColor = true;
+            ButtonFindChanges.Click += ButtonFindChanges_Click;
+            // 
             // MainForm
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
-            AutoScaleMode = AutoScaleMode.Font;
+            AutoScaleDimensions = new SizeF(120F, 120F);
+            AutoScaleMode = AutoScaleMode.Dpi;
             AutoScroll = true;
-            ClientSize = new Size(660, 413);
+            ClientSize = new Size(805, 611);
+            Controls.Add(ButtonFindChanges);
+            Controls.Add(ButtonFileFix);
+            Controls.Add(LinkLabelInfo);
+            Controls.Add(ButtonTagCollector);
+            Controls.Add(LinkLabelGithub);
+            Controls.Add(UpdateLabel);
+            Controls.Add(VersionLabel);
+            Controls.Add(UpdateButton);
             Controls.Add(ButtonEncoding);
             Controls.Add(ButtonCase);
             Controls.Add(ButtonDictionary);
@@ -156,8 +258,8 @@
             Controls.Add(FolderTextBox);
             Controls.Add(FolderButton);
             Icon = (Icon)resources.GetObject("$this.Icon");
-            MaximumSize = new Size(678, 460);
-            MinimumSize = new Size(678, 460);
+            MaximumSize = new Size(823, 658);
+            MinimumSize = new Size(823, 658);
             Name = "MainForm";
             Text = "RimWorld Language Kit by OliveWizard";
             ResumeLayout(false);
@@ -175,5 +277,13 @@
         private Button ButtonDictionary;
         private Button ButtonCase;
         private Button ButtonEncoding;
+        private Button UpdateButton;
+        private Label UpdateLabel;
+        private Label VersionLabel;
+        private LinkLabel LinkLabelGithub;
+        private Button ButtonTagCollector;
+        private LinkLabel LinkLabelInfo;
+        private Button ButtonFileFix;
+        private Button ButtonFindChanges;
     }
 }
