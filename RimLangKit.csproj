@@ -9,9 +9,9 @@
     <StartupObject>RimLangKit.Program</StartupObject>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
     <Platforms>x64</Platforms>
-    <ApplicationIcon>logo.ico</ApplicationIcon>
+    <ApplicationIcon>images\icon.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
-    <Version>$(VersionPrefix)3.3.1</Version>
+    <Version>$(VersionPrefix)3.4.0</Version>
     <RepositoryUrl>https://github.com/OneCodeUnit/RTK</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <NeutralLanguage>ru</NeutralLanguage>
@@ -22,31 +22,39 @@
     <PackageProjectUrl>https://github.com/OneCodeUnit/RimLangKit</PackageProjectUrl>
     <PackageTags>RimWorld, Translation, Localization, git, xml</PackageTags>
     <Title>Mod Translation Tool</Title>
+    <PackageIcon>icon.png</PackageIcon>
+    <Copyright>OliveWizard</Copyright>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <DebugType>full</DebugType>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <DebugType>full</DebugType>
+    <DebugType>embedded</DebugType>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="LanguageUpdateLegacy\**" />
     <Compile Remove="LanguageUpdate\**" />
+    <Compile Remove="RimLanguageCore\**" />
+    <Compile Remove="RimLanguageTest\**" />
     <Compile Remove="TagCollector\**" />
     <Compile Remove="TextExporter\**" />
     <Compile Remove="TranslationKitLib\**" />
     <Compile Remove="TranslationKit\**" />
     <EmbeddedResource Remove="LanguageUpdateLegacy\**" />
     <EmbeddedResource Remove="LanguageUpdate\**" />
+    <EmbeddedResource Remove="RimLanguageCore\**" />
+    <EmbeddedResource Remove="RimLanguageTest\**" />
     <EmbeddedResource Remove="TagCollector\**" />
     <EmbeddedResource Remove="TextExporter\**" />
     <EmbeddedResource Remove="TranslationKitLib\**" />
     <EmbeddedResource Remove="TranslationKit\**" />
     <None Remove="LanguageUpdateLegacy\**" />
     <None Remove="LanguageUpdate\**" />
+    <None Remove="RimLanguageCore\**" />
+    <None Remove="RimLanguageTest\**" />
     <None Remove="TagCollector\**" />
     <None Remove="TextExporter\**" />
     <None Remove="TranslationKitLib\**" />
@@ -54,7 +62,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="logo.ico" />
+    <Content Include="images\icon.ico" />
   </ItemGroup>
 
   <ItemGroup>
@@ -62,10 +70,19 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="RimLanguageCore\RimLanguageCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\Settings.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
   </ItemGroup>
 
@@ -80,9 +97,17 @@
     <None Update="dictionary.txt">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
+    <None Update="images\icon.png">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
     <None Update="LICENSE.txt">
       <Pack>True</Pack>
       <PackagePath>\</PackagePath>
+    </None>
+    <None Update="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <None Update="README.md">
       <Pack>True</Pack>

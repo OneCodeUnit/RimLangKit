@@ -1,11 +1,17 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
+using BlueMystic;
+using RimLangKit.Properties;
+using RimLanguageCore.Activities;
+using RimLanguageCore.Misc;
 
 namespace RimLangKit
 {
     public partial class MainForm : Form
     {
+        private DarkModeCS? DM;
         private static string DirectoryPath = string.Empty;
+        private static string GamePath = string.Empty;
         bool FindChangesFirst = true;
         string TranslationPath = string.Empty;
         string ModPath = string.Empty;
@@ -13,8 +19,50 @@ namespace RimLangKit
         public MainForm()
         {
             InitializeComponent();
+            // Установка темной темы
+            if (Settings.Default.darkTheme == true)
+                DM = new DarkModeCS(this);
+
+            // Установка версии программы
+            string? version = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Version?.ToString();
+            if (version is null || version.Length < 5)
+            {
+                InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Неправильная версия программы");
+            }
+            else
+            {
+                version = version[..5];
+                if (version.EndsWith(".0", StringComparison.OrdinalIgnoreCase))
+                    version = version[..^2];
+            }
+            VersionLabel.Text = "Версия " + version;
+
+            // Восстановление последней вкладки
+            if (Settings.Default.lastTab == true)
+                MainTabs.SelectTab(1);
+            else
+                MainTabs.SelectTab(0);
+
+            // Установка размера вкладок
+            MainTabs.SizeMode = TabSizeMode.Fixed;
+            MainTabs.ItemSize = new Size((MainTabs.Width / MainTabs.TabPages.Count) - 2, MainTabs.ItemSize.Height);
+
+            // Восстановление пути к папке игры
+            if (Directory.Exists(Settings.Default.savedDirectory))
+            {
+                GamePath = Settings.Default.savedDirectory;
+            }
+            else
+            {
+                GamePath = string.Empty;
+            }
+            FolderTextBox2.Text = GamePath;
+
+            LanguageInput.Text = Settings.Default.language;
+            RepoInput.Text = Settings.Default.repo;
         }
 
+        // Выбор папки и обработка изменения адреса папки
         private void FolderButton_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog ofd = new();
@@ -30,13 +78,13 @@ namespace RimLangKit
         {
             DirectoryPath = FolderTextBox.Text;
             // Кнопки доступны только, тогда, когда директория существует
-            if (Directory.Exists(FolderTextBox.Text))
+            if (Directory.Exists(FolderTextBox.Text) && !FolderTextBox.Text.Contains("294100"))
             {
                 LabelCheck.ForeColor = Color.Green;
                 LabelCheck.Text = "ОК";
                 ButtonENGIsert.Enabled = true;
-                ButtonUniqueNames.Enabled = true;
-                ButtonDictionary.Enabled = true;
+                FileRenamerButton.Enabled = true;
+                NamesTranslatorButton.Enabled = true;
                 ButtonCase.Enabled = true;
                 ButtonEncoding.Enabled = true;
                 ButtonTagCollector.Enabled = true;
@@ -46,10 +94,10 @@ namespace RimLangKit
             else
             {
                 LabelCheck.ForeColor = Color.Red;
-                LabelCheck.Text = "Ошибка: папка не найдена";
+                LabelCheck.Text = "Ошибка: некорректная папка";
                 ButtonENGIsert.Enabled = false;
-                ButtonUniqueNames.Enabled = false;
-                ButtonDictionary.Enabled = false;
+                FileRenamerButton.Enabled = false;
+                NamesTranslatorButton.Enabled = false;
                 ButtonCase.Enabled = false;
                 ButtonEncoding.Enabled = false;
                 ButtonTagCollector.Enabled = false;
@@ -58,6 +106,7 @@ namespace RimLangKit
             }
         }
 
+        #region жертвы для рефакторинга
         private void ButtonEncoding_Click(object sender, EventArgs e)
         {
             ActionHandler("Исправление кодировки", 1);
@@ -65,14 +114,6 @@ namespace RimLangKit
         private void ButtonENGIsert_Click(object sender, EventArgs e)
         {
             ActionHandler("Добавление комментариев", 2);
-        }
-        private void ButtonUniqueNames_Click(object sender, EventArgs e)
-        {
-            ActionHandler("Переименование файлов", 3);
-        }
-        private void ButtonDictionary_Click(object sender, EventArgs e)
-        {
-            ActionHandler("Транскрипция имён", 4);
         }
         private void ButtonCase_Click(object sender, EventArgs e)
         {
@@ -136,16 +177,9 @@ namespace RimLangKit
         {
             ActionHandler("Поиск сломанных файлов", 6);
         }
-
         private void ActionHandler(string name, int code)
         {
             InfoTextBox.Text = $"{PlaceTime()}{name}";
-            bool mode = false;
-            if (code == 4)
-            {
-                DialogResult answer = MessageBox.Show("Нажмите «Да» для транкрипции с английского на русский и «Нет» для обратной.", "Выбор языка", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
-                mode = answer == DialogResult.Yes;
-            }
             // Получение списка всех файлов в заданой папке и во всех вложенных подпапках за счёт SearchOption
             string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
             int count = 0;
@@ -160,12 +194,6 @@ namespace RimLangKit
                         break;
                     case 2:
                         result = CommentInsert.CommentsInsertProcessing(tempFile, InfoTextBox);
-                        break;
-                    case 3:
-                        result = UniqueNames.UniqueNamesProcessing(tempFile, InfoTextBox);
-                        break;
-                    case 4:
-                        result = TextTranslit.TextTranslitProcessing(tempFile, mode, InfoTextBox);
                         break;
                     case 5:
                         string def = TagCollector.CheckDef(tempFile);
@@ -194,36 +222,55 @@ namespace RimLangKit
                 FileFix.WriteBrokenFiles(InfoTextBox);
             }
         }
-
         public static string PlaceTime()
         {
             DateTime time = DateTime.Now;
             string result = time.ToString("HH:mm:ss", CultureInfo.InvariantCulture) + " - ";
             return result;
         }
+        #endregion
 
+        #region прочие объекты
         private void UpdateButton_Click(object sender, EventArgs e)
         {
             Root? json = HttpClient.GetGithubJson();
-            if (json != null)
+            if (json is null)
             {
-                string newVersion = json.tag_name[1..];
-                UpdateLabel.Text = $"Последняя {newVersion}";
-                string oldVersion = VersionLabel.Text[7..];
-                if (oldVersion == newVersion)
-                {
-                    UpdateButton.BackgroundImage = Properties.Resources.yes_c;
-                }
-                else
-                {
-                    UpdateButton.BackgroundImage = Properties.Resources.warn_c;
-                    LinkLabelGithub.Visible = true;
-                }
-
+                SendToInfoTextBox("Ошибка получения данных с GitHub");
+                UpdateButton.BackgroundImage = Properties.Resources.no_c;
+                LinkLabelGithub.Visible = true;
+                return;
+            }
+            string newVersion = json.tag_name.ToString()[1..];
+            string? oldVersion = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Version?.ToString();
+            if (oldVersion is null || oldVersion.Length < 5)
+            {
+                SendToInfoTextBox("Неправильная версия программы");
+                UpdateButton.BackgroundImage = Properties.Resources.warn_c;
+                LinkLabelGithub.Visible = true;
+                return;
             }
             else
             {
-                UpdateButton.BackgroundImage = Properties.Resources.no_c;
+                oldVersion = oldVersion[..5];
+            }
+            if (oldVersion.EndsWith(".0", StringComparison.OrdinalIgnoreCase))
+            {
+                oldVersion = oldVersion[..^2];
+            }
+            SendToInfoTextBox($"Ваша версия - {oldVersion}, доступная версия - {newVersion}");
+            UpdateLabel.Text = $"Последняя {newVersion}";
+
+            if (oldVersion == newVersion)
+            {
+                SendToInfoTextBox("Обновление не требуется");
+                UpdateButton.BackgroundImage = Properties.Resources.yes_c;
+                LinkLabelGithub.Visible = false;
+            }
+            else
+            {
+                SendToInfoTextBox("Доступна новая версия программы. Её можно скачать на GitHub по ссылке справа");
+                UpdateButton.BackgroundImage = Properties.Resources.warn_c;
                 LinkLabelGithub.Visible = true;
             }
         }
@@ -254,12 +301,84 @@ namespace RimLangKit
             }
         }
 
+        private void ButtonDarkMode_Click(object sender, EventArgs e)
+        {
+            if (Settings.Default.darkTheme == true)
+            {
+                Settings.Default["darkTheme"] = false;
+                SendToInfoTextBox("Хе-хе бой. Это светлая тема. Чтобы развидеть тёмную тему, перезапусти приложение.");
+            }
+            else
+            {
+                Settings.Default["darkTheme"] = true;
+                SendToInfoTextBox("Хе-хе бой. Это тёмная тема. Чтобы её увидеть, перезапусти приложение.");
+            }
+            Settings.Default.Save();
+        }
+
+        // Выбор текстового поля в зависимости от выбранной вкладки
+        private void SendToInfoTextBox(string text)
+        {
+            if (Settings.Default.lastTab == true)
+                InfoTextBox2.AppendText($"{Environment.NewLine}{text}");
+            else
+                InfoTextBox.AppendText($"{Environment.NewLine}{text}");
+        }
+
+        private void MainTabs_IndexChange(object sender, EventArgs e)
+        {
+            if (Settings.Default.lastTab == true)
+                Settings.Default["lastTab"] = false;
+            else
+                Settings.Default["lastTab"] = true;
+            Settings.Default.Save();
+        }
+        #endregion
+
+        #region кнопки функций
+        // Обработчик нажатий кнопок
+        private void ActionHandler(string name, string mask, string code)
+        {
+            InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Запуск: {name}");
+            // Получение списка всех файлов в заданой папке и во всех вложенных подпапках за счёт SearchOption
+            string[] allFiles = Directory.GetFiles(DirectoryPath, mask, SearchOption.AllDirectories);
+            int count = 0;
+            int errCount = 0;
+            (bool, string) result = (false, string.Empty);
+            foreach (string currentFile in allFiles)
+            {
+                switch (code)
+                {
+                    case "FileRenamer":
+                        result = FileRenamer.FileRenamerActivity(currentFile);
+                        break;
+                    case "NamesTranslator":
+                        result = NamesTranslator.NamesTranslatorActivity(currentFile);
+                        break;
+                    default:
+                        break;
+                }
+                if (result.Item1)
+                    count++;
+                else
+                {
+                    errCount++;
+                    InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}{result.Item2} ({currentFile})");
+                }
+            }
+
+            InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Завершено. Обработано файлов - {count}");
+            if (errCount != 0)
+                InfoTextBox.AppendText($"{Environment.NewLine}Пропущено файлов - {errCount}");
+        }
+
+        // Вызов обработчика из кнопок
         private void ButtonFindChanges_Click(object sender, EventArgs e)
         {
             if (FindChangesFirst)
             {
                 TranslationPath = DirectoryPath;
-                InfoTextBox.AppendText($"{Environment.NewLine}Файлы перевода - {TranslationPath}.{Environment.NewLine}Выберите пусть к файлам мода.");
+                InfoTextBox.AppendText($"{Environment.NewLine}Выбраны файлы перевода - {TranslationPath}.{Environment.NewLine}Теперь выберите путь к файлам мода.");
                 DirectoryPath = string.Empty;
                 FolderTextBox.Text = string.Empty;
                 FindChangesFirst = false;
@@ -267,7 +386,7 @@ namespace RimLangKit
             else
             {
                 ModPath = DirectoryPath;
-                InfoTextBox.AppendText($"{Environment.NewLine}Файлы перевода - {TranslationPath}.{Environment.NewLine}Файлы мода - {ModPath}");
+                InfoTextBox.AppendText($"{Environment.NewLine}Файлы перевода - {TranslationPath}.{Environment.NewLine}Выбраны файлы мода - {ModPath}");
                 DirectoryPath = TranslationPath;
                 FindChangesFirst = true;
 
@@ -283,7 +402,7 @@ namespace RimLangKit
                     else errCount++;
                 }
                 InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Собраны данные перевода. Обработано файлов - {count}.{Environment.NewLine}Пропущено файлов - {errCount}.");
-                
+
                 allFiles = Directory.GetFiles(ModPath, "*.xml", SearchOption.AllDirectories);
                 count = 0;
                 errCount = 0;
@@ -299,5 +418,148 @@ namespace RimLangKit
                 FindChanges.WriteChanges(InfoTextBox);
             }
         }
+
+        private void FileRenamerButton_Click(object sender, EventArgs e)
+        {
+            ActionHandler("Переименование файлов", "*.xml", "FileRenamer");
+        }
+
+        private void NamesTranslatorButton_Click(object sender, EventArgs e)
+        {
+            ActionHandler("Транскрипция имён", "*.txt", "NamesTranslator");
+        }
+        #endregion
+
+
+        #region обновление локализации
+        // Обновление локализации
+        private void ButtonLanguageUpdate_Click(object sender, EventArgs e)
+        {
+            InfoTextBox2.AppendText($"{TimeSetter.PlaceTime()}Запуск: обновление перевода игры");
+            (bool, string) result;
+            result = LanguageUpdater.TranslationVersionCheckActivity(Settings.Default.sha, Settings.Default.repo);
+            InfoTextBox2.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}{result.Item2}");
+            if (result.Item1 == false)
+                return;
+            result = LanguageUpdater.LanguageUpdateDownload(Settings.Default.repo);
+            InfoTextBox2.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}{result.Item2}");
+            if (result.Item1 == false)
+                return;
+
+            result = LanguageUpdater.LanguageUpdateActivity(GamePath, Settings.Default.language);
+            InfoTextBox2.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}{result.Item2}");
+            if (result.Item1 == false)
+                return;
+
+            Settings.Default["sha"] = LanguageUpdater.GetSha();
+            Settings.Default.Save();
+        }
+
+        // Удаление скачанного перевода
+        private void ResetButton_Click(object sender, EventArgs e)
+        {
+            // Получения списка дополнений
+            string[] modules = Directory.GetDirectories($"{GamePath}\\Data");
+            if (modules.Length == 0)
+            {
+                InfoTextBox2.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}В указанной папке не обнаружены модули");
+                return;
+            }
+            string resultString = "Будут удалены следующие папки:";
+            string language = Settings.Default.language;
+            for (int i = 0; i < modules.Length; i++)
+            {
+                modules[i] += $"\\Languages\\{language}";
+                resultString += $"{Environment.NewLine}{modules[i]}";
+            }
+            DialogResult res = MessageBox.Show(resultString, "Подтверждение", MessageBoxButtons.OKCancel, MessageBoxIcon.Information);
+            if (res == DialogResult.OK)
+            {
+                Settings.Default["sha"] = "00000000";
+                Settings.Default.Save();
+                for (int i = 0; i < modules.Length; i++)
+                {
+                    if (Directory.Exists(modules[i]))
+                    {
+                        Directory.Delete(modules[i], true);
+                        InfoTextBox2.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Папка {modules[i]} удалена");
+                    }
+                    else
+                    {
+                        InfoTextBox2.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Папка {modules[i]} не найдена");
+                    }
+                }
+                InfoTextBox2.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Удаление перевода завершено");
+            }
+            InfoTextBox2.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Удаление перевода отменено");
+        }
+
+        // Сброс настроек к значеним по умолчанию
+        private void DefaultButton_Click(object sender, EventArgs e)
+        {
+            Settings.Default["sha"] = "00000000";
+            Settings.Default["repo"] = "Ludeon/RimWorld-ru";
+            Settings.Default["language"] = "Russian (GitHub)";
+            Settings.Default["savedDirectory"] = "C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld";
+            Settings.Default.Save();
+
+            if (Directory.Exists("C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld"))
+            {
+                GamePath = Settings.Default.savedDirectory;
+            }
+            else
+            {
+                GamePath = string.Empty;
+            }
+            RepoInput.Text = Settings.Default.repo;
+            LanguageInput.Text = Settings.Default.language;
+            FolderTextBox2.Text = GamePath;
+            InfoTextBox2.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Настройки программы (перевода) сброшены к значениям по умолчанию");
+        }
+
+        private void RepoInput_TextChanged(object sender, EventArgs e)
+        {
+            Settings.Default["repo"] = "Ludeon/RimWorld-ru";
+            Settings.Default.Save();
+        }
+
+        private void LanguageInput_TextChanged(object sender, EventArgs e)
+        {
+            Settings.Default["language"] = "Russian (GitHub)";
+            Settings.Default.Save();
+        }
+
+        private void FolderButton2_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog ofd = new();
+            DialogResult dr = ofd.ShowDialog();
+            if (dr == DialogResult.OK)
+            {
+                GamePath = ofd.SelectedPath;
+                FolderTextBox2.Text = GamePath;
+            }
+        }
+
+        private void FolderTextBox2_TextChanged(object sender, EventArgs e)
+        {
+            string tempPath = FolderTextBox2.Text;
+            string path = $"{tempPath}\\Version.txt";
+            if (File.Exists(path))
+            {
+                ButtonLanguageUpdate.Enabled = true;
+                ResetButton.Enabled = true;
+                GamePath = tempPath;
+                Settings.Default["savedDirectory"] = tempPath;
+                Settings.Default.Save();
+                FolderButton2.BackColor = Color.FromArgb(154, 185, 115);
+            }
+            else
+            {
+                ButtonLanguageUpdate.Enabled = false;
+                ResetButton.Enabled = false;
+                FolderButton2.BackColor = Color.FromArgb(205, 92, 92);
+            }
+        }
+        #endregion
     }
 }

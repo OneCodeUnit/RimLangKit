@@ -153,7 +153,7 @@ namespace RimLangKit
             if (ModData.Count != 0)
             {
                 StreamWriter sw = new(Path.Combine(Directory.GetCurrentDirectory() + "\\ModData.txt"), false);
-                sw.WriteLine("==Строки только в моде (не обязательно ошибка)==");
+                sw.WriteLine("==Строки только в моде==");
                 foreach (var line in ModData)
                 {
                     sw.WriteLine($"{line.Key}: {line.Value}");
@@ -166,7 +166,7 @@ namespace RimLangKit
             if (TranslationData.Count != 0)
             {
                 StreamWriter sw = new(Path.Combine(Directory.GetCurrentDirectory() + "\\TranslationData.txt"), false);
-                sw.WriteLine("==Строки только в переводе (не обязательно ошибка)==");
+                sw.WriteLine("==Строки только в переводе==");
                 foreach (var line in TranslationData)
                 {
                     sw.WriteLine($"{line.Key}: {line.Value}");

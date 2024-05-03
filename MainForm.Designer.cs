@@ -35,8 +35,8 @@
             LabelCheck = new Label();
             ButtonENGIsert = new Button();
             InfoTextBox = new TextBox();
-            ButtonUniqueNames = new Button();
-            ButtonDictionary = new Button();
+            FileRenamerButton = new Button();
+            NamesTranslatorButton = new Button();
             ButtonCase = new Button();
             ButtonEncoding = new Button();
             UpdateButton = new Button();
@@ -46,22 +46,37 @@
             LinkLabelInfo = new LinkLabel();
             ButtonFileFix = new Button();
             ButtonFindChanges = new Button();
+            MainTabs = new TabControl();
+            tabPage1 = new TabPage();
+            tabPage2 = new TabPage();
+            ResetButton = new Button();
+            DefaultButton = new Button();
+            LanguageInput = new TextBox();
+            RepoInput = new TextBox();
+            ButtonLanguageUpdate = new Button();
+            InfoTextBox2 = new TextBox();
+            FolderTextBox2 = new TextBox();
+            FolderButton2 = new Button();
+            ButtonDarkMode = new Button();
+            MainTabs.SuspendLayout();
+            tabPage1.SuspendLayout();
+            tabPage2.SuspendLayout();
             SuspendLayout();
             // 
             // VersionLabel
             // 
             VersionLabel.AutoSize = true;
-            VersionLabel.Location = new Point(654, 9);
+            VersionLabel.Location = new Point(826, 9);
             VersionLabel.Name = "VersionLabel";
-            VersionLabel.Size = new Size(93, 20);
+            VersionLabel.Size = new Size(66, 20);
             VersionLabel.TabIndex = 12;
-            VersionLabel.Text = "Версия 3.3.1";
+            VersionLabel.Text = "Версия?";
             // 
             // FolderButton
             // 
-            FolderButton.Location = new Point(248, 45);
+            FolderButton.Location = new Point(653, 6);
             FolderButton.Name = "FolderButton";
-            FolderButton.Size = new Size(400, 60);
+            FolderButton.Size = new Size(141, 60);
             FolderButton.TabIndex = 0;
             FolderButton.Text = "Выбрать папку";
             FolderButton.UseVisualStyleBackColor = true;
@@ -70,7 +85,7 @@
             // FolderTextBox
             // 
             FolderTextBox.AllowDrop = true;
-            FolderTextBox.Location = new Point(12, 12);
+            FolderTextBox.Location = new Point(11, 13);
             FolderTextBox.MaximumSize = new Size(636, 27);
             FolderTextBox.MinimumSize = new Size(636, 27);
             FolderTextBox.Name = "FolderTextBox";
@@ -81,16 +96,16 @@
             // LabelCheck
             // 
             LabelCheck.AutoSize = true;
-            LabelCheck.Location = new Point(12, 42);
+            LabelCheck.Location = new Point(11, 43);
             LabelCheck.Name = "LabelCheck";
-            LabelCheck.Size = new Size(122, 20);
+            LabelCheck.Size = new Size(137, 23);
             LabelCheck.TabIndex = 2;
             LabelCheck.Text = "Выберите папку";
             // 
             // ButtonENGIsert
             // 
             ButtonENGIsert.Enabled = false;
-            ButtonENGIsert.Location = new Point(12, 77);
+            ButtonENGIsert.Location = new Point(11, 78);
             ButtonENGIsert.Name = "ButtonENGIsert";
             ButtonENGIsert.Size = new Size(230, 60);
             ButtonENGIsert.TabIndex = 3;
@@ -102,42 +117,42 @@
             // 
             InfoTextBox.AcceptsReturn = true;
             InfoTextBox.AcceptsTab = true;
-            InfoTextBox.Location = new Point(248, 111);
-            InfoTextBox.MaximumSize = new Size(543, 488);
-            InfoTextBox.MinimumSize = new Size(543, 488);
+            InfoTextBox.Location = new Point(247, 78);
+            InfoTextBox.MaximumSize = new Size(543, 522);
+            InfoTextBox.MinimumSize = new Size(543, 522);
             InfoTextBox.Multiline = true;
             InfoTextBox.Name = "InfoTextBox";
             InfoTextBox.ReadOnly = true;
             InfoTextBox.ScrollBars = ScrollBars.Vertical;
-            InfoTextBox.Size = new Size(543, 488);
+            InfoTextBox.Size = new Size(543, 522);
             InfoTextBox.TabIndex = 4;
             // 
-            // ButtonUniqueNames
+            // FileRenamerButton
             // 
-            ButtonUniqueNames.Enabled = false;
-            ButtonUniqueNames.Location = new Point(12, 143);
-            ButtonUniqueNames.Name = "ButtonUniqueNames";
-            ButtonUniqueNames.Size = new Size(230, 60);
-            ButtonUniqueNames.TabIndex = 6;
-            ButtonUniqueNames.Text = "Избавиться от одинаковых имён файлов";
-            ButtonUniqueNames.UseVisualStyleBackColor = true;
-            ButtonUniqueNames.Click += ButtonUniqueNames_Click;
+            FileRenamerButton.Enabled = false;
+            FileRenamerButton.Location = new Point(11, 144);
+            FileRenamerButton.Name = "FileRenamerButton";
+            FileRenamerButton.Size = new Size(230, 60);
+            FileRenamerButton.TabIndex = 6;
+            FileRenamerButton.Text = "Избавиться от одинаковых имён файлов";
+            FileRenamerButton.UseVisualStyleBackColor = true;
+            FileRenamerButton.Click += FileRenamerButton_Click;
             // 
-            // ButtonDictionary
+            // NamesTranslatorButton
             // 
-            ButtonDictionary.Enabled = false;
-            ButtonDictionary.Location = new Point(12, 209);
-            ButtonDictionary.Name = "ButtonDictionary";
-            ButtonDictionary.Size = new Size(230, 60);
-            ButtonDictionary.TabIndex = 7;
-            ButtonDictionary.Text = "Транскрипция имён";
-            ButtonDictionary.UseVisualStyleBackColor = true;
-            ButtonDictionary.Click += ButtonDictionary_Click;
+            NamesTranslatorButton.Enabled = false;
+            NamesTranslatorButton.Location = new Point(11, 210);
+            NamesTranslatorButton.Name = "NamesTranslatorButton";
+            NamesTranslatorButton.Size = new Size(230, 60);
+            NamesTranslatorButton.TabIndex = 7;
+            NamesTranslatorButton.Text = "Транскрипция имён";
+            NamesTranslatorButton.UseVisualStyleBackColor = true;
+            NamesTranslatorButton.Click += NamesTranslatorButton_Click;
             // 
             // ButtonCase
             // 
             ButtonCase.Enabled = false;
-            ButtonCase.Location = new Point(12, 275);
+            ButtonCase.Location = new Point(11, 276);
             ButtonCase.Name = "ButtonCase";
             ButtonCase.Size = new Size(230, 60);
             ButtonCase.TabIndex = 9;
@@ -148,7 +163,7 @@
             // ButtonEncoding
             // 
             ButtonEncoding.Enabled = false;
-            ButtonEncoding.Location = new Point(12, 341);
+            ButtonEncoding.Location = new Point(11, 342);
             ButtonEncoding.Name = "ButtonEncoding";
             ButtonEncoding.Size = new Size(230, 60);
             ButtonEncoding.TabIndex = 10;
@@ -162,7 +177,7 @@
             UpdateButton.BackgroundImage = Properties.Resources.wait_c;
             UpdateButton.BackgroundImageLayout = ImageLayout.Center;
             UpdateButton.FlatAppearance.BorderSize = 0;
-            UpdateButton.Location = new Point(654, 52);
+            UpdateButton.Location = new Point(826, 52);
             UpdateButton.Name = "UpdateButton";
             UpdateButton.Size = new Size(40, 40);
             UpdateButton.TabIndex = 11;
@@ -172,7 +187,7 @@
             // UpdateLabel
             // 
             UpdateLabel.AutoSize = true;
-            UpdateLabel.Location = new Point(654, 29);
+            UpdateLabel.Location = new Point(826, 29);
             UpdateLabel.Name = "UpdateLabel";
             UpdateLabel.Size = new Size(92, 20);
             UpdateLabel.TabIndex = 13;
@@ -181,7 +196,7 @@
             // LinkLabelGithub
             // 
             LinkLabelGithub.AutoSize = true;
-            LinkLabelGithub.Location = new Point(700, 52);
+            LinkLabelGithub.Location = new Point(872, 52);
             LinkLabelGithub.Name = "LinkLabelGithub";
             LinkLabelGithub.Size = new Size(63, 20);
             LinkLabelGithub.TabIndex = 14;
@@ -193,7 +208,7 @@
             // ButtonTagCollector
             // 
             ButtonTagCollector.Enabled = false;
-            ButtonTagCollector.Location = new Point(12, 407);
+            ButtonTagCollector.Location = new Point(11, 408);
             ButtonTagCollector.Name = "ButtonTagCollector";
             ButtonTagCollector.Size = new Size(230, 60);
             ButtonTagCollector.TabIndex = 15;
@@ -204,7 +219,7 @@
             // LinkLabelInfo
             // 
             LinkLabelInfo.AutoSize = true;
-            LinkLabelInfo.Location = new Point(700, 72);
+            LinkLabelInfo.Location = new Point(872, 72);
             LinkLabelInfo.Name = "LinkLabelInfo";
             LinkLabelInfo.Size = new Size(91, 20);
             LinkLabelInfo.TabIndex = 16;
@@ -215,7 +230,7 @@
             // ButtonFileFix
             // 
             ButtonFileFix.Enabled = false;
-            ButtonFileFix.Location = new Point(12, 473);
+            ButtonFileFix.Location = new Point(11, 474);
             ButtonFileFix.Name = "ButtonFileFix";
             ButtonFileFix.Size = new Size(230, 60);
             ButtonFileFix.TabIndex = 17;
@@ -226,7 +241,7 @@
             // ButtonFindChanges
             // 
             ButtonFindChanges.Enabled = false;
-            ButtonFindChanges.Location = new Point(12, 539);
+            ButtonFindChanges.Location = new Point(11, 540);
             ButtonFindChanges.Name = "ButtonFindChanges";
             ButtonFindChanges.Size = new Size(230, 60);
             ButtonFindChanges.TabIndex = 18;
@@ -234,34 +249,184 @@
             ButtonFindChanges.UseVisualStyleBackColor = true;
             ButtonFindChanges.Click += ButtonFindChanges_Click;
             // 
+            // MainTabs
+            // 
+            MainTabs.Controls.Add(tabPage1);
+            MainTabs.Controls.Add(tabPage2);
+            MainTabs.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            MainTabs.Location = new Point(12, 12);
+            MainTabs.Name = "MainTabs";
+            MainTabs.SelectedIndex = 0;
+            MainTabs.Size = new Size(808, 651);
+            MainTabs.TabIndex = 19;
+            MainTabs.SelectedIndexChanged += MainTabs_IndexChange;
+            // 
+            // tabPage1
+            // 
+            tabPage1.Controls.Add(InfoTextBox);
+            tabPage1.Controls.Add(ButtonFindChanges);
+            tabPage1.Controls.Add(FolderButton);
+            tabPage1.Controls.Add(ButtonFileFix);
+            tabPage1.Controls.Add(FolderTextBox);
+            tabPage1.Controls.Add(LabelCheck);
+            tabPage1.Controls.Add(ButtonTagCollector);
+            tabPage1.Controls.Add(ButtonENGIsert);
+            tabPage1.Controls.Add(FileRenamerButton);
+            tabPage1.Controls.Add(NamesTranslatorButton);
+            tabPage1.Controls.Add(ButtonCase);
+            tabPage1.Controls.Add(ButtonEncoding);
+            tabPage1.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            tabPage1.Location = new Point(4, 37);
+            tabPage1.Name = "tabPage1";
+            tabPage1.Padding = new Padding(3);
+            tabPage1.Size = new Size(800, 610);
+            tabPage1.TabIndex = 0;
+            tabPage1.Text = "Работа с переводом";
+            tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // tabPage2
+            // 
+            tabPage2.Controls.Add(ResetButton);
+            tabPage2.Controls.Add(DefaultButton);
+            tabPage2.Controls.Add(LanguageInput);
+            tabPage2.Controls.Add(RepoInput);
+            tabPage2.Controls.Add(ButtonLanguageUpdate);
+            tabPage2.Controls.Add(InfoTextBox2);
+            tabPage2.Controls.Add(FolderTextBox2);
+            tabPage2.Controls.Add(FolderButton2);
+            tabPage2.Location = new Point(4, 37);
+            tabPage2.Name = "tabPage2";
+            tabPage2.Padding = new Padding(3);
+            tabPage2.Size = new Size(800, 610);
+            tabPage2.TabIndex = 1;
+            tabPage2.Text = "Обновление локализации";
+            tabPage2.UseVisualStyleBackColor = true;
+            // 
+            // ResetButton
+            // 
+            ResetButton.Enabled = false;
+            ResetButton.Location = new Point(4, 495);
+            ResetButton.Margin = new Padding(4);
+            ResetButton.Name = "ResetButton";
+            ResetButton.Size = new Size(200, 50);
+            ResetButton.TabIndex = 25;
+            ResetButton.Text = "Удалить перевод";
+            ResetButton.UseVisualStyleBackColor = true;
+            ResetButton.Click += ResetButton_Click;
+            // 
+            // DefaultButton
+            // 
+            DefaultButton.Location = new Point(4, 553);
+            DefaultButton.Margin = new Padding(4);
+            DefaultButton.Name = "DefaultButton";
+            DefaultButton.Size = new Size(200, 50);
+            DefaultButton.TabIndex = 24;
+            DefaultButton.Text = "Сброс настроек";
+            DefaultButton.UseVisualStyleBackColor = true;
+            DefaultButton.Click += DefaultButton_Click;
+            // 
+            // LanguageInput
+            // 
+            LanguageInput.AllowDrop = true;
+            LanguageInput.Font = new Font("Segoe UI", 12F);
+            LanguageInput.Location = new Point(4, 453);
+            LanguageInput.Margin = new Padding(4);
+            LanguageInput.Name = "LanguageInput";
+            LanguageInput.Size = new Size(200, 34);
+            LanguageInput.TabIndex = 23;
+            LanguageInput.TextChanged += LanguageInput_TextChanged;
+            // 
+            // RepoInput
+            // 
+            RepoInput.AllowDrop = true;
+            RepoInput.Font = new Font("Segoe UI", 12F);
+            RepoInput.Location = new Point(4, 411);
+            RepoInput.Margin = new Padding(4);
+            RepoInput.Name = "RepoInput";
+            RepoInput.Size = new Size(200, 34);
+            RepoInput.TabIndex = 22;
+            RepoInput.TextChanged += RepoInput_TextChanged;
+            // 
+            // ButtonLanguageUpdate
+            // 
+            ButtonLanguageUpdate.Enabled = false;
+            ButtonLanguageUpdate.Location = new Point(4, 107);
+            ButtonLanguageUpdate.Margin = new Padding(4);
+            ButtonLanguageUpdate.Name = "ButtonLanguageUpdate";
+            ButtonLanguageUpdate.Size = new Size(200, 70);
+            ButtonLanguageUpdate.TabIndex = 21;
+            ButtonLanguageUpdate.Text = "Обновить локализацию";
+            ButtonLanguageUpdate.UseVisualStyleBackColor = true;
+            ButtonLanguageUpdate.Click += ButtonLanguageUpdate_Click;
+            // 
+            // InfoTextBox2
+            // 
+            InfoTextBox2.AcceptsReturn = true;
+            InfoTextBox2.AcceptsTab = true;
+            InfoTextBox2.Location = new Point(212, 49);
+            InfoTextBox2.Margin = new Padding(4);
+            InfoTextBox2.Multiline = true;
+            InfoTextBox2.Name = "InfoTextBox2";
+            InfoTextBox2.ReadOnly = true;
+            InfoTextBox2.ScrollBars = ScrollBars.Vertical;
+            InfoTextBox2.Size = new Size(581, 554);
+            InfoTextBox2.TabIndex = 20;
+            // 
+            // FolderTextBox2
+            // 
+            FolderTextBox2.AllowDrop = true;
+            FolderTextBox2.Font = new Font("Segoe UI", 12F);
+            FolderTextBox2.Location = new Point(7, 7);
+            FolderTextBox2.Margin = new Padding(4);
+            FolderTextBox2.Name = "FolderTextBox2";
+            FolderTextBox2.Size = new Size(753, 34);
+            FolderTextBox2.TabIndex = 19;
+            FolderTextBox2.TextChanged += FolderTextBox2_TextChanged;
+            // 
+            // FolderButton2
+            // 
+            FolderButton2.Location = new Point(4, 49);
+            FolderButton2.Margin = new Padding(4);
+            FolderButton2.Name = "FolderButton2";
+            FolderButton2.Size = new Size(200, 50);
+            FolderButton2.TabIndex = 18;
+            FolderButton2.Text = "Выбрать папку";
+            FolderButton2.UseVisualStyleBackColor = true;
+            FolderButton2.Click += FolderButton2_Click;
+            // 
+            // ButtonDarkMode
+            // 
+            ButtonDarkMode.Image = Properties.Resources.darkmode;
+            ButtonDarkMode.Location = new Point(826, 98);
+            ButtonDarkMode.Name = "ButtonDarkMode";
+            ButtonDarkMode.Size = new Size(40, 40);
+            ButtonDarkMode.TabIndex = 20;
+            ButtonDarkMode.UseVisualStyleBackColor = true;
+            ButtonDarkMode.Click += ButtonDarkMode_Click;
+            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(120F, 120F);
             AutoScaleMode = AutoScaleMode.Dpi;
             AutoScroll = true;
-            ClientSize = new Size(805, 611);
-            Controls.Add(ButtonFindChanges);
-            Controls.Add(ButtonFileFix);
-            Controls.Add(LinkLabelInfo);
-            Controls.Add(ButtonTagCollector);
-            Controls.Add(LinkLabelGithub);
-            Controls.Add(UpdateLabel);
+            ClientSize = new Size(975, 669);
+            Controls.Add(ButtonDarkMode);
+            Controls.Add(MainTabs);
             Controls.Add(VersionLabel);
+            Controls.Add(UpdateLabel);
             Controls.Add(UpdateButton);
-            Controls.Add(ButtonEncoding);
-            Controls.Add(ButtonCase);
-            Controls.Add(ButtonDictionary);
-            Controls.Add(ButtonUniqueNames);
-            Controls.Add(InfoTextBox);
-            Controls.Add(ButtonENGIsert);
-            Controls.Add(LabelCheck);
-            Controls.Add(FolderTextBox);
-            Controls.Add(FolderButton);
+            Controls.Add(LinkLabelGithub);
+            Controls.Add(LinkLabelInfo);
             Icon = (Icon)resources.GetObject("$this.Icon");
-            MaximumSize = new Size(823, 658);
-            MinimumSize = new Size(823, 658);
+            MaximumSize = new Size(993, 716);
+            MinimumSize = new Size(993, 716);
             Name = "MainForm";
             Text = "RimWorld Language Kit by OliveWizard";
+            MainTabs.ResumeLayout(false);
+            tabPage1.ResumeLayout(false);
+            tabPage1.PerformLayout();
+            tabPage2.ResumeLayout(false);
+            tabPage2.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -273,8 +438,8 @@
         private Label LabelCheck;
         private Button ButtonENGIsert;
         private TextBox InfoTextBox;
-        private Button ButtonUniqueNames;
-        private Button ButtonDictionary;
+        private Button FileRenamerButton;
+        private Button NamesTranslatorButton;
         private Button ButtonCase;
         private Button ButtonEncoding;
         private Button UpdateButton;
@@ -285,5 +450,17 @@
         private LinkLabel LinkLabelInfo;
         private Button ButtonFileFix;
         private Button ButtonFindChanges;
+        private TabPage tabPage1;
+        private TabPage tabPage2;
+        private Button ResetButton;
+        private Button DefaultButton;
+        private TextBox LanguageInput;
+        private TextBox RepoInput;
+        private Button ButtonLanguageUpdate;
+        private TextBox InfoTextBox2;
+        private TextBox FolderTextBox2;
+        private Button FolderButton2;
+        private Button ButtonDarkMode;
+        private TabControl MainTabs;
     }
 }

@@ -9,7 +9,7 @@
     <StartupObject>LanguageUpdate.Program</StartupObject>
     <PlatformTarget>x64</PlatformTarget>
     <ApplicationIcon>logo.ico</ApplicationIcon>
-    <Version>$(VersionPrefix)3.3</Version>
+    <Version>$(VersionPrefix)3.3.1</Version>
     <Authors>OliveWizard</Authors>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <RepositoryUrl>https://github.com/OneCodeUnit/RimLangKit</RepositoryUrl>
@@ -47,9 +47,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="MainForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
+    <Compile Update="MainForm.cs" />
     <Compile Update="Settings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>

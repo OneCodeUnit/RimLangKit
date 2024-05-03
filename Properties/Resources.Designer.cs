@@ -63,6 +63,16 @@ namespace RimLangKit.Properties {
         /// <summary>
         ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap darkmode {
+            get {
+                object obj = ResourceManager.GetObject("darkmode", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Поиск локализованного ресурса типа System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap no_c {
             get {
                 object obj = ResourceManager.GetObject("no_c", resourceCulture);
