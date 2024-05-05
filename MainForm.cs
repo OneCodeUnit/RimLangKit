@@ -20,7 +20,7 @@ namespace RimLangKit
         {
             InitializeComponent();
             // Установка темной темы
-            if (Settings.Default.darkTheme == true)
+            if (Settings.Default.darkTheme)
                 DM = new DarkModeCS(this);
 
             // Установка версии программы
@@ -38,7 +38,7 @@ namespace RimLangKit
             VersionLabel.Text = "Версия " + version;
 
             // Восстановление последней вкладки
-            if (Settings.Default.lastTab == true)
+            if (Settings.Default.lastTab)
                 MainTabs.SelectTab(1);
             else
                 MainTabs.SelectTab(0);
@@ -319,7 +319,7 @@ namespace RimLangKit
         // Выбор текстового поля в зависимости от выбранной вкладки
         private void SendToInfoTextBox(string text)
         {
-            if (Settings.Default.lastTab == true)
+            if (Settings.Default.lastTab)
                 InfoTextBox2.AppendText($"{Environment.NewLine}{text}");
             else
                 InfoTextBox.AppendText($"{Environment.NewLine}{text}");
@@ -327,7 +327,7 @@ namespace RimLangKit
 
         private void MainTabs_IndexChange(object sender, EventArgs e)
         {
-            if (Settings.Default.lastTab == true)
+            if (Settings.Default.lastTab)
                 Settings.Default["lastTab"] = false;
             else
                 Settings.Default["lastTab"] = true;
@@ -372,7 +372,7 @@ namespace RimLangKit
                 InfoTextBox.AppendText($"{Environment.NewLine}Пропущено файлов - {errCount}");
         }
 
-        // Вызов обработчика из кнопок
+        // Стоит переписать потом
         private void ButtonFindChanges_Click(object sender, EventArgs e)
         {
             if (FindChangesFirst)
@@ -419,6 +419,7 @@ namespace RimLangKit
             }
         }
 
+        // Вызов обработчика из кнопок
         private void FileRenamerButton_Click(object sender, EventArgs e)
         {
             ActionHandler("Переименование файлов", "*.xml", "FileRenamer");
