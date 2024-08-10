@@ -42,9 +42,9 @@
             UpdateButton = new Button();
             UpdateLabel = new Label();
             LinkLabelGithub = new LinkLabel();
-            ButtonTagCollector = new Button();
+            TagCollectorButton = new Button();
             LinkLabelInfo = new LinkLabel();
-            ButtonFileFix = new Button();
+            FileFixerButton = new Button();
             ButtonFindChanges = new Button();
             MainTabs = new TabControl();
             tabPage1 = new TabPage();
@@ -57,10 +57,18 @@
             InfoTextBox2 = new TextBox();
             FolderTextBox2 = new TextBox();
             FolderButton2 = new Button();
+            tabPage3 = new TabPage();
+            ButtonDownload = new Button();
+            ButtonResultFolder = new Button();
+            FolderTextBox3 = new TextBox();
+            ButtonSteam = new Button();
+            SteamTextBox = new TextBox();
+            InfoTextBox3 = new TextBox();
             ButtonDarkMode = new Button();
             MainTabs.SuspendLayout();
             tabPage1.SuspendLayout();
             tabPage2.SuspendLayout();
+            tabPage3.SuspendLayout();
             SuspendLayout();
             // 
             // VersionLabel
@@ -74,6 +82,7 @@
             // 
             // FolderButton
             // 
+            FolderButton.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
             FolderButton.Location = new Point(653, 6);
             FolderButton.Name = "FolderButton";
             FolderButton.Size = new Size(141, 60);
@@ -85,6 +94,7 @@
             // FolderTextBox
             // 
             FolderTextBox.AllowDrop = true;
+            FolderTextBox.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
             FolderTextBox.Location = new Point(11, 13);
             FolderTextBox.MaximumSize = new Size(636, 27);
             FolderTextBox.MinimumSize = new Size(636, 27);
@@ -98,13 +108,14 @@
             LabelCheck.AutoSize = true;
             LabelCheck.Location = new Point(11, 43);
             LabelCheck.Name = "LabelCheck";
-            LabelCheck.Size = new Size(137, 23);
+            LabelCheck.Size = new Size(160, 28);
             LabelCheck.TabIndex = 2;
             LabelCheck.Text = "Выберите папку";
             // 
             // ButtonENGIsert
             // 
             ButtonENGIsert.Enabled = false;
+            ButtonENGIsert.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
             ButtonENGIsert.Location = new Point(11, 78);
             ButtonENGIsert.Name = "ButtonENGIsert";
             ButtonENGIsert.Size = new Size(230, 60);
@@ -130,6 +141,7 @@
             // FileRenamerButton
             // 
             FileRenamerButton.Enabled = false;
+            FileRenamerButton.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
             FileRenamerButton.Location = new Point(11, 144);
             FileRenamerButton.Name = "FileRenamerButton";
             FileRenamerButton.Size = new Size(230, 60);
@@ -141,6 +153,7 @@
             // NamesTranslatorButton
             // 
             NamesTranslatorButton.Enabled = false;
+            NamesTranslatorButton.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
             NamesTranslatorButton.Location = new Point(11, 210);
             NamesTranslatorButton.Name = "NamesTranslatorButton";
             NamesTranslatorButton.Size = new Size(230, 60);
@@ -152,6 +165,7 @@
             // ButtonCase
             // 
             ButtonCase.Enabled = false;
+            ButtonCase.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
             ButtonCase.Location = new Point(11, 276);
             ButtonCase.Name = "ButtonCase";
             ButtonCase.Size = new Size(230, 60);
@@ -163,6 +177,7 @@
             // ButtonEncoding
             // 
             ButtonEncoding.Enabled = false;
+            ButtonEncoding.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
             ButtonEncoding.Location = new Point(11, 342);
             ButtonEncoding.Name = "ButtonEncoding";
             ButtonEncoding.Size = new Size(230, 60);
@@ -205,16 +220,17 @@
             LinkLabelGithub.Visible = false;
             LinkLabelGithub.LinkClicked += LinkLabelGithub_LinkClicked;
             // 
-            // ButtonTagCollector
+            // TagCollectorButton
             // 
-            ButtonTagCollector.Enabled = false;
-            ButtonTagCollector.Location = new Point(11, 408);
-            ButtonTagCollector.Name = "ButtonTagCollector";
-            ButtonTagCollector.Size = new Size(230, 60);
-            ButtonTagCollector.TabIndex = 15;
-            ButtonTagCollector.Text = "Проанализировать теги";
-            ButtonTagCollector.UseVisualStyleBackColor = true;
-            ButtonTagCollector.Click += ButtonTagCollector_Click;
+            TagCollectorButton.Enabled = false;
+            TagCollectorButton.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            TagCollectorButton.Location = new Point(11, 408);
+            TagCollectorButton.Name = "TagCollectorButton";
+            TagCollectorButton.Size = new Size(230, 60);
+            TagCollectorButton.TabIndex = 15;
+            TagCollectorButton.Text = "Проанализировать теги";
+            TagCollectorButton.UseVisualStyleBackColor = true;
+            TagCollectorButton.Click += TagCollectorButton_Click;
             // 
             // LinkLabelInfo
             // 
@@ -227,20 +243,22 @@
             LinkLabelInfo.Text = "Инструкция";
             LinkLabelInfo.LinkClicked += LinkLabelInfo_LinkClicked;
             // 
-            // ButtonFileFix
+            // FileFixerButton
             // 
-            ButtonFileFix.Enabled = false;
-            ButtonFileFix.Location = new Point(11, 474);
-            ButtonFileFix.Name = "ButtonFileFix";
-            ButtonFileFix.Size = new Size(230, 60);
-            ButtonFileFix.TabIndex = 17;
-            ButtonFileFix.Text = "Найти сломанные файлы";
-            ButtonFileFix.UseVisualStyleBackColor = true;
-            ButtonFileFix.Click += ButtonFileFix_Click;
+            FileFixerButton.Enabled = false;
+            FileFixerButton.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            FileFixerButton.Location = new Point(11, 474);
+            FileFixerButton.Name = "FileFixerButton";
+            FileFixerButton.Size = new Size(230, 60);
+            FileFixerButton.TabIndex = 17;
+            FileFixerButton.Text = "Найти сломанные файлы";
+            FileFixerButton.UseVisualStyleBackColor = true;
+            FileFixerButton.Click += FileFixerButton_Click;
             // 
             // ButtonFindChanges
             // 
             ButtonFindChanges.Enabled = false;
+            ButtonFindChanges.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
             ButtonFindChanges.Location = new Point(11, 540);
             ButtonFindChanges.Name = "ButtonFindChanges";
             ButtonFindChanges.Size = new Size(230, 60);
@@ -253,6 +271,7 @@
             // 
             MainTabs.Controls.Add(tabPage1);
             MainTabs.Controls.Add(tabPage2);
+            MainTabs.Controls.Add(tabPage3);
             MainTabs.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
             MainTabs.Location = new Point(12, 12);
             MainTabs.Name = "MainTabs";
@@ -266,22 +285,22 @@
             tabPage1.Controls.Add(InfoTextBox);
             tabPage1.Controls.Add(ButtonFindChanges);
             tabPage1.Controls.Add(FolderButton);
-            tabPage1.Controls.Add(ButtonFileFix);
+            tabPage1.Controls.Add(FileFixerButton);
             tabPage1.Controls.Add(FolderTextBox);
             tabPage1.Controls.Add(LabelCheck);
-            tabPage1.Controls.Add(ButtonTagCollector);
+            tabPage1.Controls.Add(TagCollectorButton);
             tabPage1.Controls.Add(ButtonENGIsert);
             tabPage1.Controls.Add(FileRenamerButton);
             tabPage1.Controls.Add(NamesTranslatorButton);
             tabPage1.Controls.Add(ButtonCase);
             tabPage1.Controls.Add(ButtonEncoding);
-            tabPage1.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            tabPage1.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
             tabPage1.Location = new Point(4, 37);
             tabPage1.Name = "tabPage1";
             tabPage1.Padding = new Padding(3);
             tabPage1.Size = new Size(800, 610);
             tabPage1.TabIndex = 0;
-            tabPage1.Text = "Работа с переводом";
+            tabPage1.Text = "Перевод мода";
             tabPage1.UseVisualStyleBackColor = true;
             // 
             // tabPage2
@@ -299,7 +318,7 @@
             tabPage2.Padding = new Padding(3);
             tabPage2.Size = new Size(800, 610);
             tabPage2.TabIndex = 1;
-            tabPage2.Text = "Обновление локализации";
+            tabPage2.Text = "Перевод игры";
             tabPage2.UseVisualStyleBackColor = true;
             // 
             // ResetButton
@@ -394,6 +413,88 @@
             FolderButton2.UseVisualStyleBackColor = true;
             FolderButton2.Click += FolderButton2_Click;
             // 
+            // tabPage3
+            // 
+            tabPage3.Controls.Add(ButtonDownload);
+            tabPage3.Controls.Add(ButtonResultFolder);
+            tabPage3.Controls.Add(FolderTextBox3);
+            tabPage3.Controls.Add(ButtonSteam);
+            tabPage3.Controls.Add(SteamTextBox);
+            tabPage3.Controls.Add(InfoTextBox3);
+            tabPage3.Location = new Point(4, 37);
+            tabPage3.Name = "tabPage3";
+            tabPage3.Padding = new Padding(3);
+            tabPage3.Size = new Size(800, 610);
+            tabPage3.TabIndex = 2;
+            tabPage3.Text = "Загрузка мода";
+            tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // ButtonDownload
+            // 
+            ButtonDownload.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            ButtonDownload.Location = new Point(609, 91);
+            ButtonDownload.Name = "ButtonDownload";
+            ButtonDownload.Size = new Size(184, 36);
+            ButtonDownload.TabIndex = 26;
+            ButtonDownload.Text = "Скачать";
+            ButtonDownload.UseVisualStyleBackColor = true;
+            ButtonDownload.Click += ButtonDownload_Click;
+            // 
+            // ButtonResultFolder
+            // 
+            ButtonResultFolder.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            ButtonResultFolder.Location = new Point(609, 49);
+            ButtonResultFolder.Name = "ButtonResultFolder";
+            ButtonResultFolder.Size = new Size(184, 36);
+            ButtonResultFolder.TabIndex = 25;
+            ButtonResultFolder.Text = "Место сохранения";
+            ButtonResultFolder.UseVisualStyleBackColor = true;
+            ButtonResultFolder.Click += ButtonResultFolder_Click;
+            // 
+            // FolderTextBox3
+            // 
+            FolderTextBox3.AllowDrop = true;
+            FolderTextBox3.Font = new Font("Segoe UI", 12F);
+            FolderTextBox3.Location = new Point(7, 49);
+            FolderTextBox3.Margin = new Padding(4);
+            FolderTextBox3.Name = "FolderTextBox3";
+            FolderTextBox3.Size = new Size(595, 34);
+            FolderTextBox3.TabIndex = 24;
+            // 
+            // ButtonSteam
+            // 
+            ButtonSteam.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            ButtonSteam.Location = new Point(609, 7);
+            ButtonSteam.Name = "ButtonSteam";
+            ButtonSteam.Size = new Size(184, 36);
+            ButtonSteam.TabIndex = 23;
+            ButtonSteam.Text = "Выбрать SteamCMD";
+            ButtonSteam.UseVisualStyleBackColor = true;
+            ButtonSteam.Click += ButtonSteam_Click;
+            // 
+            // SteamTextBox
+            // 
+            SteamTextBox.AllowDrop = true;
+            SteamTextBox.Font = new Font("Segoe UI", 12F);
+            SteamTextBox.Location = new Point(7, 7);
+            SteamTextBox.Margin = new Padding(4);
+            SteamTextBox.Name = "SteamTextBox";
+            SteamTextBox.Size = new Size(595, 34);
+            SteamTextBox.TabIndex = 22;
+            // 
+            // InfoTextBox3
+            // 
+            InfoTextBox3.AcceptsReturn = true;
+            InfoTextBox3.AcceptsTab = true;
+            InfoTextBox3.Location = new Point(7, 134);
+            InfoTextBox3.Margin = new Padding(4);
+            InfoTextBox3.Multiline = true;
+            InfoTextBox3.Name = "InfoTextBox3";
+            InfoTextBox3.ReadOnly = true;
+            InfoTextBox3.ScrollBars = ScrollBars.Vertical;
+            InfoTextBox3.Size = new Size(786, 469);
+            InfoTextBox3.TabIndex = 21;
+            // 
             // ButtonDarkMode
             // 
             ButtonDarkMode.Image = Properties.Resources.darkmode;
@@ -427,6 +528,8 @@
             tabPage1.PerformLayout();
             tabPage2.ResumeLayout(false);
             tabPage2.PerformLayout();
+            tabPage3.ResumeLayout(false);
+            tabPage3.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -446,9 +549,9 @@
         private Label UpdateLabel;
         private Label VersionLabel;
         private LinkLabel LinkLabelGithub;
-        private Button ButtonTagCollector;
+        private Button TagCollectorButton;
         private LinkLabel LinkLabelInfo;
-        private Button ButtonFileFix;
+        private Button FileFixerButton;
         private Button ButtonFindChanges;
         private TabPage tabPage1;
         private TabPage tabPage2;
@@ -462,5 +565,12 @@
         private Button FolderButton2;
         private Button ButtonDarkMode;
         private TabControl MainTabs;
+        private TabPage tabPage3;
+        private Button ButtonSteam;
+        private TextBox SteamTextBox;
+        private TextBox InfoTextBox3;
+        private TextBox FolderTextBox3;
+        private Button ButtonDownload;
+        private Button ButtonResultFolder;
     }
 }

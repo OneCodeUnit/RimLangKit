@@ -15,6 +15,8 @@ namespace RimLangKit
         bool FindChangesFirst = true;
         string TranslationPath = string.Empty;
         string ModPath = string.Empty;
+        string DownloadPath = string.Empty;
+        string SteamCmdPath = string.Empty;
 
         public MainForm()
         {
@@ -38,12 +40,10 @@ namespace RimLangKit
             VersionLabel.Text = "Версия " + version;
 
             // Восстановление последней вкладки
-            if (Settings.Default.lastTab)
-                MainTabs.SelectTab(1);
-            else
-                MainTabs.SelectTab(0);
+            MainTabs.SelectTab(Settings.Default.lastTab);
 
             // Установка размера вкладок
+            MainTabs.TabPages.Remove(tabPage3);
             MainTabs.SizeMode = TabSizeMode.Fixed;
             MainTabs.ItemSize = new Size((MainTabs.Width / MainTabs.TabPages.Count) - 2, MainTabs.ItemSize.Height);
 
@@ -87,8 +87,8 @@ namespace RimLangKit
                 NamesTranslatorButton.Enabled = true;
                 ButtonCase.Enabled = true;
                 ButtonEncoding.Enabled = true;
-                ButtonTagCollector.Enabled = true;
-                ButtonFileFix.Enabled = true;
+                TagCollectorButton.Enabled = true;
+                FileFixerButton.Enabled = true;
                 ButtonFindChanges.Enabled = true;
             }
             else
@@ -100,8 +100,8 @@ namespace RimLangKit
                 NamesTranslatorButton.Enabled = false;
                 ButtonCase.Enabled = false;
                 ButtonEncoding.Enabled = false;
-                ButtonTagCollector.Enabled = false;
-                ButtonFileFix.Enabled = false;
+                TagCollectorButton.Enabled = false;
+                FileFixerButton.Enabled = false;
                 ButtonFindChanges.Enabled = false;
             }
         }
@@ -169,14 +169,7 @@ namespace RimLangKit
             }
             InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Завершено");
         }
-        private void ButtonTagCollector_Click(object sender, EventArgs e)
-        {
-            ActionHandler("Сбор статистики тегов", 5);
-        }
-        private void ButtonFileFix_Click(object sender, EventArgs e)
-        {
-            ActionHandler("Поиск сломанных файлов", 6);
-        }
+
         private void ActionHandler(string name, int code)
         {
             InfoTextBox.Text = $"{PlaceTime()}{name}";
@@ -195,32 +188,16 @@ namespace RimLangKit
                     case 2:
                         result = CommentInsert.CommentsInsertProcessing(tempFile, InfoTextBox);
                         break;
-                    case 5:
-                        string def = TagCollector.CheckDef(tempFile);
-                        result = TagCollector.TagSearch(tempFile, def, InfoTextBox);
-                        break;
-                    case 6:
-                        result = FileFix.FileFixProcessing(tempFile);
-                        break;
                     default:
                         break;
                 }
                 if (result) count++;
                 else errCount++;
             }
-            if (code == 5)
-            {
-                TagCollector.WriteTags(InfoTextBox);
-            }
 
             InfoTextBox.AppendText($"{Environment.NewLine}{PlaceTime()}Успешно завершено. Обработано файлов - {count}");
             if (errCount != 0)
                 InfoTextBox.AppendText($"{Environment.NewLine}Пропущено файлов - {errCount}");
-
-            if (code == 6)
-            {
-                FileFix.WriteBrokenFiles(InfoTextBox);
-            }
         }
         public static string PlaceTime()
         {
@@ -233,7 +210,7 @@ namespace RimLangKit
         #region прочие объекты
         private void UpdateButton_Click(object sender, EventArgs e)
         {
-            Root? json = HttpClient.GetGithubJson();
+            Root? json = GitHubHttpClient.GetGithubJson();
             if (json is null)
             {
                 SendToInfoTextBox("Ошибка получения данных с GitHub");
@@ -319,18 +296,18 @@ namespace RimLangKit
         // Выбор текстового поля в зависимости от выбранной вкладки
         private void SendToInfoTextBox(string text)
         {
-            if (Settings.Default.lastTab)
+            if (Settings.Default.lastTab == 0)
+                InfoTextBox.AppendText($"{Environment.NewLine}{text}");
+            else if (Settings.Default.lastTab == 1)
                 InfoTextBox2.AppendText($"{Environment.NewLine}{text}");
             else
-                InfoTextBox.AppendText($"{Environment.NewLine}{text}");
+                InfoTextBox3.AppendText($"{Environment.NewLine}{text}"); ;
+
         }
 
         private void MainTabs_IndexChange(object sender, EventArgs e)
         {
-            if (Settings.Default.lastTab)
-                Settings.Default["lastTab"] = false;
-            else
-                Settings.Default["lastTab"] = true;
+            Settings.Default["lastTab"] = MainTabs.SelectedIndex;
             Settings.Default.Save();
         }
         #endregion
@@ -345,6 +322,7 @@ namespace RimLangKit
             int count = 0;
             int errCount = 0;
             (bool, string) result = (false, string.Empty);
+            string message = string.Empty;
             foreach (string currentFile in allFiles)
             {
                 switch (code)
@@ -354,6 +332,12 @@ namespace RimLangKit
                         break;
                     case "NamesTranslator":
                         result = NamesTranslator.NamesTranslatorActivity(currentFile);
+                        break;
+                    case "TagCollector":
+                        result = TagCollector.TagCollectorActivity(currentFile);
+                        break;
+                    case "FileFixer":
+                        result = FileFixer.FileFixerActivity(currentFile);
                         break;
                     default:
                         break;
@@ -370,9 +354,27 @@ namespace RimLangKit
             InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Завершено. Обработано файлов - {count}");
             if (errCount != 0)
                 InfoTextBox.AppendText($"{Environment.NewLine}Пропущено файлов - {errCount}");
+
+            // Постобработка
+            switch (code)
+            {
+                case "TagCollector":
+                    message = TagCollector.TagWriterActivity();
+                    InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}{message}");
+                    message = TagCollector.DefsClassGeneratorActivity();
+                    InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}{message}");
+                    TagCollector.DataCleanerActivity();
+                    break;
+                case "FileFixer":
+                    message = FileFixer.BrokenFilesWriterActivity();
+                    InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}{message}");
+                    break;
+                default:
+                    break;
+            }
         }
 
-        // Стоит переписать потом
+        // Работа без обработчика
         private void ButtonFindChanges_Click(object sender, EventArgs e)
         {
             if (FindChangesFirst)
@@ -429,7 +431,20 @@ namespace RimLangKit
         {
             ActionHandler("Транскрипция имён", "*.txt", "NamesTranslator");
         }
+
+        private void TagCollectorButton_Click(object sender, EventArgs e)
+        {
+            ActionHandler("Сбор статистики тегов", "*.xml", "TagCollector");
+        }
+
+        private void FileFixerButton_Click(object sender, EventArgs e)
+        {
+            ActionHandler("Поиск сломанных файлов", "*.xml", "FileFixer");
+        }
         #endregion
+
+
+
 
 
         #region обновление локализации
@@ -562,5 +577,43 @@ namespace RimLangKit
             }
         }
         #endregion
+
+
+        #region загрузка модов
+        private void ButtonSteam_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog ofd = new();
+            ofd.Filter = "steamcmd (*.exe)|*.exe";
+            ofd.ShowDialog();
+            SteamCmdPath = ofd.FileName;
+            SteamTextBox.Text = SteamCmdPath;
+
+            //Settings.Default["steamCmdFile"] = SteamCmdPath;
+            //Settings.Default.Save();   
+        }
+
+        private void ButtonResultFolder_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog ofd = new();
+            DialogResult dr = ofd.ShowDialog();
+            if (dr == DialogResult.OK)
+            {
+                DownloadPath = ofd.SelectedPath;
+                FolderTextBox3.Text = DownloadPath;
+
+
+                //Settings.Default["downloadDirectory"] = DownloadPath;
+                //Settings.Default.Save();          
+            }
+        }
+
+        private void ButtonDownload_Click(object sender, EventArgs e)
+        {
+            //System.Diagnostics.Process.Start(SteamCmdPath);
+            //C:\steamcmd\steamcmd.exe +force_install_dir C:\Users\inqui\Desktop\1 +login anonymous +workshop_download_item 294100 3228047321 +quit 
+        }
+        #endregion
+
+
     }
 }

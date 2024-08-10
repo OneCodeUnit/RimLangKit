@@ -11,8 +11,8 @@
     <Platforms>x64</Platforms>
     <ApplicationIcon>images\icon.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
-    <Version>$(VersionPrefix)3.4.0</Version>
-    <RepositoryUrl>https://github.com/OneCodeUnit/RTK</RepositoryUrl>
+    <Version>$(VersionPrefix)3.5.0</Version>
+    <RepositoryUrl>https://github.com/OneCodeUnit/RimLangKit</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <NeutralLanguage>ru</NeutralLanguage>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
@@ -35,30 +35,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="LanguageUpdateLegacy\**" />
-    <Compile Remove="LanguageUpdate\**" />
     <Compile Remove="RimLanguageCore\**" />
-    <Compile Remove="RimLanguageTest\**" />
-    <Compile Remove="TagCollector\**" />
     <Compile Remove="TextExporter\**" />
-    <Compile Remove="TranslationKitLib\**" />
-    <Compile Remove="TranslationKit\**" />
-    <EmbeddedResource Remove="LanguageUpdateLegacy\**" />
-    <EmbeddedResource Remove="LanguageUpdate\**" />
     <EmbeddedResource Remove="RimLanguageCore\**" />
-    <EmbeddedResource Remove="RimLanguageTest\**" />
-    <EmbeddedResource Remove="TagCollector\**" />
     <EmbeddedResource Remove="TextExporter\**" />
-    <EmbeddedResource Remove="TranslationKitLib\**" />
-    <EmbeddedResource Remove="TranslationKit\**" />
-    <None Remove="LanguageUpdateLegacy\**" />
-    <None Remove="LanguageUpdate\**" />
     <None Remove="RimLanguageCore\**" />
-    <None Remove="RimLanguageTest\**" />
-    <None Remove="TagCollector\**" />
     <None Remove="TextExporter\**" />
-    <None Remove="TranslationKitLib\**" />
-    <None Remove="TranslationKit\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -67,6 +49,7 @@
 
   <ItemGroup>
     <PackageReference Include="Miyconst.Cyriller" Version="0.1.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
   <ItemGroup>

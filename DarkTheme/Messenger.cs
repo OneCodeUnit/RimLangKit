@@ -1,23 +1,50 @@
 ﻿using DarkModeForms;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
+using static BlueMystic.KeyValue;
 
 namespace BlueMystic
 {
-	/* Author: BlueMystic (bluemystic.play@gmail.com)  2024 */
-	public static class Messenger
+#pragma warning disable
+    /* Author: BlueMystic (bluemystic.play@gmail.com)  2024 */
+    public static class Messenger
 	{
+		#region Events
+
+		/// <summary>Manejador de Eventos para los Click en Botones</summary>
+		private static Action<object, ValidateEventArgs> ValidateControlsHandler;
+
+		/// <summary>Validates all Controls and allows to Cancel the changes.</summary>
+		public static event Action<object, ValidateEventArgs> ValidateControls
+		{
+			add => ValidateControlsHandler += value;
+			remove => ValidateControlsHandler -= value;
+		}
+		/// <summary>Previene multiples invocaciones entre llamadas a la misma instancia del evento</summary>
+		private static void ResetEvents()
+		{
+			ValidateControlsHandler = null;
+		}
+
+		#endregion
+
+		#region MessageBox
+
+		public static DialogResult MessageBox(string Message)
+			=> MessageBox(Message, string.Empty, MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+
 		/// <summary>Shows an Error Message.</summary>
 		/// <param name="ex">an Exception error to show</param>
 		/// <returns></returns>
-		public static DialogResult MesageBox(Exception ex, bool ShowTrace = true) => 
-			MesageBox(ex.Message + (ShowTrace ? "\r\n" + ex.StackTrace : ""), "Error!", icon: MessageBoxIcon.Error);
+		public static DialogResult MessageBox(Exception ex, bool ShowTrace = true) =>
+			MessageBox(ex.Message + (ShowTrace ? "\r\n" + ex.StackTrace : ""), "Error!", icon: MessageBoxIcon.Error);
 
 		/// <summary>Displays a message window, also known as a dialog box, which presents a message to the user.</summary>
 		/// <param name="Message">The text to display in the message box.</param>
@@ -25,13 +52,13 @@ namespace BlueMystic
 		/// <param name="Icon">One of the 'Base64Icons.MsgIcon' values that specifies which icon to display in the message box.</param>
 		/// <param name="buttons">One of the MessageBoxButtons values that specifies which buttons to display in the message box.</param>
 		/// <returns>It is a modal window, blocking other actions in the application until the user closes it.</returns>
-		public static DialogResult MesageBox(
-			string Message, string title, MessageBoxButtons buttons = MessageBoxButtons.OK, 
+		public static DialogResult MessageBox(
+			string Message, string title, MessageBoxButtons buttons = MessageBoxButtons.OK,
 			MessageBoxIcon icon = MessageBoxIcon.Information)
 		{
 			Debug.WriteLine(icon.ToString());
 
-			Base64Icons.MsgIcon Icon = Base64Icons.MsgIcon.None;
+			MsgIcon Icon = MsgIcon.None;
 
 			/*
 				"..In current implementations there are ONLY four unique symbols with multiple values assigned to them."
@@ -39,16 +66,16 @@ namespace BlueMystic
 			 */
 			switch (icon)
 			{
-				case MessageBoxIcon.Information: Icon = Base64Icons.MsgIcon.Info; break;
-				case MessageBoxIcon.Exclamation: Icon = Base64Icons.MsgIcon.Success; break;
-				case MessageBoxIcon.Question: Icon = Base64Icons.MsgIcon.Question; break;
-				case MessageBoxIcon.Error: Icon = Base64Icons.MsgIcon.Cancel; break;
+				case MessageBoxIcon.Information: Icon = MsgIcon.Info; break;
+				case MessageBoxIcon.Exclamation: Icon = MsgIcon.Success; break;
+				case MessageBoxIcon.Question: Icon = MsgIcon.Question; break;
+				case MessageBoxIcon.Error: Icon = MsgIcon.Cancel; break;
 				default:
 					break;
 			}
 
 
-			return MesageBox(Message, title, Icon, buttons);
+			return MessageBox(Message, title, Icon, buttons);
 		}
 
 		/// <summary>Displays a message window, also known as a dialog box, which presents a message to the user.</summary>
@@ -57,8 +84,8 @@ namespace BlueMystic
 		/// <param name="Icon">One of the 'Base64Icons.MsgIcon' values that specifies which icon to display in the message box.</param>
 		/// <param name="buttons">One of the MessageBoxButtons values that specifies which buttons to display in the message box.</param>
 		/// <returns>It is a modal window, blocking other actions in the application until the user closes it.</returns>
-		public static DialogResult MesageBox(
-			string Message, string title, Base64Icons.MsgIcon Icon,
+		public static DialogResult MessageBox(
+			string Message, string title, MsgIcon Icon,
 			MessageBoxButtons buttons = MessageBoxButtons.OK)
 		{
 			Form form = new Form
@@ -227,7 +254,7 @@ namespace BlueMystic
 			#region Icon
 
 			Rectangle picBox = new Rectangle(2, 10, 0, 0);
-			if (Icon != Base64Icons.MsgIcon.None)
+			if (Icon != MsgIcon.None)
 			{
 				PictureBox picIcon = new PictureBox() { SizeMode = PictureBoxSizeMode.Zoom, Size = new Size(64, 64) };
 				picIcon.Image = _Icons.GetIcon(Icon);
@@ -241,16 +268,16 @@ namespace BlueMystic
 			#endregion
 
 			#region Prompt Text
-			
+
 			Label lblPrompt = new Label()
 			{
 				Text = Message,
-				AutoSize = true,		
+				AutoSize = true,
 				//BackColor = Color.Fuchsia,
 				ForeColor = DMode.OScolors.TextActive,
 				TextAlign = ContentAlignment.MiddleCenter,
 				Location = new Point(picBox.X + picBox.Width + 4, picBox.Y),
-				MaximumSize = new Size(form.ClientSize.Width - (picBox.X + picBox.Width) + 8, 0),	
+				MaximumSize = new Size(form.ClientSize.Width - (picBox.X + picBox.Width) + 8, 0),
 				MinimumSize = new Size(form.ClientSize.Width - (picBox.X + picBox.Width) + 8, 64),
 			};
 			lblPrompt.BringToFront();
@@ -267,6 +294,9 @@ namespace BlueMystic
 			return form.ShowDialog();
 		}
 
+		#endregion
+
+		#region InputBox
 
 		/// <summary>Muestra un mensaje en un cuadro de diálogo, solicitando al usuario el ingreso de datos varios.</summary>
 		/// <example>Modo de Uso del <see cref="InputBox"/> method.
@@ -289,7 +319,7 @@ namespace BlueMystic
 		/// <returns>OK si el usuario acepta. By BlueMystic @2024</returns>
 		public static DialogResult InputBox(
 			string title, string promptText, ref List<KeyValue> Fields,
-			Base64Icons.MsgIcon Icon = 0, MessageBoxButtons buttons = MessageBoxButtons.OK)
+			MsgIcon Icon = 0, MessageBoxButtons buttons = MessageBoxButtons.OK)
 		{
 			Form form = new Form
 			{
@@ -323,7 +353,7 @@ namespace BlueMystic
 
 			#region Icon
 
-			if (Icon != Base64Icons.MsgIcon.None)
+			if (Icon != MsgIcon.None)
 			{
 				PictureBox picIcon = new PictureBox() { SizeMode = PictureBoxSizeMode.Zoom, Size = new Size(48, 48) };
 				picIcon.Image = _Icons.GetIcon(Icon);
@@ -470,9 +500,21 @@ namespace BlueMystic
 
 				_button.Location = new Point(LastPos - (_button.Width + Padding), (bottomPanel.Height - _button.Height) / 2);
 				LastPos = _button.Left;
+
+				//if (_button == form.AcceptButton)
+				//{
+				//_button.Click += (s, e) =>
+				//{
+				//	CancelEventArgs args = new CancelEventArgs();
+				//	ValidateControls(null, args);
+
+				//	//2.  If the Client cancelled the change, revert to the previous value:
+				//	if (args.Cancel) {  }
+				//};
+				//}
 			}
 
-			#endregion			
+			#endregion
 
 			#region Prompt Text
 
@@ -530,7 +572,7 @@ namespace BlueMystic
 						Text = field.Value,
 						Dock = DockStyle.Fill,
 						TextAlign = HorizontalAlignment.Center,
-						
+
 					};
 					((TextBox)field_Control).TextChanged += (sender, args) =>
 					{
@@ -541,7 +583,7 @@ namespace BlueMystic
 							//aqui 'KeyValue' valida el nuevo valor y puede cancelarlo
 							((TextBox)sender).Text = Convert.ToString(field.Value);
 							Err.SetError(field_Control, field.ErrorText);
-						});						
+						});
 					};
 				}
 				if (field.ValueType == KeyValue.ValueTypes.Password)
@@ -586,7 +628,7 @@ namespace BlueMystic
 							//aqui 'KeyValue' valida el nuevo valor y puede cancelarlo
 							((NumericUpDown)sender).Value = Convert.ToInt32(field.Value);
 							Err.SetError(field_Control, field.ErrorText);
-						});						
+						});
 					};
 				}
 				if (field.ValueType == KeyValue.ValueTypes.Decimal)
@@ -610,7 +652,7 @@ namespace BlueMystic
 							//aqui 'KeyValue' valida el nuevo valor y puede cancelarlo
 							((NumericUpDown)sender).Value = Convert.ToDecimal(field.Value);
 							Err.SetError(field_Control, field.ErrorText);
-						});						
+						});
 					};
 				}
 				if (field.ValueType == KeyValue.ValueTypes.Date)
@@ -724,9 +766,30 @@ namespace BlueMystic
 				Contenedor.Height +
 				20
 			);
+			form.FormClosing += (sender, e) =>
+			{
+				//Control Validations
+				if (form.ActiveControl == form.AcceptButton)
+				{
+					ValidateEventArgs cArgs = new ValidateEventArgs(null);
+
+					ValidateControlsHandler?.Invoke(form, cArgs); //<- Dispara el Evento
+
+					e.Cancel = cArgs.Cancel;
+					if (!e.Cancel)
+					{
+						form.DialogResult = form.AcceptButton.DialogResult;
+					}
+					//ResetEvents(); //<- Previene multiples llamadas 
+				}
+			};
 
 			return form.ShowDialog();
 		}
+
+		#endregion
+
+		#region Private Stuff
 
 		private static Dictionary<Control, System.Windows.Forms.Timer> timers;
 		private static void AddTextChangedDelay<TControl>(TControl control, int milliseconds, Action<TControl> action) where TControl : Control
@@ -760,15 +823,31 @@ namespace BlueMystic
 		{
 			string _ret = pDefault;
 			string CurrentLanguage = CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
-			if (IsCurrentLanguageSupported(new List<string>() { "en", "es", "fr", "de", "ru" }, CurrentLanguage))
+			if (IsCurrentLanguageSupported(new List<string>() { "en", "es", "fr", "de", "ru", "ko" }, CurrentLanguage))
 			{
 				_ret = CurrentLanguage;
+			}
+			if (CurrentLanguage.ToLowerInvariant().Equals("zh"))
+			{
+				var LangVariable = CultureInfo.CurrentCulture.Name;
+				if (string.Equals(LangVariable, "zh-CN") || string.Equals(LangVariable, "zh-SG") || string.Equals(LangVariable, "zh-Hans"))
+				{
+					_ret = "zh-Hans";
+				}
+				else if (string.Equals(LangVariable, "zh-TW") || string.Equals(LangVariable, "zh-HK") || string.Equals(LangVariable, "zh-MO") || string.Equals(LangVariable, "zh-Hant"))
+				{
+					_ret = "zh-Hant";
+				}
+				else
+				{
+					_ret = "zh-Hans";
+				}
 			}
 			return _ret;
 		}
 
 		/// <summary>Return the Translations for the desired language (if supported).</summary>
-		/// <param name="pLanguage">Supported Languages: [en, es, fr, de, ru]</param>
+		/// <param name="pLanguage">Supported Languages: [en, es, fr, de, ru, ko]</param>
 		/// <returns>Keys: OK, Cancel, Yes, No, Continue, Retry, Abort</returns>
 		private static Dictionary<string, string> GetButtonTranslations(string pLanguage)
 		{
@@ -781,6 +860,9 @@ namespace BlueMystic
 				{ "fr", "Accepter|Annuler|Oui|Non|Continuer|Réessayer|Abandonner|Ignorer" },
 				{ "de", "Akzeptieren|Abbrechen|Ja|Nein|Weiter|Wiederholen|Abbrechen|Ignorieren"},
 				{ "ru", "Принять|Отменить|Да|Нет|Продолжить|Повторить|Прервать|Игнорировать" },
+				{ "ko", "확인|취소|예|아니오|계속|다시 시도|중단|무시" },
+				{ "zh-Hans", "确定|取消|是|否|继续|重试|中止|忽略" },
+				{ "zh-Hant", "確定|取消|是|否|繼續|重試|中止|忽略" }
 				/* Add here you own language button translations */
 			};
 
@@ -800,7 +882,7 @@ namespace BlueMystic
 					{ "Abort", Words[6] },
 					{ "Ignore", Words[7] }
 				};
-			}		
+			}
 
 			return _ret;
 		}
@@ -830,6 +912,26 @@ namespace BlueMystic
 
 			return false;
 		}
+
+		#endregion
+	}
+
+	/// <summary>Constants for the Default Icons.</summary>
+	public enum MsgIcon
+	{
+		None = 0,
+		Info,
+		Success,
+		Warning,
+		Error,
+		Question,
+		Lock,
+		User,
+		Forbidden,
+		AddNew,
+		Cancel,
+		Edit,
+		List
 	}
 
 	/// <summary>Stores Data for Dynamic Fields on the InputBox Dialog.</summary>
@@ -1009,23 +1111,7 @@ namespace BlueMystic
 			}
 		}
 
-		/// <summary>Constants for the Default Icons.</summary>
-		public enum MsgIcon
-		{
-			None = 0,
-			Info,
-			Success,
-			Warning,
-			Error,
-			Question,
-			Lock,
-			User,
-			Forbidden,
-			AddNew,
-			Cancel,
-			Edit,
-			List
-		}
+
 
 		/// <summary>Returns the Image of the desired Icon, if exists in the Colection.</summary>
 		/// <param name="pName">Name of the Icon to look for.</param>
@@ -1064,7 +1150,5 @@ namespace BlueMystic
 			return _ret;
 		}
 	}
-
-	
-
+#pragma warning restore
 }
