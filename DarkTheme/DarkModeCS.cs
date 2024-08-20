@@ -7,15 +7,14 @@ using System.Windows.Forms;
 
 namespace BlueMystic
 {
-#pragma warning disable
-    /// <summary>This tries to automatically apply Windows Dark Mode (if enabled) to a Form.
-    /// <para>Author: BlueMystic (bluemystic.play@gmail.com)  2024</para></summary>
-    public class DarkModeCS
+	/// <summary>This tries to automatically apply Windows Dark Mode (if enabled) to a Form.
+	/// <para>Author: BlueMystic (bluemystic.play@gmail.com)  2024</para></summary>
+	public class DarkModeCS
 	{
-        #region Win32 API Declarations
+		#region Win32 API Declarations
 
 
-        public struct DWMCOLORIZATIONcolors
+		public struct DWMCOLORIZATIONcolors
 		{
 			public uint ColorizationColor,
 				ColorizationAfterglow,
@@ -1261,5 +1260,4 @@ namespace BlueMystic
 			get { return Colors.Control; }
 		}
 	}
-#pragma warning restore
 }

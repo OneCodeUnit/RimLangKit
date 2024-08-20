@@ -9,8 +9,7 @@ using System.Windows.Forms;
 
 namespace BlueMystic
 {
-#pragma warning disable
-    public class FlatTabControl : TabControl
+	public class FlatTabControl : TabControl
 	{
 		#region Public Properties
 
@@ -184,5 +183,4 @@ namespace BlueMystic
 				 isSelected ? SelectedForeColor : ForeColor);
 		}
 	}
-#pragma warning restore
 }

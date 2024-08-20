@@ -12,9 +12,8 @@ using static BlueMystic.KeyValue;
 
 namespace BlueMystic
 {
-#pragma warning disable
-    /* Author: BlueMystic (bluemystic.play@gmail.com)  2024 */
-    public static class Messenger
+	/* Author: BlueMystic (bluemystic.play@gmail.com)  2024 */
+	public static class Messenger
 	{
 		#region Events
 
@@ -1150,5 +1149,7 @@ namespace BlueMystic
 			return _ret;
 		}
 	}
-#pragma warning restore
+
+
+
 }

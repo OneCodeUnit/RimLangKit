@@ -6,9 +6,9 @@ using System.Windows.Forms;
 
 namespace DarkModeForms
 {
-    // *** CREDITS:  https://github.com/r-aghaei/FlatComboExample/tree/master
-#pragma warning disable
-    public class FlatComboBox : ComboBox
+	// *** CREDITS:  https://github.com/r-aghaei/FlatComboExample/tree/master
+
+	public class FlatComboBox : ComboBox
 	{
 		private Color borderColor = Color.Gray;
 		[DefaultValue(typeof(Color), "Gray")]
@@ -205,5 +205,4 @@ namespace DarkModeForms
 		[DllImport("gdi32.dll")]
 		private static extern IntPtr CreateRectRgn(int x1, int y1, int x2, int y2);
 	}
-#pragma warning restore
 }
