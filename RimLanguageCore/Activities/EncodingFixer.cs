@@ -1,20 +1,21 @@
-﻿using System.Text;
+﻿using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
-namespace RimLangKit
+namespace RimLanguageCore.Activities
 {
-    internal sealed class EncodingFix
+    public static class EncodingFixer
     {
-        internal static bool EncodingFixProcessing(string currentFile)
+        public static (bool, string) EncodingFixerActivity(string currentFile)
         {
             string text = File.ReadAllText(currentFile);
             // Замена табов на пробелы
             text = Regex.Replace(text, "\t+", "  ");
-
             // Замена окончания строки на CRLF
             text = Regex.Replace(text, "(?<!\r)\n", "\r\n");
 
-            //Сохранение c кодировкой utf-8 + BOM
+            // Сохранение c кодировкой utf-8 + BOM
             var data = Encoding.UTF8.GetBytes(text);
             var result = Encoding.UTF8.GetPreamble().Concat(data).ToArray();
             var encoder = new UTF8Encoding(true);
@@ -22,7 +23,7 @@ namespace RimLangKit
 
             File.WriteAllText(currentFile, text);
 
-            return true;
+            return (true, string.Empty);
         }
     }
 }

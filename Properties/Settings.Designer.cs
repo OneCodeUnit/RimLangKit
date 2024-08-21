@@ -94,29 +94,5 @@ namespace RimLangKit.Properties {
                 this["savedDirectory"] = value;
             }
         }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string downloadDirectory {
-            get {
-                return ((string)(this["downloadDirectory"]));
-            }
-            set {
-                this["downloadDirectory"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string steamCmdFile {
-            get {
-                return ((string)(this["steamCmdFile"]));
-            }
-            set {
-                this["steamCmdFile"] = value;
-            }
-        }
     }
 }

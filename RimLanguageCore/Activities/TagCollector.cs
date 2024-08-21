@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RimLanguageCore.Misc;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -41,18 +42,12 @@ namespace RimLanguageCore.Activities
             if (currentFile.Contains("LoadFolders.xml", StringComparison.OrdinalIgnoreCase) || currentFile.Contains("About.xml", StringComparison.OrdinalIgnoreCase) || currentFile.Contains("Keyed.xml", StringComparison.OrdinalIgnoreCase))
                 return (false, "Пропуск файла без defs");
 
-            // Позволяет избежать падения при загрузке сломанного .xml файла
-            try { XDocument.Load(currentFile, LoadOptions.PreserveWhitespace); }
-            catch { return (false, "Не удалось загрузить файл"); }
-            XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
+            (bool, string) result = XmlErrorChecker.XmlErrorCheck(currentFile);
+            if (!result.Item1)
+                return result;
 
-            // Позволяет избежать обработки пустого или не содержащего нужных тегов файла
-            if (xDoc.Element("LanguageData") is null)
-                return (false, "Не удалось найти LanguageData");
-            // Перевод контекста в содержимое тега LanguageData
+            XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
             XElement root = xDoc.Element("LanguageData");
-            if (root.Elements() is null)
-                return (false, "Тег LanguageData пуст");
 
             // DefName текущего файла
             string def = CheckDef(currentFile);

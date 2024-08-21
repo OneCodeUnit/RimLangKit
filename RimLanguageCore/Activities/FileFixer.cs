@@ -1,4 +1,5 @@
-﻿using System;
+﻿using RimLanguageCore.Misc;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Xml.Linq;
@@ -7,22 +8,21 @@ namespace RimLanguageCore.Activities
 {
     public static class FileFixer
     {
-        private static Dictionary<string, string> BrokenFiles = new();
+        private static readonly Dictionary<string, string> BrokenFiles = new();
 
         public static (bool, string) FileFixerActivity(string currentFile)
         {
-            string error;
-
-            // Позволяет избежать падения при загрузке сломанного .xml файла
-            try
+            // Технические файлы
+            if (currentFile.EndsWith("About.xml", StringComparison.OrdinalIgnoreCase) || currentFile.EndsWith("LoadFolders.xml", StringComparison.OrdinalIgnoreCase))
             {
-                XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
+                return (true, string.Empty);
             }
-            catch
+
+            (bool, string) result = XmlErrorChecker.XmlErrorCheck(currentFile);
+            if (!result.Item1)
             {
-                error = "Ошибка загрузки файла";
-                BrokenFiles.Add(currentFile, error);
-                return (false, error);
+                BrokenFiles.Add(currentFile, result.Item2);
+                return (true, string.Empty);
             }
 
             XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
@@ -31,39 +31,15 @@ namespace RimLanguageCore.Activities
             string Declaration = xDoc.Declaration?.ToString();
             if (Declaration is null)
             {
-                error = "Отсутствует декларация";
-                BrokenFiles.Add(currentFile, error);
-                return (false, error);
+                BrokenFiles.Add(currentFile, "Отсутствует декларация");
+                return (true, string.Empty);
             }
             else if (!Declaration.StartsWith("<?xml version=\"1.0\" encoding=\"utf-8\"", StringComparison.OrdinalIgnoreCase))
             {
-                error = "Ошибка декларации";
-                BrokenFiles.Add(currentFile, error);
-                return (false, error);
-            }
-
-            // Технические файлы
-            if (currentFile.EndsWith("About.xml", StringComparison.OrdinalIgnoreCase) || currentFile.EndsWith("LoadFolders.xml", StringComparison.OrdinalIgnoreCase))
-            {
+                BrokenFiles.Add(currentFile, "Ошибка декларации");
                 return (true, string.Empty);
             }
 
-            // Позволяет избежать обработки пустого или не содержащего нужных тегов файла
-            if (xDoc.Element("LanguageData") is null)
-            {
-                error = "Отсутствует тег LanguageData";
-                BrokenFiles.Add(currentFile, error);
-                return (false, error);
-            }
-
-            //Перевод контекста в содержимое тега LanguageData
-            XElement? root = xDoc.Element("LanguageData");
-            if (root?.Elements() is null)
-            {
-                error = "Пустой тег LanguageData";
-                BrokenFiles.Add(currentFile, error);
-                return (false, error);
-            }
             return (true, string.Empty);
         }
 

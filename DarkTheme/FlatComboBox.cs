@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
+#pragma warning disable
 namespace DarkModeForms
 {
 	// *** CREDITS:  https://github.com/r-aghaei/FlatComboExample/tree/master
@@ -11,6 +12,7 @@ namespace DarkModeForms
 	public class FlatComboBox : ComboBox
 	{
 		private Color borderColor = Color.Gray;
+
 		[DefaultValue(typeof(Color), "Gray")]
 		public Color BorderColor
 		{
@@ -26,6 +28,7 @@ namespace DarkModeForms
 		}
 
 		private Color buttonColor = Color.LightGray;
+
 		[DefaultValue(typeof(Color), "LightGray")]
 		public Color ButtonColor
 		{
@@ -68,9 +71,9 @@ namespace DarkModeForms
 					dropDownRect.Top + dropDownRect.Height / 2);
 				var arrow = new Point[]
 				{
-					new Point(middle.X - 3, middle.Y - 2),
-					new Point(middle.X + 4, middle.Y - 2),
-					new Point(middle.X, middle.Y + 2)
+			new Point(middle.X - 3, middle.Y - 2),
+			new Point(middle.X + 4, middle.Y - 2),
+			new Point(middle.X, middle.Y + 2)
 				};
 				var ps = new PAINTSTRUCT();
 				bool shoulEndPaint = false;
@@ -107,14 +110,14 @@ namespace DarkModeForms
 						g.FillRectangle(b, dropDownRect);
 					}
 
-					#endregion
+					#endregion DropDown Button
 
 					#region Chevron
 
 					//Replaced 'arrow' triangle with a Windows 11's Chevron:
 					//using (var b = new SolidBrush(outerBorderColor))
 					//{
-					//	g.FillPolygon(b, arrow);
+					//  g.FillPolygon(b, arrow);
 					//}
 
 					Size cSize = new Size(8, 4); //<- Size of the Chevron: 8x4 px
@@ -130,7 +133,7 @@ namespace DarkModeForms
 						g.DrawLine(chevronPen, chevron[1], chevron[2]);
 					}
 
-					#endregion
+					#endregion Chevron
 
 					#region Borders
 
@@ -144,7 +147,7 @@ namespace DarkModeForms
 						g.DrawRectangle(p, outerBorder);
 					}
 
-					#endregion
+					#endregion Borders
 				}
 				if (shoulEndPaint)
 					EndPaint(Handle, ref ps);
@@ -155,11 +158,13 @@ namespace DarkModeForms
 		}
 
 		private const int WM_PAINT = 0xF;
+
 		[StructLayout(LayoutKind.Sequential)]
 		public struct RECT
 		{
 			public int L, T, R, B;
 		}
+
 		[StructLayout(LayoutKind.Sequential)]
 		public struct PAINTSTRUCT
 		{
@@ -180,6 +185,7 @@ namespace DarkModeForms
 			public int reserved7;
 			public int reserved8;
 		}
+
 		[DllImport("user32.dll")]
 		private static extern IntPtr BeginPaint(IntPtr hWnd,
 			[In, Out] ref PAINTSTRUCT lpPaint);
@@ -192,6 +198,7 @@ namespace DarkModeForms
 
 		[DllImport("user32.dll")]
 		public static extern int GetUpdateRgn(IntPtr hwnd, IntPtr hrgn, bool fErase);
+
 		public enum RegionFlags
 		{
 			ERROR = 0,
@@ -199,6 +206,7 @@ namespace DarkModeForms
 			SIMPLEREGION = 2,
 			COMPLEXREGION = 3,
 		}
+
 		[DllImport("gdi32.dll")]
 		internal static extern bool DeleteObject(IntPtr hObject);
 
