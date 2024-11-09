@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Xml;
 using System.Xml.Linq;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace RimLanguageCore.Activities
 {
@@ -25,7 +24,6 @@ namespace RimLanguageCore.Activities
 
             // База defName - комментарий
             Dictionary<string, string> commentData = new();
-            string key = string.Empty;
             string value = string.Empty;
             bool hasValue = false;
             while (reader.Read())
@@ -33,10 +31,10 @@ namespace RimLanguageCore.Activities
                 switch (reader.NodeType)
                 {
                     case XmlNodeType.Element:
-                        key = reader.Name.ToString();
+                        string key = reader.Name.ToString();
                         if (hasValue)
                         {
-                            bool unique = commentData.TryAdd(key, value);
+                            commentData.TryAdd(key, value);
                         }
                         hasValue = false;
                         break;

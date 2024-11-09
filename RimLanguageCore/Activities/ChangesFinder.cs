@@ -20,14 +20,9 @@ namespace RimLanguageCore.Activities
             if (!result.Item1)
                 return result;
 
-            XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
-            XElement root = xDoc.Element("LanguageData");
-
             XmlReaderSettings settings = new() { DtdProcessing = DtdProcessing.Parse };
             XmlReader reader = XmlReader.Create(currentFile, settings);
             reader.MoveToContent();
-
-            string key = string.Empty;
             string value = string.Empty;
             bool hasValue = false;
             while (reader.Read())
@@ -35,7 +30,7 @@ namespace RimLanguageCore.Activities
                 switch (reader.NodeType)
                 {
                     case XmlNodeType.Element:
-                        key = reader.Name.ToString();
+                        string key = reader.Name.ToString();
                         if (hasValue)
                         {
                             bool unique = TranslationData.TryAdd(key, value);
@@ -95,7 +90,6 @@ namespace RimLanguageCore.Activities
                 }
             }
         }
-
 
         public static string WriteChanges()
         {

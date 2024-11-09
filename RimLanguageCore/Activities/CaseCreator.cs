@@ -44,6 +44,7 @@ namespace RimLanguageCore.Activities
             StreamWriter writerCase = new(path + "\\Case.txt", true, System.Text.Encoding.UTF8);
             StreamWriter writerPlural = new(path + "\\Plural.txt", true, System.Text.Encoding.UTF8);
             writerCase.WriteLine("// " + defType);
+            writerPlural.WriteLine("// " + defType);
 
             foreach (var word in words)
             {
@@ -107,6 +108,12 @@ namespace RimLanguageCore.Activities
             writerNeuter.WriteLine("// " + defType);
             writerNeuter.WriteLine();
             writerNeuter.Close();
+
+            string pathGenderPlural = pathGender + "\\Plural.txt";
+            StreamWriter writerPlural = new(pathGenderPlural, true, System.Text.Encoding.UTF8);
+            writerPlural.WriteLine("// " + defType);
+            writerPlural.WriteLine();
+            writerPlural.Close();
 
             string pathGenderUndefined = pathGender + "\\Undefined.txt";
             StreamWriter writerUndefined = new(pathGenderUndefined, true, System.Text.Encoding.UTF8);

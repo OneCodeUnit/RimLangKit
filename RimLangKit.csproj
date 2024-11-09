@@ -11,7 +11,7 @@
     <Platforms>x64</Platforms>
     <ApplicationIcon>images\icon.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
-    <Version>$(VersionPrefix)3.6.0</Version>
+    <Version>$(VersionPrefix)3.6.1</Version>
     <RepositoryUrl>https://github.com/OneCodeUnit/RimLangKit</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <NeutralLanguage>ru</NeutralLanguage>
@@ -24,6 +24,7 @@
     <Title>Mod Translation Tool</Title>
     <PackageIcon>icon.png</PackageIcon>
     <Copyright>OliveWizard</Copyright>
+    <SignAssembly>False</SignAssembly>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
