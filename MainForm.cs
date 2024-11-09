@@ -33,7 +33,16 @@ namespace RimLangKit
                 goodColor = Color.FromArgb(0, 130, 0);
                 badColor = Color.FromArgb(130, 0, 0);
             }
-            
+
+            // Обновление настроек
+            if (Settings.Default.firstLaunch)
+            {
+                SendToInfoTextBox("Обновление настроек при первом запуске");
+                Settings.Default.Upgrade();
+                Settings.Default.firstLaunch = false;
+                Settings.Default.Save();
+            }
+
             // Установка версии программы
             string? version = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Version?.ToString();
             if (version is null || version.Length < 5)
