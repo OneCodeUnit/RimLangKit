@@ -32,7 +32,9 @@ namespace RimLanguageCore.Activities
                 TagList.Add(def, new List<string>());
             }
             else
+            {
                 DefsSpread[def]++;
+            }
             return def;
         }
 
@@ -40,11 +42,15 @@ namespace RimLanguageCore.Activities
         public static (bool, string) TagCollectorActivity(string currentFile)
         {
             if (currentFile.Contains("LoadFolders.xml", StringComparison.OrdinalIgnoreCase) || currentFile.Contains("About.xml", StringComparison.OrdinalIgnoreCase) || currentFile.Contains("Keyed.xml", StringComparison.OrdinalIgnoreCase))
+            {
                 return (false, "Пропуск файла без defs");
+            }
 
             (bool, string) result = XmlErrorChecker.XmlErrorCheck(currentFile);
             if (!result.Item1)
+            {
                 return result;
+            }
 
             XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
             XElement root = xDoc.Element("LanguageData");
@@ -52,7 +58,9 @@ namespace RimLanguageCore.Activities
             // DefName текущего файла
             string def = CheckDef(currentFile);
             if (def == "Keyed")
+            {
                 return (false, "Keyed-файл");
+            }
 
             foreach (XElement node in root.Elements())
             {
@@ -67,12 +75,19 @@ namespace RimLanguageCore.Activities
                         TagSpread.Add(content, 1);
                     }
                     else
+                    {
                         TagSpread[content]++;
+                    }
+
                     if (!TagList[def].Contains(content))
+                    {
                         TagList[def].Add(content);
+                    }
                 }
                 else
+                {
                     return (false, $"{content} - Неправильный тег?");
+                }
             }
             return (true, string.Empty);
         }
@@ -116,7 +131,9 @@ namespace RimLanguageCore.Activities
             foreach (var spread in spreadList)
             {
                 if (spread.Value > 1)
+                {
                     swSpread.WriteLine($"{spread.Key} - {spread.Value}");
+                }
             }
             swSpread.Close();
 
@@ -128,7 +145,9 @@ namespace RimLanguageCore.Activities
             foreach (var spread in defSpreadList)
             {
                 if (spread.Value > 1)
+                {
                     swDefSpread.WriteLine($"{spread.Key} - {spread.Value}");
+                }
             }
 
             swDefSpread.Close();

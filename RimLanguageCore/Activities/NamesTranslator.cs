@@ -36,7 +36,10 @@ namespace RimLanguageCore.Activities
             {
                 // Чтение строки
                 string sourceLine = sourceText.ReadLine().Trim();
-                if (sourceLine is null) break;
+                if (sourceLine is null)
+                {
+                    break;
+                }
 
                 foreach (KeyValuePair<string, string> item in dictionaryStart)
                 {
@@ -96,10 +99,9 @@ namespace RimLanguageCore.Activities
             // Завершение работы
             sourceText.Close();
             translatedText.Close();
-            if (errors == 0)
-                return (true, string.Empty);
-            else
-                return (false, errors + " имён записано с ошибкой. Ищите слова \"Ошибка\" в получившихся файлах");
+            return errors == 0
+                ? (true, string.Empty)
+                : (false, errors + " имён записано с ошибкой. Ищите слова \"Ошибка\" в получившихся файлах");
         }
 
         private static Dictionary<string, string> SetDictionary(string line)

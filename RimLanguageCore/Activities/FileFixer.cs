@@ -47,7 +47,9 @@ namespace RimLanguageCore.Activities
         public static string BrokenFilesWriterActivity()
         {
             if (BrokenFiles.Count == 0)
-                return ("Не найдено сломанных файлов");
+            {
+                return "Не найдено сломанных файлов";
+            }
 
             string currentDirectory = Directory.GetCurrentDirectory();
             StreamWriter sw = new(Path.Combine(currentDirectory + "\\BrokenFiles.txt"), false);

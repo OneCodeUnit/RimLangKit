@@ -37,10 +37,10 @@ namespace RimLangKit
             // Обновление настроек
             if (Settings.Default.firstLaunch)
             {
-                SendToInfoTextBox("Обновление настроек при первом запуске");
                 Settings.Default.Upgrade();
                 Settings.Default.firstLaunch = false;
                 Settings.Default.Save();
+                SendToInfoTextBox("Первый запуск. Обновление настроек завершено");
             }
 
             // Установка версии программы
@@ -53,7 +53,9 @@ namespace RimLangKit
             {
                 version = version[..5];
                 if (version.EndsWith(".0", StringComparison.OrdinalIgnoreCase))
+                {
                     version = version[..^2];
+                }
             }
             VersionLabel.Text = "Версия " + version;
 
@@ -167,6 +169,7 @@ namespace RimLangKit
             else
             {
                 SendToInfoTextBox("Доступна новая версия программы. Её можно скачать на GitHub по ссылке справа");
+                SendToInfoTextBox($"{json.name}. Что нового?{Environment.NewLine}{json.body}");
                 UpdateButton.BackgroundImage = Properties.Resources.warn_c;
                 LinkLabelGithub.Visible = true;
             }
@@ -200,7 +203,7 @@ namespace RimLangKit
 
         private void ButtonDarkMode_Click(object sender, EventArgs e)
         {
-            if (Settings.Default.darkTheme == true)
+            if (Settings.Default.darkTheme)
             {
                 Settings.Default["darkTheme"] = false;
                 SendToInfoTextBox("Хе-хе бой. Это светлая тема. Чтобы развидеть тёмную тему, перезапусти приложение.");
@@ -228,10 +231,13 @@ namespace RimLangKit
         private void SendToInfoTextBox(string text)
         {
             if (Settings.Default.lastTab == 0)
+            {
                 InfoTextBox.AppendText($"{Environment.NewLine}{text}");
+            }
             else
+            {
                 InfoTextBox2.AppendText($"{Environment.NewLine}{text}");
-
+            }
         }
 
         private void MainTabs_IndexChange(object sender, EventArgs e)
@@ -288,7 +294,9 @@ namespace RimLangKit
 
             InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Завершено. Обработано файлов - {count}");
             if (errCount != 0)
+            {
                 InfoTextBox.AppendText($"{Environment.NewLine}Пропущено файлов - {errCount}");
+            }
 
             // Постобработка
             switch (code)
@@ -324,12 +332,14 @@ namespace RimLangKit
             string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
             int count = 0;
             int errCount = 0;
-            (bool, string) result = (false, string.Empty);
+            (bool, string) result;
             foreach (string tempFile in allFiles)
             {
                 result = ChangesFinder.GetTranslationData(tempFile);
                 if (result.Item1)
+                {
                     count++;
+                }
                 else
                 {
                     errCount++;
@@ -345,7 +355,9 @@ namespace RimLangKit
             {
                 result = ChangesFinder.GetModData(tempFile);
                 if (result.Item1)
+                {
                     count++;
+                }
                 else
                 {
                     errCount++;
@@ -365,19 +377,10 @@ namespace RimLangKit
             string[] defTypeList = ["AbilityDef", "BodyDef", "BodyPartDef", "BodyPartGroupDef", "ChemicalDef", "FactionDef", "HediffDef", "MemeDef", "MentalBreakDef", "MentalFitDef", "MentalStateDef", "OrderedTakeGroupDef", "PawnCapacityDef", "PawnKindDef", "ScenarioDef", "SitePartDef", "SkillDef", "StyleCategoryDef", "ThingDef", "ToolCapacityDef", "WorldObjectDef", "XenotypeDef"];
             //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
             string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
-            Dictionary<string, string> words = new();
+            Dictionary<string, string> words = [];
 
             // Поиск подходящей директории
-            string directory;
-            if (Directory.Exists(DirectoryPath + "\\Common"))
-            {
-                directory = DirectoryPath + "\\Common";
-            }
-            else
-            {
-                directory = DirectoryPath;
-            }
-
+            string directory = Directory.Exists(DirectoryPath + "\\Common") ? DirectoryPath + "\\Common" : DirectoryPath;
             int typeCount = 0;
             // Проверяется каждый подходящий DefType из списка
             foreach (string defType in defTypeList)
@@ -451,7 +454,9 @@ namespace RimLangKit
                 }
                 result = PreTranslator.BuildDatabase(tempFile);
                 if (result.Item1)
+                {
                     count++;
+                }
                 else
                 {
                     errCount++;
@@ -459,8 +464,8 @@ namespace RimLangKit
                 }
             }
             InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Собрано {result.Item2} пар перевода. Обработано файлов - {count}. Пропущено файлов - {errCount}.");
-            
-            
+
+
             InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Начат предварительный перевод");
             allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
             count = 0;
@@ -469,7 +474,9 @@ namespace RimLangKit
             {
                 result = PreTranslator.Translation(tempFile);
                 if (result.Item1)
+                {
                     count++;
+                }
                 else
                 {
                     errCount++;
