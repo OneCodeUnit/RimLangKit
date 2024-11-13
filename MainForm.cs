@@ -37,11 +37,10 @@ namespace RimLangKit
             // Обновление настроек
             if (Settings.Default.firstLaunch)
             {
-                SendToInfoTextBox("Первый запуск");
+                SendToInfoTextBox("Обновление настроек при первом запуске");
                 Settings.Default.Upgrade();
                 Settings.Default.firstLaunch = false;
                 Settings.Default.Save();
-                SendToInfoTextBox("Поиск и обновление настроек завершено");
             }
 
             // Установка версии программы
@@ -168,7 +167,6 @@ namespace RimLangKit
             else
             {
                 SendToInfoTextBox("Доступна новая версия программы. Её можно скачать на GitHub по ссылке справа");
-                SendToInfoTextBox($"{json.name}. Что нового?{Environment.NewLine}{json.body}");
                 UpdateButton.BackgroundImage = Properties.Resources.warn_c;
                 LinkLabelGithub.Visible = true;
             }
@@ -453,9 +451,7 @@ namespace RimLangKit
                 }
                 result = PreTranslator.BuildDatabase(tempFile);
                 if (result.Item1)
-                {
                     count++;
-                }
                 else
                 {
                     errCount++;
@@ -463,8 +459,8 @@ namespace RimLangKit
                 }
             }
             InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Собрано {result.Item2} пар перевода. Обработано файлов - {count}. Пропущено файлов - {errCount}.");
-
-
+            
+            
             InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Начат предварительный перевод");
             allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
             count = 0;
@@ -473,9 +469,7 @@ namespace RimLangKit
             {
                 result = PreTranslator.Translation(tempFile);
                 if (result.Item1)
-                {
                     count++;
-                }
                 else
                 {
                     errCount++;

@@ -18,9 +18,7 @@ namespace RimLanguageCore.Activities
         {
             (bool, string) result = XmlErrorChecker.XmlErrorCheck(currentFile);
             if (!result.Item1)
-            {
                 return result;
-            }
 
             XmlReaderSettings settings = new() { DtdProcessing = DtdProcessing.Parse };
             XmlReader reader = XmlReader.Create(currentFile, settings);
@@ -58,9 +56,7 @@ namespace RimLanguageCore.Activities
         {
             (bool, string) result = XmlErrorChecker.XmlErrorCheck(currentFile);
             if (!result.Item1)
-            {
                 return result;
-            }
 
             XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
             XElement root = xDoc.Element("LanguageData");

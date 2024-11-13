@@ -13,9 +13,7 @@ namespace RimLanguageCore.Activities
         {
             (bool, string) result = XmlErrorChecker.XmlErrorCheck(currentFile);
             if (!result.Item1)
-            {
                 return result;
-            }
 
             XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
             XElement root = xDoc.Element("LanguageData");
@@ -66,10 +64,7 @@ namespace RimLanguageCore.Activities
             {
                 // Для экономии памяти считаем, что по достаточно длинному тексту совпадений быть не может
                 if (text.Key.Length > 30)
-                {
                     continue;
-                }
-
                 if (commentData.TryGetValue(text.Key, out string commentValue))
                 {
                     bool unique = TranslationData.TryAdd(commentValue, text.Value);
@@ -81,16 +76,17 @@ namespace RimLanguageCore.Activities
                 }
             }
 
-            return TranslationData.Count > 0 ? (true, $"{TranslationData.Count}") : (false, "Не найдено нового перевода");
+            if (TranslationData.Count > 0)
+                return (true, $"{TranslationData.Count}");
+            else 
+                return (false, "Не найдено нового перевода");
         }
 
         public static (bool, string) Translation(string currentFile)
         {
             (bool, string) result = XmlErrorChecker.XmlErrorCheck(currentFile);
             if (!result.Item1)
-            {
                 return result;
-            }
 
             XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
             XElement root = xDoc.Element("LanguageData");
@@ -99,9 +95,7 @@ namespace RimLanguageCore.Activities
             {
                 // Поиск перевода в словаре
                 if (TranslationData.TryGetValue(node.Value, out string textValue))
-                {
                     node.Value = textValue;
-                }
             }
 
             // Сохранение файла
