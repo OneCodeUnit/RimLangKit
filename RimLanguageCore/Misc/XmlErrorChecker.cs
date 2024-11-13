@@ -24,12 +24,7 @@ namespace RimLanguageCore.Misc
             }
             // Перевод контекста в содержимое тега LanguageData
             XElement root = xDoc.Element("LanguageData");
-            if (root?.Elements() is null)
-            {
-                return (false, "Тег LanguageData пуст");
-            }
-
-            return (true, string.Empty);
+            return root?.Elements() is null ? (false, "Тег LanguageData пуст") : (true, string.Empty);
         }
     }
 }

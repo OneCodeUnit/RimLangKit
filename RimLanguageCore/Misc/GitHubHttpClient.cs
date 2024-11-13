@@ -65,6 +65,8 @@ namespace RimLanguageCore.Misc
 #pragma warning disable IDE1006, CA1707
         public string sha { get; set; }
         public string tag_name { get; set; }
+        public string name { get; set; }
+        public string body { get; set; }
 #pragma warning restore IDE1006, CA1707
     }
 }
