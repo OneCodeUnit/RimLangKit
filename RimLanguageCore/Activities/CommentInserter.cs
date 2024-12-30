@@ -4,9 +4,14 @@ using RimLanguageCore.Misc;
 
 namespace RimLanguageCore.Activities
 {
+    /// <summary>
+    /// Вставляет комментарий с содержимым тега перед каждым элементом в указанном XML-файле.
+    /// </summary>
+    /// <param name="currentFile">Путь к текущему XML-файлу.</param>
+    /// <returns>Кортеж, содержащий статус операции (true - успех, false - ошибка) и сообщение об ошибке.</returns>
     public static class CommentInserter
     {
-        public static (bool, string) CommentInserterActivity(string currentFile)
+        public static (bool, string) InsertComments(string currentFile)
         {
             (bool, string) result = XmlErrorChecker.XmlErrorCheck(currentFile);
             if (!result.Item1)

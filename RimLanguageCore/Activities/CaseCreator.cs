@@ -10,7 +10,7 @@ namespace RimLanguageCore.Activities
     {
         private const string CasePath = "\\Languages\\Russian\\WordInfo";
 
-        private static List<string> WordsExtract(string file)
+        private static List<string> ExtractWords(string file)
         {
             XDocument xDoc = XDocument.Load(file, LoadOptions.PreserveWhitespace);
             XElement root = xDoc.Element("LanguageData");
@@ -34,7 +34,7 @@ namespace RimLanguageCore.Activities
             // Если файл соответствует заданному defType, то запускатся в работу
             if (currentFile.Contains(defType, StringComparison.OrdinalIgnoreCase))
             {
-                words.AddRange(WordsExtract(currentFile));
+                words.AddRange(ExtractWords(currentFile));
             }
             return words;
         }
@@ -56,17 +56,17 @@ namespace RimLanguageCore.Activities
                 }
 
                 string tempWord = word.Key;
-                Words result = MorpherHttpClient.GetMorpherWords(tempWord);
+                WordForms result = MorpherHttpClient.GetMorpherWords(tempWord);
                 // Case.txt
                 string tempStringCase = result is null
                     ? $"{tempWord}; {tempWord}; {tempWord}; {tempWord}; {tempWord}; {tempWord}"
-                    : $"{tempWord}; {result.Р}; {result.Д}; {result.В}; {result.Т}; {result.П}";
+                    : $"{tempWord}; {result.Genitive}; {result.Dative}; {result.Accusative}; {result.Instrumental}; {result.Prepositional}";
                 writerCase.WriteLine(tempStringCase);
 
                 // Plural.txt
                 tempStringCase = result is null
                     ? $"{tempWord}; {tempWord}"
-                    : result.множественное is null ? string.Empty : $"{tempWord}; {result.множественное.И}";
+                    : result.Plural is null ? string.Empty : $"{tempWord}; {result.Plural.Nominative}";
                 writerPlural.WriteLine(tempStringCase);
             }
             writerCase.WriteLine();
@@ -83,27 +83,79 @@ namespace RimLanguageCore.Activities
             string pathGenderFemale = pathGender + "\\Female.txt";
             StreamWriter writerFemale = new(pathGenderFemale, true, System.Text.Encoding.UTF8);
             writerFemale.WriteLine("// " + defType);
+            foreach (var word in words)
+            {
+                if (word.Value != defType)
+                {
+                    continue;
+                }
+                else if (word.Key.EndsWith("а", StringComparison.OrdinalIgnoreCase) || word.Key.EndsWith("я", StringComparison.OrdinalIgnoreCase))
+                {
+                    writerFemale.WriteLine(word.Key);
+                    words.Remove(word.Key);
+                }
+            }
             writerFemale.WriteLine();
             writerFemale.Close();
 
             string pathGenderMale = pathGender + "\\Male.txt";
             StreamWriter writerMale = new(pathGenderMale, true, System.Text.Encoding.UTF8);
             writerMale.WriteLine("// " + defType);
+            foreach (var word in words)
+            {
+                if (word.Value != defType)
+                {
+                    continue;
+                }
+                else if ((!word.Key.EndsWith("а", StringComparison.OrdinalIgnoreCase)) && (!word.Key.EndsWith("я", StringComparison.OrdinalIgnoreCase))
+                && (!word.Key.EndsWith("о", StringComparison.OrdinalIgnoreCase)) && (!word.Key.EndsWith("е", StringComparison.OrdinalIgnoreCase))
+                && (!word.Key.EndsWith("ы", StringComparison.OrdinalIgnoreCase)) && (!word.Key.EndsWith("и", StringComparison.OrdinalIgnoreCase)))
+                {
+                    writerMale.WriteLine(word.Key);
+                    words.Remove(word.Key);
+                }
+            }
             writerMale.WriteLine();
             writerMale.Close();
 
             string pathGenderNeuter = pathGender + "\\Neuter.txt";
             StreamWriter writerNeuter = new(pathGenderNeuter, true, System.Text.Encoding.UTF8);
             writerNeuter.WriteLine("// " + defType);
+            foreach (var word in words)
+            {
+                if (word.Value != defType)
+                {
+                    continue;
+                }
+                else if (word.Key.EndsWith("о", StringComparison.OrdinalIgnoreCase) || word.Key.EndsWith("е", StringComparison.OrdinalIgnoreCase))
+                {
+                    writerNeuter.WriteLine(word.Key);
+                    words.Remove(word.Key);
+                }
+            }
             writerNeuter.WriteLine();
             writerNeuter.Close();
 
             string pathGenderPlural = pathGender + "\\Plural.txt";
             StreamWriter writerPlural = new(pathGenderPlural, true, System.Text.Encoding.UTF8);
             writerPlural.WriteLine("// " + defType);
+            foreach (var word in words)
+            {
+                if (word.Value != defType)
+                {
+                    continue;
+                }
+                else if (word.Key.EndsWith("ы", StringComparison.OrdinalIgnoreCase) || word.Key.EndsWith("и", StringComparison.OrdinalIgnoreCase))
+                {
+                    writerPlural.WriteLine(word.Key);
+                    words.Remove(word.Key);
+                }
+            }
             writerPlural.WriteLine();
             writerPlural.Close();
 
+            if (words.Count < 1)
+                return;
             string pathGenderUndefined = pathGender + "\\Undefined.txt";
             StreamWriter writerUndefined = new(pathGenderUndefined, true, System.Text.Encoding.UTF8);
             writerUndefined.WriteLine("// " + defType);

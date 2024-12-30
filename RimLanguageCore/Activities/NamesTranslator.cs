@@ -73,13 +73,8 @@ namespace RimLanguageCore.Activities
                     }
                 }
 
-                for (int i = 0; i < sourceLine.Length; i++)
-                {
-                    if (sourceLine[i] == '=')
-                    {
-                        sourceLine = sourceLine.Replace(sourceLine[i].ToString(), string.Empty);
-                    }
-                }
+                sourceLine = sourceLine.Replace("=", string.Empty);
+
                 if (sourceLine.Length > 1)
                 {
                     sourceLine = char.ToUpper(sourceLine[0], CultureInfo.InvariantCulture) + sourceLine[1..];

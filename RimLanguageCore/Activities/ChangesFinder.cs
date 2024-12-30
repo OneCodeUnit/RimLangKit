@@ -70,9 +70,7 @@ namespace RimLanguageCore.Activities
                 bool unique = ModData.TryAdd(node.Name.ToString(), node.Value);
                 if (!unique)
                 {
-                    DateTime time = DateTime.Now;
-                    string uniqueString = time.ToString("ffff", CultureInfo.InvariantCulture);
-                    TranslationData.TryAdd(node.Name.ToString() + uniqueString, node.Value);
+                    TranslationData.TryAdd(node.Name.ToString() + Guid.NewGuid(), node.Value);
                 }
             }
 

@@ -84,7 +84,7 @@ namespace RimLangKit
         // Выбор папки и обработка изменения адреса папки
         private void FolderButton_Click(object sender, EventArgs e)
         {
-            FolderBrowserDialog ofd = new();
+            using FolderBrowserDialog ofd = new();
             DialogResult dr = ofd.ShowDialog();
             if (dr == DialogResult.OK)
             {
@@ -140,7 +140,7 @@ namespace RimLangKit
                 LinkLabelGithub.Visible = true;
                 return;
             }
-            string newVersion = json.tag_name.ToString()[1..];
+            string newVersion = json.TagName.ToString()[1..];
             string? oldVersion = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Version?.ToString();
             if (oldVersion is null || oldVersion.Length < 5)
             {
@@ -169,7 +169,7 @@ namespace RimLangKit
             else
             {
                 SendToInfoTextBox("Доступна новая версия программы. Её можно скачать на GitHub по ссылке справа");
-                SendToInfoTextBox($"{json.name}. Что нового?{Environment.NewLine}{json.body}");
+                SendToInfoTextBox($"{json.Name}. Что нового?{Environment.NewLine}{json.Body}");
                 UpdateButton.BackgroundImage = Properties.Resources.warn_c;
                 LinkLabelGithub.Visible = true;
             }
@@ -278,7 +278,7 @@ namespace RimLangKit
                         result = EncodingFixer.EncodingFixerActivity(currentFile);
                         break;
                     case "CommentInserter":
-                        result = CommentInserter.CommentInserterActivity(currentFile);
+                        result = CommentInserter.InsertComments(currentFile);
                         break;
                     default:
                         break;

@@ -22,15 +22,15 @@ namespace RimLanguageCore.Activities
             {
                 return (false, "Проверка версии: Ошибка получения данных с GitHub. Что-то с интернетом?");
             }
-            if (json.sha == sha)
+            if (json.Sha == sha)
             {
                 TempSha = string.Empty;
-                return (false, $"Ваша версия - {sha[..6]}, доступная версия - {json.sha[..6]}. Обновление не требуется");
+                return (false, $"Ваша версия - {sha[..6]}, доступная версия - {json.Sha[..6]}. Обновление не требуется");
             }
             else
             {
-                TempSha = json.sha;
-                return (true, $"Ваша версия - {sha[..6]}, доступная версия - {json.sha[..6]}. Требуется обновление");
+                TempSha = json.Sha;
+                return (true, $"Ваша версия - {sha[..6]}, доступная версия - {json.Sha[..6]}. Требуется обновление");
             }
         }
 

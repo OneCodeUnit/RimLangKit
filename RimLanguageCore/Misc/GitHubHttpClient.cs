@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Net.Http;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace RimLanguageCore.Misc
 {
@@ -18,6 +19,7 @@ namespace RimLanguageCore.Misc
             try
             {
                 response = Client.GetAsync("https://api.github.com/repos/OneCodeUnit/RimLangKit/releases/latest").Result;
+                response.EnsureSuccessStatusCode();
             }
             catch
             {
@@ -34,6 +36,7 @@ namespace RimLanguageCore.Misc
             try
             {
                 response = Client.GetAsync($"https://api.github.com/repos/{repo}/commits/master").Result;
+                response.EnsureSuccessStatusCode();
             }
             catch
             {
@@ -44,12 +47,13 @@ namespace RimLanguageCore.Misc
             return json;
         }
 
-        public static Stream GetGithubArchive(string repo)
+        public static Stream GetGithubArchive(string repo, string branch = "master")
         {
             HttpResponseMessage response;
             try
             {
-                response = Client.GetAsync($"https://github.com/{repo}/archive/refs/heads/master.zip").Result;
+                response = Client.GetAsync($"https://github.com/{repo}/archive/refs/heads/{branch}.zip").Result;
+                response.EnsureSuccessStatusCode();
                 Stream stream = response.Content.ReadAsStreamAsync().Result;
                 return stream;
             }
@@ -62,11 +66,16 @@ namespace RimLanguageCore.Misc
 
     public class Root
     {
-#pragma warning disable IDE1006, CA1707
-        public string sha { get; set; }
-        public string tag_name { get; set; }
-        public string name { get; set; }
-        public string body { get; set; }
-#pragma warning restore IDE1006, CA1707
+        [JsonPropertyName("sha")]
+        public string Sha { get; set; }
+
+        [JsonPropertyName("tag_name")]
+        public string TagName { get; set; }
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+
+        [JsonPropertyName("body")]
+        public string Body { get; set; }
     }
 }

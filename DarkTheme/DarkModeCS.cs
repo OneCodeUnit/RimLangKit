@@ -9,6 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Xml.Linq;
 
 #pragma warning disable
 namespace DarkModeForms
@@ -178,6 +179,10 @@ namespace DarkModeForms
 		}
 
 		public const int EM_SETCUEBANNER = 5377;
+		public const int WM_SETTINGSCHANGE = 0x001A;
+		public const int WM_THEMECHANGED = 0x031A;
+		public const int GWLP_WNDPROC = -4;
+		
 
 		[DllImport("user32.dll", CharSet = CharSet.Auto)]
 		public static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wParam, [MarshalAs(UnmanagedType.LPWStr)] string lParam);
@@ -211,37 +216,95 @@ namespace DarkModeForms
 		[DllImport("user32")]
 		private static extern IntPtr ReleaseDC(IntPtr hwnd, IntPtr hdc);
 
-		public static IntPtr GetHeaderControl(ListView list)
+		private static IntPtr GetHeaderControl(ListView list)
 		{
 			const int LVM_GETHEADER = 0x1000 + 31;
 			return SendMessage(list.Handle, LVM_GETHEADER, IntPtr.Zero, "");
 		}
 
+		[UnmanagedFunctionPointer(CallingConvention.StdCall)]
+		private delegate IntPtr WndProc(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+		// This helper static method is required because the 32-bit version of user32.dll does not contain this API
+		// (on any versions of Windows), so linking the method will fail at run-time. The bridge dispatches the request
+		// to the correct function (GetWindowLong in 32-bit mode and GetWindowLongPtr in 64-bit mode)
+		public static IntPtr SetWindowLongPtr(HandleRef hWnd, int nIndex, IntPtr dwNewLong)
+		{
+			if (IntPtr.Size == 8)
+				return SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
+			else
+				return new IntPtr(SetWindowLong32(hWnd, nIndex, dwNewLong.ToInt32()));
+		}
+
+		[DllImport("user32.dll", EntryPoint = "SetWindowLong")]
+		private static extern int SetWindowLong32(HandleRef hWnd, int nIndex, int dwNewLong);
+
+		[DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
+		private static extern IntPtr SetWindowLongPtr64(HandleRef hWnd, int nIndex, IntPtr dwNewLong);
+		//		If that doesn't work, the following signature can be used alternatively.
+		[DllImport("user32.dll")]
+		static extern int SetWindowLong(IntPtr hWnd, int nIndex, uint dwNewLong);
+
+		//[DllImport("user32.dll", SetLastError = true)]
+		//private static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+
+		[DllImport("user32.dll", SetLastError = true)]
+		private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam);
+
+
 		#endregion Win32 API Declarations
 
-		#region Static Local Members
+		#region Private Static Members
 
 		/// <summary>
-		/// Prevents applying a theme multiple times to the same control.
-		/// Without this, it happens at least is some MDI forms.
-		/// Currently, only Key is being used, the Value is not, but the code can be modified if necessary.
+		/// Stores additional info related to the Controls
 		/// </summary>
-		private static readonly ConditionalWeakTable<Control, object> ControlsProcessed = new ConditionalWeakTable<Control, object>();
+		private static readonly ControlStatusStorage controlStatusStorage = new ControlStatusStorage();
+
+		/// <summary>
+		/// stores the event handler reference in order to prevent its uncontrolled multiple addition
+		/// </summary>
+		private static ControlEventHandler ownerFormControlAdded;
+		
+		/// <summary>
+		/// stores the event handler reference in order to prevent its uncontrolled multiple addition
+		/// </summary>
+		private static EventHandler controlHandleCreated;
+
+		/// <summary>
+		/// stores the event handler reference in order to prevent its uncontrolled multiple addition
+		/// </summary>
+		private static ControlEventHandler controlControlAdded;
+
+
+		private bool _IsDarkMode = false; //<- storage for the Read Only Proerty 'IsDarkMode'
+
+		private IntPtr originalWndProc;
+		private WndProc newWndProcDelegate;
+		private IntPtr formHandle;
+		private bool applyingTheme = false; // Flag to prevent recursion
 
 		#endregion
 
-		#region Public Static Members
-		/// <summary>
-		/// setting to false (ideally before any Form is created) disables DarkModeCS
-		/// </summary>
-		public static bool IsDarkModeCSEnabled { get; set; } = true;
-
-		#endregion
 
 		#region Public Members
 
-		/// <summary>'true' if Dark Mode Color is set in Windows's Settings.</summary>
-		public bool IsDarkMode { get; set; } = false;
+		public enum DisplayMode
+		{
+			/// <summary>Uses the Color Mode of the System, set by the User in Windows Settings.</summary>
+			SystemDefault,
+			/// <summary>Forces to use Clear Mode</summary>
+			ClearMode,
+			/// <summary>Forces to use Dark Mode</summary>
+			DarkMode
+		}
+
+		/// <summary>Gets or Sets the Display color mode applied to the Form and Controls.</summary>
+		public DisplayMode ColorMode { get; set; } = DisplayMode.SystemDefault;
+
+		///// <summary>[Read Only] 'true' if Dark Mode Color is applied to the Form.</summary>
+		public bool IsDarkMode { get { return _IsDarkMode; } }
 
 		/// <summary>Option to re-colorize all Icons in Toolbars and Menus.</summary>
 		public bool ColorizeIcons { get; set; } = true;
@@ -257,6 +320,7 @@ namespace DarkModeForms
 
 		#endregion Public Members
 
+
 		#region Constructors
 
 		/// <summary>This tries to automatically apply Windows Dark Mode (if enabled) to a Form.</summary>
@@ -270,11 +334,54 @@ namespace DarkModeForms
 			OwnerForm = _Form;
 			ColorizeIcons = _ColorizeIcons;
 			RoundedPanels = _RoundedPanels;
-			IsDarkMode = IsDarkModeCSEnabled && GetWindowsColorMode() <= 0 ? true : false;
 
-			//if (!IsDarkModeCSEnabled) return;
+			if (originalWndProc == IntPtr.Zero)
+			{
+				_Form.HandleCreated += (sender, e) =>
+				{
+					HandleRef handleRef = new HandleRef(_Form, _Form.Handle);
+					newWndProcDelegate = new WndProc(CustomWndProc);
+					originalWndProc = SetWindowLongPtr(handleRef, GWLP_WNDPROC, Marshal.GetFunctionPointerForDelegate(newWndProcDelegate));
+				};
+			}
+			// This Fires after the normal 'Form_Load' event
+			_Form.Load += (object sender, EventArgs e) =>
+			{
+				_IsDarkMode = isDarkMode(); //<- Gets the current color mode from Windows
+				if (ColorMode != DisplayMode.SystemDefault)
+				{
+					_IsDarkMode = ColorMode == DisplayMode.DarkMode ? true : false;
+				}
 
-			ApplyTheme(IsDarkMode);
+				ApplyTheme(_IsDarkMode);
+			};
+		}
+
+		private IntPtr CustomWndProc(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam)
+		{
+			// Handle the WM_THEMECHANGED message
+			Debug.WriteLine($"Message Code: {msg}");
+			if (msg == WM_SETTINGSCHANGE && !applyingTheme)
+			{
+				applyingTheme = true; // Set the flag to prevent recursion
+				_IsDarkMode = isDarkMode(); //<- Gets the current color mode from Windows
+				if (ColorMode != DisplayMode.SystemDefault)
+				{
+					_IsDarkMode = ColorMode == DisplayMode.DarkMode ? true : false;
+				}
+
+				ApplyTheme(_IsDarkMode);
+				applyingTheme = false; // Reset the flag
+			}
+
+			// Call the original WndProc
+			return CallWindowProc(originalWndProc, hWnd, msg, wParam, lParam);
+		}
+
+
+		public bool isDarkMode()
+		{
+		   return GetWindowsColorMode() <= 0 ? true : false;
 		}
 
 		#endregion Constructors
@@ -287,7 +394,9 @@ namespace DarkModeForms
 		{
 			try
 			{
-				IsDarkMode = pIsDarkMode;
+				// IsDarkMode member changes only if the User manually changed it here:
+				_IsDarkMode = _IsDarkMode != pIsDarkMode ? pIsDarkMode : _IsDarkMode;
+
 				OScolors = GetSystemColors(OwnerForm, pIsDarkMode ? 0 : 1);
 
 				if (OScolors != null)
@@ -304,10 +413,14 @@ namespace DarkModeForms
 						{
 							ThemeControl(_control);
 						}
-						OwnerForm.ControlAdded += (object sender, ControlEventArgs e) =>
-						{
-							ThemeControl(e.Control);
-						};
+
+						if (ownerFormControlAdded == null)
+							ownerFormControlAdded = (object sender, ControlEventArgs e) =>
+							{
+								ThemeControl(e.Control);
+							};
+						OwnerForm.ControlAdded -= ownerFormControlAdded; //prevent uncontrolled multiple addition
+						OwnerForm.ControlAdded += ownerFormControlAdded;
 					}
 				}
 			}
@@ -315,27 +428,66 @@ namespace DarkModeForms
 			{
 				MessageBox.Show(ex.Message + ex.StackTrace, "ERROR", MessageBoxButtons.OK, MessageBoxIcon.Error);
 			}
+			finally
+			{
+
+			}
+		}
+		public void ApplyTheme(DisplayMode pColorMode)
+		{
+			_IsDarkMode = isDarkMode(); //<- Gets the current color mode from Windows
+			if (ColorMode != DisplayMode.SystemDefault)
+			{
+				_IsDarkMode = ColorMode == DisplayMode.DarkMode ? true : false;
+			}
+
+			ApplyTheme(_IsDarkMode);
 		}
 
 		/// <summary>Recursively apply the Colors from 'OScolors' to the Control and all its childs.</summary>
 		/// <param name="control">Can be a Form or any Winforms Control.</param>
 		public void ThemeControl(Control control)
 		{
-			//prevent applying a theme multiple times to the same control
-			//without this, it happens at least is some MDI forms
-			if (ExcludeFromProcessing(control)) return;
+			var info = controlStatusStorage.GetControlStatusInfo(control);
+			if (info != null)
+			{
+				//we already have some information about this Control
+				 
+				//if the user chose to skip the control, exit
+				if (info.IsExcluded) return;
+
+				//prevent applying a theme multiple times to the same control
+				//without this, it happens at least is some MDI forms
+				//if the Control already has the current theme, exit (otherwise we are going to re-theme it)
+				if (info.LastThemeAppliedIsDark == IsDarkMode) return;
+
+				//we remember it will soon have the current theme
+				info.LastThemeAppliedIsDark = IsDarkMode;
+			}
+			else
+			{
+				//this is the first time we see this Control
+
+				//we remember it will soon have the current theme
+				controlStatusStorage.RegisterProcessedControl(control, IsDarkMode);
+			}
 
 			BorderStyle BStyle = (IsDarkMode ? BorderStyle.FixedSingle : BorderStyle.Fixed3D);
 			FlatStyle FStyle = (IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard);
 
-			control.HandleCreated += (object sender, EventArgs e) =>
+			if(controlHandleCreated==null) controlHandleCreated =  (object sender, EventArgs e) =>
 			{
-				ApplySystemDarkTheme(control, IsDarkMode);
+				ApplySystemDarkTheme((Control)sender, IsDarkMode);
 			};
-			control.ControlAdded += (object sender, ControlEventArgs e) =>
+			control.HandleCreated -= controlHandleCreated; //prevent uncontrolled multiple addition
+			control.HandleCreated += controlHandleCreated;
+
+			if(controlControlAdded==null) controlControlAdded=(object sender, ControlEventArgs e) =>
 			{
 				ThemeControl(e.Control);
 			};
+			control.ControlAdded -= controlControlAdded; //prevent uncontrolled multiple addition
+			control.ControlAdded += controlControlAdded;
 
 			string Mode = IsDarkMode ? "DarkMode_Explorer" : "ClearMode_Explorer";
 			SetWindowTheme(control.Handle, Mode, null); //<- Attempts to apply Dark Mode using Win32 API if available.
@@ -344,7 +496,7 @@ namespace DarkModeForms
 			control.GetType().GetProperty("ForeColor")?.SetValue(control, OScolors.TextActive);
 
 			/* Here we Finetune individual Controls  */
-			if (control is Label)
+			if (control is Label lbl)
 			{
 				control.GetType().GetProperty("BackColor")?.SetValue(control, control.Parent.BackColor);
 				control.GetType().GetProperty("BorderStyle")?.SetValue(control, BorderStyle.None);
@@ -352,11 +504,17 @@ namespace DarkModeForms
 				{
 					if (control.Enabled == false && this.IsDarkMode)
 					{
-						var radio = (sender as Label);
-						Brush B = new SolidBrush(control.ForeColor);
+						e.Graphics.Clear(control.Parent.BackColor);
+						e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
 
-						e.Graphics.DrawString(radio.Text, radio.Font,
-						  B, new System.Drawing.PointF(1, 0));
+						using (Brush B = new SolidBrush(control.ForeColor))
+						{
+							//StringFormat sf = lbl.CreateStringFormat();
+							MethodInfo mi = lbl.GetType().GetMethod("CreateStringFormat", BindingFlags.NonPublic | BindingFlags.Instance);
+							StringFormat sf = mi.Invoke(lbl, new object[] {  }) as StringFormat;
+
+							e.Graphics.DrawString(lbl.Text, lbl.Font, B, new System.Drawing.PointF(1, 0), sf);
+						}
 					}
 				};
 			}
@@ -379,7 +537,7 @@ namespace DarkModeForms
 			if (control is Button)
 			{
 				var button = control as Button;
-				button.FlatStyle = FlatStyle.System;
+				button.FlatStyle = IsDarkMode ? FlatStyle.Flat : FlatStyle.Standard;
 				button.FlatAppearance.CheckedBackColor = OScolors.Accent;
 				button.BackColor = OScolors.Control;
 				button.FlatAppearance.BorderColor = (OwnerForm.AcceptButton == button) ?
@@ -389,7 +547,7 @@ namespace DarkModeForms
 			{
 				// Fixing a glitch that makes all instances of the ComboBox showing as having a Selected value, even when they dont
 				control.BeginInvoke(new Action(() => (control as ComboBox).SelectionLength = 0));
-				
+
 				// Fixes a glitch showing the Combo Backgroud white when the control is Disabled:
 				if (!control.Enabled && this.IsDarkMode)
 				{
@@ -478,15 +636,15 @@ namespace DarkModeForms
 					}
 				};
 			}
-			if (control is FlatTabControl)
-			{
-				control.GetType().GetProperty("BackColor")?.SetValue(control, OScolors.Background);
-				control.GetType().GetProperty("TabColor")?.SetValue(control, OScolors.Surface);
-				control.GetType().GetProperty("SelectTabColor")?.SetValue(control, OScolors.Control);
-				control.GetType().GetProperty("SelectedForeColor")?.SetValue(control, OScolors.TextActive);
-				control.GetType().GetProperty("ForeColor")?.SetValue(control, OScolors.TextInactive);
-				control.GetType().GetProperty("LineColor")?.SetValue(control, OScolors.Background);
-			}
+			//if (control is FlatTabControl)
+			//{
+			//	control.GetType().GetProperty("BackColor")?.SetValue(control, OScolors.Background);
+			//	control.GetType().GetProperty("TabColor")?.SetValue(control, OScolors.Surface);
+			//	control.GetType().GetProperty("SelectTabColor")?.SetValue(control, OScolors.Control);
+			//	control.GetType().GetProperty("SelectedForeColor")?.SetValue(control, OScolors.TextActive);
+			//	control.GetType().GetProperty("ForeColor")?.SetValue(control, OScolors.TextInactive);
+			//	control.GetType().GetProperty("LineColor")?.SetValue(control, OScolors.Background);
+			//}
 			if (control is PictureBox)
 			{
 				control.GetType().GetProperty("BackColor")?.SetValue(control, control.Parent.BackColor);
@@ -544,19 +702,22 @@ namespace DarkModeForms
 			}
 			if (control is ToolStripDropDown)
 			{
+				(control as ToolStripDropDown).Opening -= Tsdd_Opening; //just to make sure
 				(control as ToolStripDropDown).Opening += Tsdd_Opening;
 			}
 			if (control is ToolStripDropDownMenu)
 			{
+				(control as ToolStripDropDownMenu).Opening -= Tsdd_Opening; //just to make sure
 				(control as ToolStripDropDownMenu).Opening += Tsdd_Opening;
 			}
 			if (control is ContextMenuStrip)
 			{
 				(control as ContextMenuStrip).RenderMode = ToolStripRenderMode.Professional;
 				(control as ContextMenuStrip).Renderer = new MyRenderer(new CustomColorTable(OScolors), ColorizeIcons) { MyColors = OScolors };
+				(control as ContextMenuStrip).Opening -= Tsdd_Opening; //just to make sure
 				(control as ContextMenuStrip).Opening += Tsdd_Opening;
 			}
-			if (control is MdiClient) //<- empty area of MDI container window 
+			if (control is MdiClient) //<- empty area of MDI container window
 			{
 				control.GetType().GetProperty("BackColor")?.SetValue(control, OScolors.Surface);
 			}
@@ -574,11 +735,11 @@ namespace DarkModeForms
 			if (control is ListView)
 			{
 				var lView = control as ListView;
-				//Mode = IsDarkMode ? "DarkMode_ItemsView" : "ClearMode_ItemsView"; 
-				Mode = IsDarkMode ? "DarkMode_Explorer" : "ClearMode_Explorer"; 
+				//Mode = IsDarkMode ? "DarkMode_ItemsView" : "ClearMode_ItemsView";
+				Mode = IsDarkMode ? "DarkMode_Explorer" : "ClearMode_Explorer";
 				SetWindowTheme(control.Handle, Mode, null);
 
-				
+
 				if (lView.View == View.Details)
 				{
 					lView.OwnerDraw = true;
@@ -628,7 +789,7 @@ namespace DarkModeForms
 					Mode = IsDarkMode ? "DarkMode_Explorer" : "ClearMode_Explorer";
 					SetWindowTheme(control.Handle, Mode, null);
 				}
-				
+
 			}
 			if (control is TreeView)
 			{
@@ -690,7 +851,6 @@ namespace DarkModeForms
 				grid.ColumnHeadersDefaultCellStyle.ForeColor = OScolors.TextActive;
 				grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = OScolors.Surface;
 				grid.ColumnHeadersBorderStyle = DataGridViewHeaderBorderStyle.Single;
-				grid.ColumnHeadersHeight = 140;
 
 				grid.RowHeadersDefaultCellStyle.BackColor = OScolors.Surface;
 				grid.RowHeadersDefaultCellStyle.ForeColor = OScolors.TextActive;
@@ -719,20 +879,15 @@ namespace DarkModeForms
 				// Recursively process its children
 				ThemeControl(childControl);
 			}
-
-
 		}
 
 		/// <summary>
 		/// Registers the Control as processed. Prevents applying theme to the Control.
 		/// Call it before applying the theme to your Form (or to any other Control containing (directly or indirectly) this Control)
 		/// </summary>
-		/// <returns>True if the Control has been already registered before, False if this is the first time</returns>
-		public static bool ExcludeFromProcessing(Control control)
+		public static void ExcludeFromProcessing(Control control)
 		{
-			if (ControlsProcessed.TryGetValue(control, out object _)) return true;
-			ControlsProcessed.Add(control, null);
-			return false;
+			controlStatusStorage.ExcludeFromProcessing(control);
 		}
 
 		/// <summary>Returns Windows Color Mode for Applications.
@@ -757,27 +912,34 @@ namespace DarkModeForms
 		/// <returns>a Color</returns>
 		public static Color GetWindowsAccentColor()
 		{
-			DWMCOLORIZATIONcolors colors = new DWMCOLORIZATIONcolors();
-			DwmGetColorizationParameters(ref colors);
-
-			//get the theme --> only if Windows 10 or newer
-			if (IsWindows10orGreater())
+			try
 			{
-				var color = colors.ColorizationColor;
+				DWMCOLORIZATIONcolors colors = new DWMCOLORIZATIONcolors();
+				DwmGetColorizationParameters(ref colors);
 
-				var colorValue = long.Parse(color.ToString(), System.Globalization.NumberStyles.HexNumber);
+				//get the theme --> only if Windows 10 or newer
+				if (IsWindows10orGreater())
+				{
+					var color = colors.ColorizationColor;
 
-				var transparency = (colorValue >> 24) & 0xFF;
-				var red = (colorValue >> 16) & 0xFF;
-				var green = (colorValue >> 8) & 0xFF;
-				var blue = (colorValue >> 0) & 0xFF;
+					var colorValue = long.Parse(color.ToString(), System.Globalization.NumberStyles.HexNumber);
 
-				return Color.FromArgb((int)transparency, (int)red, (int)green, (int)blue);
+					var transparency = (colorValue >> 24) & 0xFF;
+					var red = (colorValue >> 16) & 0xFF;
+					var green = (colorValue >> 8) & 0xFF;
+					var blue = (colorValue >> 0) & 0xFF;
+
+					return Color.FromArgb((int)transparency, (int)red, (int)green, (int)blue);
+				}
+				else
+				{
+					return Color.CadetBlue;
+				}
 			}
-			else
+			catch (Exception)
 			{
 				return Color.CadetBlue;
-			}
+			}			
 		}
 
 		/// <summary>Returns the Accent Color used by Windows.</summary>
@@ -813,8 +975,6 @@ namespace DarkModeForms
 		{
 			OSThemeColors _ret = new OSThemeColors();
 
-			//bool IsDarkMode = IsDarkModeCSEnabled && (GetWindowsColorMode() <= 0); //<- O: DarkMode, 1: LightMode
-			//if (IsDarkMode)
 			if (ColorMode <= 0)
 			{
 				_ret.Background = Color.FromArgb(32, 32, 32);   //<- Negro Claro
@@ -960,6 +1120,7 @@ namespace DarkModeForms
 
 			foreach (ToolStripMenuItem toolStripMenuItem in tsdd.Items.OfType<ToolStripMenuItem>())
 			{
+				toolStripMenuItem.DropDownOpening -= Tsmi_DropDownOpening; //just to make sure
 				toolStripMenuItem.DropDownOpening += Tsmi_DropDownOpening;
 			}
 		}
@@ -997,7 +1158,7 @@ namespace DarkModeForms
 			int[] DarkModeOn = IsDarkMode ? new[] { 0x01 } : new[] { 0x00 }; //<- 1=True, 0=False
 			string Mode = IsDarkMode ? "DarkMode_Explorer" : "ClearMode_Explorer";
 
-			SetWindowTheme(control.Handle, Mode, null); //DarkMode_Explorer, ClearMode_Explorer, DarkMode_CFD, DarkMode_ItemsView, 
+			SetWindowTheme(control.Handle, Mode, null); //DarkMode_Explorer, ClearMode_Explorer, DarkMode_CFD, DarkMode_ItemsView,
 
 			if (DwmSetWindowAttribute(control.Handle, (int)DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE_BEFORE_20H1, DarkModeOn, 4) != 0)
 				DwmSetWindowAttribute(control.Handle, (int)DWMWINDOWATTRIBUTE.DWMWA_USE_IMMERSIVE_DARK_MODE, DarkModeOn, 4);
@@ -1487,5 +1648,56 @@ namespace DarkModeForms
 		}
 	}
 
+	/// <summary>
+	/// Stores additional info related to the Controls
+	/// </summary>
+	public class ControlStatusStorage
+	{
+		/// <summary>
+		/// Storage for the data. ConditionalWeakTable ensures there are no unnecessary references left, preventing garbage collection.
+		/// </summary>
+		private readonly ConditionalWeakTable<Control, ControlStatusInfo> _controlsProcessed = new ConditionalWeakTable<Control, ControlStatusInfo>();
 
+		/// <summary>
+		/// Registers the Control as processed. Prevents applying theme to the Control.
+		/// Call it before applying the theme to your Form (or to any other Control containing (directly or indirectly) this Control)
+		/// </summary>
+		public void ExcludeFromProcessing(Control control)
+		{
+			_controlsProcessed.Remove(control);
+			_controlsProcessed.Add(control, new ControlStatusInfo() { IsExcluded = true });
+		}
+
+		/// <summary>
+		/// Gets the additional info associated with a Control
+		/// </summary>
+		/// <returns>a ControlStatusInfo object if the control has been already processed or marked for exclusion, null otherwise</returns>
+		public ControlStatusInfo GetControlStatusInfo(Control control)
+		{
+			_controlsProcessed.TryGetValue(control, out ControlStatusInfo info);
+			return info;
+		}
+
+		public void RegisterProcessedControl(Control control, bool isDarkMode)
+		{
+			_controlsProcessed.Add(control,
+				new ControlStatusInfo() {IsExcluded = false, LastThemeAppliedIsDark = isDarkMode});
+		}
+	}
+
+	/// <summary>
+	/// Additional information related to the Controls
+	/// </summary>
+	public class ControlStatusInfo
+	{
+		/// <summary>
+		/// true if the user wants to skip theming the Control
+		/// </summary>
+		public bool IsExcluded { get; set; }
+
+		/// <summary>
+		/// whether the last theme applied was dark
+		/// </summary>
+		public bool LastThemeAppliedIsDark { get; set; }
+	}
 }

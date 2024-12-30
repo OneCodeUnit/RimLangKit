@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 
 namespace RimLanguageCore.Activities
@@ -21,7 +22,7 @@ namespace RimLanguageCore.Activities
         private static Dictionary<string, int> DefsSpread = new();
 
         // Предобработка файла. Сбор данных о тегах в переводе
-        private static string CheckDef(string currentFile)
+        private static string ParseDefName(string currentFile)
         {
             string[] path = currentFile.Split('\\');
             string def = path[^2];
@@ -56,7 +57,7 @@ namespace RimLanguageCore.Activities
             XElement root = xDoc.Element("LanguageData");
 
             // DefName текущего файла
-            string def = CheckDef(currentFile);
+            string def = ParseDefName(currentFile);
             if (def == "Keyed")
             {
                 return (false, "Keyed-файл");
@@ -107,7 +108,7 @@ namespace RimLanguageCore.Activities
             string directory = Directory.GetCurrentDirectory();
 
             // Запись в файл
-            StreamWriter sw = new(Path.Combine(directory + "\\TagsByDefs.txt"), false);
+            StreamWriter sw = new(Path.Combine(directory, "TagsByDefs.txt"), false, Encoding.UTF8);
             foreach (string def in Defs)
             {
                 sw.WriteLine($"**{def}**");
@@ -116,10 +117,10 @@ namespace RimLanguageCore.Activities
                 sw.WriteLine();
             }
             sw.Close();
-            StreamWriter swTags = new(Path.Combine(directory + "\\UniqueTags.txt"), false);
+            StreamWriter swTags = new(Path.Combine(directory, "UniqueTags.txt"), false, Encoding.UTF8);
             Tags.ForEach(swTags.WriteLine);
             swTags.Close();
-            StreamWriter swDefs = new(Path.Combine(directory + "\\UniqueDefs.txt"), false);
+            StreamWriter swDefs = new(Path.Combine(directory, "UniqueDefs.txt"), false, Encoding.UTF8);
             Defs.ForEach(swDefs.WriteLine);
             swDefs.Close();
 
@@ -127,7 +128,7 @@ namespace RimLanguageCore.Activities
             var spreadList = TagSpread.ToList();
             spreadList.Sort((pair1, pair2) => pair1.Value.CompareTo(pair2.Value));
             spreadList.Reverse();
-            StreamWriter swSpread = new(Path.Combine(directory + "\\SpreadTags.txt"), false);
+            StreamWriter swSpread = new(Path.Combine(directory, "SpreadTags.txt"), false, Encoding.UTF8);
             foreach (var spread in spreadList)
             {
                 if (spread.Value > 1)
@@ -141,7 +142,7 @@ namespace RimLanguageCore.Activities
             var defSpreadList = DefsSpread.ToList();
             defSpreadList.Sort((pair1, pair2) => pair1.Value.CompareTo(pair2.Value));
             defSpreadList.Reverse();
-            StreamWriter swDefSpread = new(Path.Combine(directory + "\\SpreadDefs.txt"), false);
+            StreamWriter swDefSpread = new(Path.Combine(directory, "SpreadDefs.txt"), false, Encoding.UTF8);
             foreach (var spread in defSpreadList)
             {
                 if (spread.Value > 1)
@@ -174,7 +175,7 @@ namespace RimLanguageCore.Activities
             string directory = Directory.GetCurrentDirectory();
             string text = string.Empty;
             // Создание файла
-            StreamWriter sw = new(Path.Combine(directory + "\\defsClass.cs"), false);
+            StreamWriter sw = new(Path.Combine(directory, "defsClass.cs"), false, Encoding.UTF8);
 
             // Заголовок
             text += "using System.Xml.Serialization;\n\n";

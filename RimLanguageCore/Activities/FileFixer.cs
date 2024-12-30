@@ -52,7 +52,7 @@ namespace RimLanguageCore.Activities
             }
 
             string currentDirectory = Directory.GetCurrentDirectory();
-            StreamWriter sw = new(Path.Combine(currentDirectory + "\\BrokenFiles.txt"), false);
+            StreamWriter sw = new(Path.Combine(currentDirectory, "BrokenFiles.txt"), false);
             foreach (var file in BrokenFiles)
             {
                 sw.WriteLine($"{file.Value}: {file.Key}");
