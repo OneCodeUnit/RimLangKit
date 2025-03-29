@@ -29,6 +29,8 @@
         private void InitializeComponent()
         {
             Label label1;
+            Label labelRepo;
+            Label labelLanguage;
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             VersionLabel = new Label();
             FolderButton = new Button();
@@ -60,8 +62,9 @@
             InfoTextBox2 = new TextBox();
             FolderTextBox2 = new TextBox();
             FolderButton2 = new Button();
-            ButtonDarkMode = new Button();
             label1 = new Label();
+            labelRepo = new Label();
+            labelLanguage = new Label();
             MainTabs.SuspendLayout();
             tabPage1.SuspendLayout();
             tabPage2.SuspendLayout();
@@ -75,6 +78,24 @@
             label1.Size = new Size(34, 28);
             label1.TabIndex = 22;
             label1.Text = "->";
+            // 
+            // labelRepo
+            // 
+            labelRepo.AutoSize = true;
+            labelRepo.Location = new Point(0, 323);
+            labelRepo.Name = "labelRepo";
+            labelRepo.Size = new Size(133, 56);
+            labelRepo.TabIndex = 26;
+            labelRepo.Text = "Название \r\nрепозитория";
+            // 
+            // labelLanguage
+            // 
+            labelLanguage.AutoSize = true;
+            labelLanguage.Location = new Point(0, 421);
+            labelLanguage.Name = "labelLanguage";
+            labelLanguage.Size = new Size(158, 28);
+            labelLanguage.TabIndex = 27;
+            labelLanguage.Text = "Название языка";
             // 
             // VersionLabel
             // 
@@ -334,6 +355,8 @@
             // 
             // tabPage2
             // 
+            tabPage2.Controls.Add(labelLanguage);
+            tabPage2.Controls.Add(labelRepo);
             tabPage2.Controls.Add(ResetButton);
             tabPage2.Controls.Add(DefaultButton);
             tabPage2.Controls.Add(LanguageInput);
@@ -388,7 +411,7 @@
             // 
             RepoInput.AllowDrop = true;
             RepoInput.Font = new Font("Segoe UI", 12F);
-            RepoInput.Location = new Point(4, 411);
+            RepoInput.Location = new Point(4, 383);
             RepoInput.Margin = new Padding(4);
             RepoInput.Name = "RepoInput";
             RepoInput.Size = new Size(200, 34);
@@ -442,16 +465,6 @@
             FolderButton2.UseVisualStyleBackColor = true;
             FolderButton2.Click += FolderButton2_Click;
             // 
-            // ButtonDarkMode
-            // 
-            ButtonDarkMode.Image = Properties.Resources.darkmode;
-            ButtonDarkMode.Location = new Point(826, 98);
-            ButtonDarkMode.Name = "ButtonDarkMode";
-            ButtonDarkMode.Size = new Size(40, 40);
-            ButtonDarkMode.TabIndex = 20;
-            ButtonDarkMode.UseVisualStyleBackColor = true;
-            ButtonDarkMode.Click += ButtonDarkMode_Click;
-            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(120F, 120F);
@@ -459,7 +472,6 @@
             AutoScroll = true;
             AutoSizeMode = AutoSizeMode.GrowAndShrink;
             ClientSize = new Size(975, 733);
-            Controls.Add(ButtonDarkMode);
             Controls.Add(MainTabs);
             Controls.Add(VersionLabel);
             Controls.Add(UpdateLabel);
@@ -507,7 +519,6 @@
         private TextBox InfoTextBox2;
         private TextBox FolderTextBox2;
         private Button FolderButton2;
-        private Button ButtonDarkMode;
         private TabControl MainTabs;
         private Button PreTranslatorButton;
         private Button AdditionalFolderButton;

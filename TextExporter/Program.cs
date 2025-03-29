@@ -1,25 +1,28 @@
 ﻿using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.Xml.Serialization;
+using RimLanguageCore.TextExporter;
 
 namespace TextExporter
 {
     internal class Program
     {
-        static string testSourceFile = "C:\\Users\\inqui\\Desktop\\3067715093\\1.5\\Defs\\GeneDefs\\GeneDefs_Psychic.xml";
+        static string testSourceFile = "C:\\Users\\inqui\\Desktop\\Новая папка\\MedievalCommon_Adult.xml";
         static string testFile = "C:\\Users\\inqui\\Desktop\\test\\test.xml";
         static string testDirectory = "C:\\Users\\inqui\\Desktop\\test";
-        static string DirectoryPath = "C:\\Users\\inqui\\Desktop\\3067715093\\1.5\\Defs\\GeneDefs";
+        static string DirectoryPath = "C:\\Users\\inqui\\Desktop\\Новая папка";
 
         static void Main()
         {
-            //FindDefs(testSourceFile);
             string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
             foreach (string tempFile in allFiles)
             {
-                FindDefs(tempFile);
+                RimFile file = new(tempFile);
+                file.Open();
+                file.Save();
+
             }
-            Console.ReadKey();
+            //Console.ReadKey();
         }
 
         static void FindDefs(string currentFile)

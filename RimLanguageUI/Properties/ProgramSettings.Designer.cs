@@ -8,16 +8,16 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace RimLangKit.Properties {
+namespace RimLanguageUI.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.13.0.0")]
-    internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
+    internal sealed partial class ProgramSettings : global::System.Configuration.ApplicationSettingsBase {
         
-        private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
+        private static ProgramSettings defaultInstance = ((ProgramSettings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new ProgramSettings())));
         
-        public static Settings Default {
+        public static ProgramSettings Default {
             get {
                 return defaultInstance;
             }
@@ -25,73 +25,84 @@ namespace RimLangKit.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
-        public int lastTab {
+        public global::System.DateTime LastCheckDate {
             get {
-                return ((int)(this["lastTab"]));
+                return ((global::System.DateTime)(this["LastCheckDate"]));
             }
             set {
-                this["lastTab"] = value;
+                this["LastCheckDate"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("000000000")]
-        public string sha {
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool IsAutoUpdateActive {
             get {
-                return ((string)(this["sha"]));
+                return ((bool)(this["IsAutoUpdateActive"]));
             }
             set {
-                this["sha"] = value;
+                this["IsAutoUpdateActive"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int LastSelectedTab {
+            get {
+                return ((int)(this["LastSelectedTab"]));
+            }
+            set {
+                this["LastSelectedTab"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string GamePath {
+            get {
+                return ((string)(this["GamePath"]));
+            }
+            set {
+                this["GamePath"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Ludeon/RimWorld-ru")]
-        public string repo {
+        public string RepoName {
             get {
-                return ((string)(this["repo"]));
+                return ((string)(this["RepoName"]));
             }
             set {
-                this["repo"] = value;
+                this["RepoName"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("Russian (GitHub)")]
-        public string language {
+        public string LangName {
             get {
-                return ((string)(this["language"]));
+                return ((string)(this["LangName"]));
             }
             set {
-                this["language"] = value;
+                this["LangName"] = value;
             }
         }
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("C:\\Program Files (x86)\\Steam\\steamapps\\common\\RimWorld")]
-        public string savedDirectory {
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string Sha {
             get {
-                return ((string)(this["savedDirectory"]));
+                return ((string)(this["Sha"]));
             }
             set {
-                this["savedDirectory"] = value;
-            }
-        }
-        
-        [global::System.Configuration.UserScopedSettingAttribute()]
-        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("True")]
-        public bool firstLaunch {
-            get {
-                return ((bool)(this["firstLaunch"]));
-            }
-            set {
-                this["firstLaunch"] = value;
+                this["Sha"] = value;
             }
         }
     }

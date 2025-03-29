@@ -8,4 +8,8 @@
     <StartupObject>TextExporter.Program</StartupObject>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\RimLanguageCore\RimLanguageCore.csproj" />
+  </ItemGroup>
+
 </Project>

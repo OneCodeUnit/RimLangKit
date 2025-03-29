@@ -72,6 +72,9 @@ namespace RimLanguageCore.Misc
         [JsonPropertyName("tag_name")]
         public string TagName { get; set; }
 
+        [JsonPropertyName("html_url")]
+        public string HtmlUrl { get; set; }
+
         [JsonPropertyName("name")]
         public string Name { get; set; }
 

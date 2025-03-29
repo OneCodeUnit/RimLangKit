@@ -11,7 +11,7 @@
     <Platforms>x64</Platforms>
     <ApplicationIcon>images\icon.ico</ApplicationIcon>
     <PlatformTarget>x64</PlatformTarget>
-    <Version>$(VersionPrefix)3.6.3</Version>
+    <Version>$(VersionPrefix)3.6.4</Version>
     <RepositoryUrl>https://github.com/OneCodeUnit/RimLangKit</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <NeutralLanguage>ru</NeutralLanguage>
@@ -37,10 +37,16 @@
 
   <ItemGroup>
     <Compile Remove="RimLanguageCore\**" />
+    <Compile Remove="RimLanguageUI\**" />
+    <Compile Remove="TestApp\**" />
     <Compile Remove="TextExporter\**" />
     <EmbeddedResource Remove="RimLanguageCore\**" />
+    <EmbeddedResource Remove="RimLanguageUI\**" />
+    <EmbeddedResource Remove="TestApp\**" />
     <EmbeddedResource Remove="TextExporter\**" />
     <None Remove="RimLanguageCore\**" />
+    <None Remove="RimLanguageUI\**" />
+    <None Remove="TestApp\**" />
     <None Remove="TextExporter\**" />
   </ItemGroup>
 

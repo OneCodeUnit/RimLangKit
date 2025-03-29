@@ -16,7 +16,6 @@
 ### [Скачать программу](https://github.com/OneCodeUnit/RimLangKit/releases/latest)
 
 ### Включенные решения
-+ Для темной темы используется проект от [BlueMystical](https://github.com/BlueMystical/Dark-Mode-Forms)
 + Для склонения слов используется API [веб-сервиса «Морфер» 3.0](https://morpher.ru/ws3/)
 + Для проверки версии программы, проверки версии локализации и её загрузки используется GitHub API
 
