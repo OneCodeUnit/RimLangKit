@@ -53,10 +53,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RimLanguageCore\RimLanguageCore.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Update="Properties\ProgramSettings.Designer.cs">
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <AutoGen>True</AutoGen>

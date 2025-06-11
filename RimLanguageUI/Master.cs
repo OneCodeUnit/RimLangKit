@@ -1,5 +1,5 @@
-using RimLanguageCore.Activities;
-using RimLanguageCore.Misc;
+using Microsoft.VisualBasic;
+using RimLanguageUI.LocUpdater;
 using RimLanguageUI.Properties;
 using System.Diagnostics;
 using System.Reflection;
@@ -163,7 +163,7 @@ namespace RimLanguageUI
                     }
                     else
                     {
-                        TextBoxInfo.Text = "Найденные модули:" + Environment.NewLine;
+                        TextBoxInfo.Text = "Найдены модули:" + Environment.NewLine;
                         foreach (var module in modules)
                         {
                             string moduleName = module[module.LastIndexOf('\\')..];
@@ -331,5 +331,15 @@ namespace RimLanguageUI
             ProgramSettings.Default.Sha = LanguageUpdater.GetSha();
             ProgramSettings.Default.Save();
         }
+
+
+        private void ToolStripMenuItemSelectLanguage_Click(object sender, EventArgs e)
+        {
+            Interaction.InputBox("Введите название языка", "Выбор языка", "Russian (GitHub)");
+        }
+
+
+
+
     }
 }

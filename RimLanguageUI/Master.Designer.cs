@@ -33,6 +33,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Master));
             TabControlMain = new TabControl();
             TabPageGame = new TabPage();
+            TextBoxInfo = new TextBox();
             TextBoxGamePath = new TextBox();
             ButtonLanguageUpdate = new Button();
             ButtonSelectGameFolder = new Button();
@@ -42,21 +43,26 @@
             TextBoxRepo = new TextBox();
             TabPageMod = new TabPage();
             TabPageFile = new TabPage();
+            textBox1 = new TextBox();
+            ButtonCommentInsert = new Button();
             TabPageExport = new TabPage();
             MenuStripMaster = new MenuStrip();
             toolStripMenuItem1 = new ToolStripMenuItem();
             ToolStripMenuItemSettings = new ToolStripMenuItem();
+            ToolStripMenuItemSettingsLocUpdate = new ToolStripMenuItem();
+            ToolStripMenuItemSelectLanguage = new ToolStripMenuItem();
+            ToolStripMenuItemLanguage = new ToolStripMenuItem();
             ToolStripMenuItemAbout = new ToolStripMenuItem();
             ToolStripMenuItemVersion = new ToolStripMenuItem();
             ToolStripMenuItemCreator = new ToolStripMenuItem();
             ToolStripMenuItemAutoUpdateCheck = new ToolStripMenuItem();
             ToolStripMenuItemCheckUpdate = new ToolStripMenuItem();
             ToolStripMenuItemGuide = new ToolStripMenuItem();
-            TextBoxInfo = new TextBox();
             LabelLanguageName = new Label();
             LabelRepo = new Label();
             TabControlMain.SuspendLayout();
             TabPageGame.SuspendLayout();
+            TabPageFile.SuspendLayout();
             MenuStripMaster.SuspendLayout();
             SuspendLayout();
             // 
@@ -117,6 +123,18 @@
             TabPageGame.Size = new Size(470, 382);
             TabPageGame.TabIndex = 0;
             TabPageGame.UseVisualStyleBackColor = true;
+            // 
+            // TextBoxInfo
+            // 
+            TextBoxInfo.AcceptsReturn = true;
+            TextBoxInfo.AcceptsTab = true;
+            TextBoxInfo.Location = new Point(214, 84);
+            TextBoxInfo.Multiline = true;
+            TextBoxInfo.Name = "TextBoxInfo";
+            TextBoxInfo.ReadOnly = true;
+            TextBoxInfo.ScrollBars = ScrollBars.Vertical;
+            TextBoxInfo.Size = new Size(249, 291);
+            TextBoxInfo.TabIndex = 38;
             // 
             // TextBoxGamePath
             // 
@@ -212,12 +230,35 @@
             // 
             // TabPageFile
             // 
+            TabPageFile.Controls.Add(textBox1);
+            TabPageFile.Controls.Add(ButtonCommentInsert);
             TabPageFile.Location = new Point(124, 4);
             TabPageFile.Name = "TabPageFile";
             TabPageFile.Padding = new Padding(3);
             TabPageFile.Size = new Size(470, 382);
             TabPageFile.TabIndex = 1;
             TabPageFile.UseVisualStyleBackColor = true;
+            // 
+            // textBox1
+            // 
+            textBox1.Location = new Point(6, 6);
+            textBox1.Multiline = true;
+            textBox1.Name = "textBox1";
+            textBox1.ScrollBars = ScrollBars.Vertical;
+            textBox1.Size = new Size(268, 65);
+            textBox1.TabIndex = 38;
+            textBox1.Text = "Двойной клик для выбора папки";
+            // 
+            // ButtonCommentInsert
+            // 
+            ButtonCommentInsert.Enabled = false;
+            ButtonCommentInsert.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
+            ButtonCommentInsert.Location = new Point(3, 77);
+            ButtonCommentInsert.Name = "ButtonCommentInsert";
+            ButtonCommentInsert.Size = new Size(230, 60);
+            ButtonCommentInsert.TabIndex = 4;
+            ButtonCommentInsert.Text = "Добавить комментарии";
+            ButtonCommentInsert.UseVisualStyleBackColor = true;
             // 
             // TabPageExport
             // 
@@ -244,9 +285,31 @@
             // 
             // ToolStripMenuItemSettings
             // 
+            ToolStripMenuItemSettings.DropDownItems.AddRange(new ToolStripItem[] { ToolStripMenuItemSettingsLocUpdate });
             ToolStripMenuItemSettings.Name = "ToolStripMenuItemSettings";
             ToolStripMenuItemSettings.Size = new Size(98, 24);
             ToolStripMenuItemSettings.Text = "Настройки";
+            // 
+            // ToolStripMenuItemSettingsLocUpdate
+            // 
+            ToolStripMenuItemSettingsLocUpdate.DropDownItems.AddRange(new ToolStripItem[] { ToolStripMenuItemSelectLanguage });
+            ToolStripMenuItemSettingsLocUpdate.Name = "ToolStripMenuItemSettingsLocUpdate";
+            ToolStripMenuItemSettingsLocUpdate.Size = new Size(224, 26);
+            ToolStripMenuItemSettingsLocUpdate.Text = "Локализация";
+            // 
+            // ToolStripMenuItemSelectLanguage
+            // 
+            ToolStripMenuItemSelectLanguage.DropDownItems.AddRange(new ToolStripItem[] { ToolStripMenuItemLanguage });
+            ToolStripMenuItemSelectLanguage.Name = "ToolStripMenuItemSelectLanguage";
+            ToolStripMenuItemSelectLanguage.Size = new Size(189, 26);
+            ToolStripMenuItemSelectLanguage.Text = "Выбрать язык";
+            ToolStripMenuItemSelectLanguage.Click += ToolStripMenuItemSelectLanguage_Click;
+            // 
+            // ToolStripMenuItemLanguage
+            // 
+            ToolStripMenuItemLanguage.Name = "ToolStripMenuItemLanguage";
+            ToolStripMenuItemLanguage.Size = new Size(155, 26);
+            ToolStripMenuItemLanguage.Text = "Не задан";
             // 
             // ToolStripMenuItemAbout
             // 
@@ -281,7 +344,7 @@
             ToolStripMenuItemCheckUpdate.Image = Properties.Resources.wait_c;
             ToolStripMenuItemCheckUpdate.Name = "ToolStripMenuItemCheckUpdate";
             ToolStripMenuItemCheckUpdate.Size = new Size(283, 26);
-            ToolStripMenuItemCheckUpdate.Text = "Проверить обновление";
+            ToolStripMenuItemCheckUpdate.Text = "Проверить обновления";
             ToolStripMenuItemCheckUpdate.Click += ToolStripMenuItemCheckUpdate_Click;
             // 
             // ToolStripMenuItemGuide
@@ -290,18 +353,6 @@
             ToolStripMenuItemGuide.Size = new Size(283, 26);
             ToolStripMenuItemGuide.Text = "Инструкция";
             ToolStripMenuItemGuide.Click += ToolStripMenuItemGuide_Click;
-            // 
-            // TextBoxInfo
-            // 
-            TextBoxInfo.AcceptsReturn = true;
-            TextBoxInfo.AcceptsTab = true;
-            TextBoxInfo.Location = new Point(214, 84);
-            TextBoxInfo.Multiline = true;
-            TextBoxInfo.Name = "TextBoxInfo";
-            TextBoxInfo.ReadOnly = true;
-            TextBoxInfo.ScrollBars = ScrollBars.Vertical;
-            TextBoxInfo.Size = new Size(249, 291);
-            TextBoxInfo.TabIndex = 38;
             // 
             // Master
             // 
@@ -315,10 +366,12 @@
             MaximumSize = new Size(640, 480);
             MinimumSize = new Size(640, 480);
             Name = "Master";
-            Text = "Переведи это с RimLangKit!";
+            Text = "Переведи это с RimLangKit и OliveWizard!";
             TabControlMain.ResumeLayout(false);
             TabPageGame.ResumeLayout(false);
             TabPageGame.PerformLayout();
+            TabPageFile.ResumeLayout(false);
+            TabPageFile.PerformLayout();
             MenuStripMaster.ResumeLayout(false);
             MenuStripMaster.PerformLayout();
             ResumeLayout(false);
@@ -350,5 +403,10 @@
         private Button ButtonSelectGameFolder;
         private TextBox TextBoxGamePath;
         private TextBox TextBoxInfo;
+        private ToolStripMenuItem ToolStripMenuItemSettingsLocUpdate;
+        private ToolStripMenuItem ToolStripMenuItemSelectLanguage;
+        private ToolStripMenuItem ToolStripMenuItemLanguage;
+        private Button ButtonCommentInsert;
+        private TextBox textBox1;
     }
 }
