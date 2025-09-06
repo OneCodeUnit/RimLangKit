@@ -149,6 +149,24 @@ namespace RimLangKit
             }
         }
 
+        private void SendToInfoTextBox(string text, int id)
+        {
+            if (id == 0)
+            {
+                if (InfoTextBox.Text == string.Empty)
+                    InfoTextBox.AppendText($"{text}");
+                else
+                    InfoTextBox.AppendText($"{Environment.NewLine}{text}");
+            }
+            else
+            {
+                if (InfoTextBox2.Text == string.Empty)
+                    InfoTextBox2.AppendText($"{text}");
+                else
+                    InfoTextBox2.AppendText($"{Environment.NewLine}{text}");
+            }
+        }
+
         private void MainTabs_IndexChange(object sender, EventArgs e)
         {
             Settings.Default.lastTab = MainTabs.SelectedIndex;
@@ -592,17 +610,17 @@ namespace RimLangKit
                     string[] modules = Directory.GetDirectories($"{tempPath}\\Data");
                     if (modules.Length == 0)
                     {
-                        SendToInfoTextBox("Нет модулей");
+                        SendToInfoTextBox("Нет модулей", 1);
                         FolderButton2.BackColor = Color.MediumBlue;
                     }
                     else
                     {
-                        SendToInfoTextBox("Найдены модули:");
+                        SendToInfoTextBox("Найдены модули:", 1);
                         foreach (var module in modules)
                         {
                             string moduleName = module[module.LastIndexOf('\\')..];
                             moduleName = moduleName[1..];
-                            SendToInfoTextBox(moduleName);
+                            SendToInfoTextBox(moduleName, 1);
                         }
                         GamePath = tempPath;
                         Settings.Default.savedDirectory = tempPath;
@@ -611,7 +629,7 @@ namespace RimLangKit
                 }
                 else
                 {
-                    SendToInfoTextBox("Нет модулей");
+                    SendToInfoTextBox("Нет модулей", 1);
                     FolderButton2.BackColor = Color.MediumBlue;
                 }
             }
