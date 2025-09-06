@@ -109,6 +109,7 @@ namespace RimLangKit.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2000-01-01")]
         public global::System.DateTime lastCheckDate {
             get {
                 return ((global::System.DateTime)(this["lastCheckDate"]));

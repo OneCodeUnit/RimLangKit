@@ -648,7 +648,7 @@ namespace RimLangKit
             if (oldVersion == newVersion)
             {
                 MessageBox.Show("Обновление не требуется", "Обновление", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return false;
+                return true;
             }
             else
             {
