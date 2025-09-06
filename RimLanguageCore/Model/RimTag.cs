@@ -1,10 +1,10 @@
-﻿namespace RimLanguageUI.Model
+﻿namespace RimLanguageCore.Model
 {
     public class RimTag
     {
         private readonly string tagKey;
-        private string tagText = string.Empty;
-        private string defType = string.Empty;
+        private string tagText;
+        private string defType;
         private readonly string defName;
 
         public RimTag(string tagKey, string tagText, string defType, string defName)
@@ -17,7 +17,7 @@
 
         private void SetTagText(string tagText, string defType)
         {
-            if (defType.Equals("BackstoryDef", StringComparison.OrdinalIgnoreCase) && tagText.Contains('['))
+            if (defType.Equals("BackstoryDef", System.StringComparison.OrdinalIgnoreCase) && tagText.Contains('['))
                 this.tagText = tagText.Replace('[', '{').Replace(']', '}');
             else
                 this.tagText = tagText;

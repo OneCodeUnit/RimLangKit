@@ -4,7 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 
-namespace RimLanguageCore.TextExporter
+namespace RimLanguageCore.Model
 {
     public class RimFile
     {
@@ -15,6 +15,11 @@ namespace RimLanguageCore.TextExporter
         public RimFile(string path)
         {
             this.path = path;
+        }
+
+        public int GetCount()
+        {
+            return tags.Count;
         }
 
         public string Open()

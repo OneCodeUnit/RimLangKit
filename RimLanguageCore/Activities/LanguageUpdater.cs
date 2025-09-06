@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using RimLanguageCore.Misc;
 
 namespace RimLanguageCore.Activities
@@ -88,7 +89,7 @@ namespace RimLanguageCore.Activities
                         break;
                     }
                 }
-                if ((!dirEntry.EndsWith("RimWorldUniverse", comparison)) && (ok == false))
+                if ((!dirEntry.EndsWith("RimWorldUniverse", comparison)) && (!dirEntry.EndsWith(".github", comparison)) && (ok == false))
                 {
                     string module = dirEntry.Replace($"{baseDir[0]}\\", string.Empty);
                     result += $"{Environment.NewLine}Не найден модуль \"{module}\"";
