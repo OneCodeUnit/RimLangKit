@@ -1,18 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
+﻿using System.Globalization;
 using System.Xml.Linq;
 using System.Xml;
-using RimLanguageCore.Misc;
+using RimLangKit.Checks;
 
-namespace RimLanguageCore.Activities
+namespace RimLangKit.Processors
 {
     public class ChangesFinder
     {
-        private static Dictionary<string, string> TranslationData = new();
-        private static Dictionary<string, string> ModData = new();
-        private static Dictionary<string, string> ChangedData = new();
+        private static Dictionary<string, string> TranslationData = [];
+        private static Dictionary<string, string> ModData = [];
+        private static Dictionary<string, string> ChangedData = [];
 
         public static (bool, string) GetTranslationData(string currentFile)
         {
@@ -63,7 +60,7 @@ namespace RimLanguageCore.Activities
             }
 
             XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
-            XElement root = xDoc.Element("LanguageData");
+            XElement? root = xDoc.Element("LanguageData");
 
             foreach (XElement node in root.Elements())
             {

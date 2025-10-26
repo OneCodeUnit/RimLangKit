@@ -1,13 +1,12 @@
-﻿using RimLanguageCore.Misc;
-using System.Collections.Generic;
+﻿using RimLangKit.Checks;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace RimLanguageCore.Activities
+namespace RimLangKit.Processors
 {
     public static class PreTranslator
     {
-        private static Dictionary<string, string> TranslationData = new();
+        private static Dictionary<string, string> TranslationData = [];
 
         public static (bool, string) BuildDatabase(string currentFile)
         {
@@ -18,14 +17,14 @@ namespace RimLanguageCore.Activities
             }
 
             XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
-            XElement root = xDoc.Element("LanguageData");
+            XElement? root = xDoc.Element("LanguageData");
 
             XmlReaderSettings settings = new() { DtdProcessing = DtdProcessing.Parse };
             XmlReader reader = XmlReader.Create(currentFile, settings);
             reader.MoveToContent();
 
             // База defName - комментарий
-            Dictionary<string, string> commentData = new();
+            Dictionary<string, string> commentData = [];
             string value = string.Empty;
             bool hasValue = false;
             while (reader.Read())
@@ -55,7 +54,7 @@ namespace RimLanguageCore.Activities
             }
 
             // База defName - перевод
-            Dictionary<string, string> textData = new();
+            Dictionary<string, string> textData = [];
             foreach (XElement node in root.Elements())
             {
                 textData.TryAdd(node.Name.ToString(), node.Value.ToString());
@@ -93,7 +92,7 @@ namespace RimLanguageCore.Activities
             }
 
             XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
-            XElement root = xDoc.Element("LanguageData");
+            XElement? root = xDoc.Element("LanguageData");
 
             foreach (XElement node in root.Elements())
             {

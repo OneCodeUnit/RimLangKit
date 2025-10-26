@@ -1,8 +1,8 @@
 ﻿using System.Xml.Linq;
-using System.Xml;
-using RimLanguageCore.Misc;
+using RimLangKit.Checks;
+using RimLangKit.Models;
 
-namespace RimLanguageCore.Activities
+namespace RimLangKit.Processors
 {
     /// <summary>
     /// Вставляет комментарий с содержимым тега перед каждым элементом в указанном XML-файле.
@@ -20,7 +20,7 @@ namespace RimLanguageCore.Activities
             }
 
             XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
-            XElement root = xDoc.Element("LanguageData");
+            XElement? root = xDoc.Element("LanguageData");
 
             foreach (XElement node in root.Elements())
             {
@@ -37,18 +37,6 @@ namespace RimLanguageCore.Activities
             // Сохранение файла
             xDoc.Save(currentFile);
             return (true, string.Empty);
-        }
-    }
-
-    // Класс, в котором описывается не до конца понятный мне трюк, позволяющий вписывать специальные символы «как есть»
-    internal sealed class XRaw : XText
-    {
-        public XRaw(string text) : base(text) { }
-        public XRaw(XText text) : base(text) { }
-
-        public override void WriteTo(XmlWriter writer)
-        {
-            writer.WriteRaw(Value);
         }
     }
 }

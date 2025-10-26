@@ -1,9 +1,7 @@
-﻿using System.IO;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 
-namespace RimLanguageCore.Activities
+namespace RimLangKit.Processors
 {
     public static class EncodingFixer
     {

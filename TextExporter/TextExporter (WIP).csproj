@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\RimLanguageCore\RimLanguageCore.csproj" />
+    <PackageReference Include="LiteDB" Version="5.0.21" />
   </ItemGroup>
 
 </Project>

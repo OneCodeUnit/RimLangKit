@@ -1,10 +1,8 @@
-﻿using System;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using RimLanguageCore.Misc;
+﻿using System.IO.Compression;
+using RimLangKit.Models.GitHub;
+using RimLangKit.Services;
 
-namespace RimLanguageCore.Activities
+namespace RimLangKit.Modules.GameLocalization
 {
     public static class LanguageUpdater
     {
@@ -18,7 +16,7 @@ namespace RimLanguageCore.Activities
 
         public static (bool, string) TranslationVersionCheckActivity(string sha, string repo)
         {
-            Root json = GitHubHttpClient.GetGithubSha(repo);
+            Root? json = GitHubService.GetGithubSha(repo);
             if (json is null)
             {
                 return (false, "Проверка версии: Ошибка получения данных с GitHub. Что-то с интернетом?");
@@ -38,7 +36,7 @@ namespace RimLanguageCore.Activities
         public static (bool, string) LanguageUpdateDownload(string repo)
         {
             // Получение файлов перевода
-            Stream stream = GitHubHttpClient.GetGithubArchive(repo);
+            Stream? stream = GitHubService.GetGithubArchive(repo);
             if (stream is null)
             {
                 TempDir = string.Empty;
@@ -89,7 +87,7 @@ namespace RimLanguageCore.Activities
                         break;
                     }
                 }
-                if ((!dirEntry.EndsWith("RimWorldUniverse", comparison)) && (!dirEntry.EndsWith(".github", comparison)) && (ok == false))
+                if (!dirEntry.EndsWith("RimWorldUniverse", comparison) && !dirEntry.EndsWith(".github", comparison) && ok == false)
                 {
                     string module = dirEntry.Replace($"{baseDir[0]}\\", string.Empty);
                     result += $"{Environment.NewLine}Не найден модуль \"{module}\"";

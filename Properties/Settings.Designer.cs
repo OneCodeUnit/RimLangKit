@@ -118,5 +118,17 @@ namespace RimLangKit.Properties {
                 this["lastCheckDate"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string savedDB {
+            get {
+                return ((string)(this["savedDB"]));
+            }
+            set {
+                this["savedDB"] = value;
+            }
+        }
     }
 }

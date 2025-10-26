@@ -31,7 +31,10 @@
             Label label1;
             Label labelRepo;
             Label labelLanguage;
+            Label SelectModLabel;
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
+            DatabaseLabel = new Label();
+            CheckDatabaseLabel = new Label();
             VersionLabel = new Label();
             FolderButton = new Button();
             FolderTextBox = new TextBox();
@@ -58,6 +61,28 @@
             InfoTextBox2 = new TextBox();
             FolderTextBox2 = new TextBox();
             FolderButton2 = new Button();
+            tabPage3 = new TabPage();
+            AutoTranslateButton = new Button();
+            UpdateDatabaseButton = new Button();
+            SelectForUpdateDatabaseButton = new Button();
+            UpdateDatabaseTextBox = new TextBox();
+            UpdateDatabaseLabel = new Label();
+            panel2 = new Panel();
+            label5 = new Label();
+            textBox4 = new TextBox();
+            checkBox2 = new CheckBox();
+            label4 = new Label();
+            textBox3 = new TextBox();
+            checkBox1 = new CheckBox();
+            RewritePanel = new Panel();
+            RewriteLabel = new Label();
+            RewriteRadioButtonFalse = new RadioButton();
+            RewriteRadioButtonTrue = new RadioButton();
+            CreateDatabaseButton = new Button();
+            SelectModButton = new Button();
+            SelectModTextBox = new TextBox();
+            SelectDatabaseButton = new Button();
+            SelectDatabaseTextBox = new TextBox();
             MenuStripMaster = new MenuStrip();
             toolStripMenuItem1 = new ToolStripMenuItem();
             ToolStripMenuItemSettings = new ToolStripMenuItem();
@@ -70,9 +95,13 @@
             label1 = new Label();
             labelRepo = new Label();
             labelLanguage = new Label();
+            SelectModLabel = new Label();
             MainTabs.SuspendLayout();
             tabPage1.SuspendLayout();
             tabPage2.SuspendLayout();
+            tabPage3.SuspendLayout();
+            panel2.SuspendLayout();
+            RewritePanel.SuspendLayout();
             MenuStripMaster.SuspendLayout();
             SuspendLayout();
             // 
@@ -102,6 +131,33 @@
             labelLanguage.Size = new Size(158, 28);
             labelLanguage.TabIndex = 27;
             labelLanguage.Text = "Название языка";
+            // 
+            // SelectModLabel
+            // 
+            SelectModLabel.AutoSize = true;
+            SelectModLabel.Location = new Point(6, 340);
+            SelectModLabel.Name = "SelectModLabel";
+            SelectModLabel.Size = new Size(439, 28);
+            SelectModLabel.TabIndex = 7;
+            SelectModLabel.Text = "Выбрать мод для предварительного перевода";
+            // 
+            // DatabaseLabel
+            // 
+            DatabaseLabel.AutoSize = true;
+            DatabaseLabel.Location = new Point(6, 9);
+            DatabaseLabel.Name = "DatabaseLabel";
+            DatabaseLabel.Size = new Size(235, 28);
+            DatabaseLabel.TabIndex = 4;
+            DatabaseLabel.Text = "База данных переводов.";
+            // 
+            // CheckDatabaseLabel
+            // 
+            CheckDatabaseLabel.AutoSize = true;
+            CheckDatabaseLabel.Location = new Point(235, 9);
+            CheckDatabaseLabel.Name = "CheckDatabaseLabel";
+            CheckDatabaseLabel.Size = new Size(198, 28);
+            CheckDatabaseLabel.TabIndex = 10;
+            CheckDatabaseLabel.Text = "Сейчас в базе: пусто";
             // 
             // VersionLabel
             // 
@@ -256,6 +312,7 @@
             // 
             MainTabs.Controls.Add(tabPage1);
             MainTabs.Controls.Add(tabPage2);
+            MainTabs.Controls.Add(tabPage3);
             MainTabs.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 204);
             MainTabs.Location = new Point(12, 29);
             MainTabs.Name = "MainTabs";
@@ -426,6 +483,239 @@
             FolderButton2.UseVisualStyleBackColor = true;
             FolderButton2.Click += FolderButton2_Click;
             // 
+            // tabPage3
+            // 
+            tabPage3.Controls.Add(AutoTranslateButton);
+            tabPage3.Controls.Add(UpdateDatabaseButton);
+            tabPage3.Controls.Add(SelectForUpdateDatabaseButton);
+            tabPage3.Controls.Add(UpdateDatabaseTextBox);
+            tabPage3.Controls.Add(UpdateDatabaseLabel);
+            tabPage3.Controls.Add(CheckDatabaseLabel);
+            tabPage3.Controls.Add(panel2);
+            tabPage3.Controls.Add(RewritePanel);
+            tabPage3.Controls.Add(CreateDatabaseButton);
+            tabPage3.Controls.Add(SelectModButton);
+            tabPage3.Controls.Add(SelectModTextBox);
+            tabPage3.Controls.Add(SelectModLabel);
+            tabPage3.Controls.Add(DatabaseLabel);
+            tabPage3.Controls.Add(SelectDatabaseButton);
+            tabPage3.Controls.Add(SelectDatabaseTextBox);
+            tabPage3.Location = new Point(4, 37);
+            tabPage3.Name = "tabPage3";
+            tabPage3.Padding = new Padding(3);
+            tabPage3.Size = new Size(943, 669);
+            tabPage3.TabIndex = 2;
+            tabPage3.Text = "Пред. перевод";
+            tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // AutoTranslateButton
+            // 
+            AutoTranslateButton.Font = new Font("Segoe UI", 12F);
+            AutoTranslateButton.Location = new Point(775, 411);
+            AutoTranslateButton.Name = "AutoTranslateButton";
+            AutoTranslateButton.Size = new Size(162, 34);
+            AutoTranslateButton.TabIndex = 23;
+            AutoTranslateButton.Text = "Перевести";
+            AutoTranslateButton.UseVisualStyleBackColor = true;
+            AutoTranslateButton.Click += AutoTranslateButton_Click;
+            // 
+            // UpdateDatabaseButton
+            // 
+            UpdateDatabaseButton.Font = new Font("Segoe UI", 12F);
+            UpdateDatabaseButton.Location = new Point(775, 164);
+            UpdateDatabaseButton.Name = "UpdateDatabaseButton";
+            UpdateDatabaseButton.Size = new Size(162, 34);
+            UpdateDatabaseButton.TabIndex = 22;
+            UpdateDatabaseButton.Text = "Добавить";
+            UpdateDatabaseButton.UseVisualStyleBackColor = true;
+            UpdateDatabaseButton.Click += UpdateDatabaseButton_Click;
+            // 
+            // SelectForUpdateDatabaseButton
+            // 
+            SelectForUpdateDatabaseButton.Font = new Font("Segoe UI", 12F);
+            SelectForUpdateDatabaseButton.Location = new Point(775, 124);
+            SelectForUpdateDatabaseButton.Name = "SelectForUpdateDatabaseButton";
+            SelectForUpdateDatabaseButton.Size = new Size(162, 34);
+            SelectForUpdateDatabaseButton.TabIndex = 21;
+            SelectForUpdateDatabaseButton.Text = "Выбрать папку";
+            SelectForUpdateDatabaseButton.UseVisualStyleBackColor = true;
+            SelectForUpdateDatabaseButton.Click += SelectForUpdateDatabaseButton_Click;
+            // 
+            // UpdateDatabaseTextBox
+            // 
+            UpdateDatabaseTextBox.Location = new Point(6, 118);
+            UpdateDatabaseTextBox.Name = "UpdateDatabaseTextBox";
+            UpdateDatabaseTextBox.Size = new Size(763, 34);
+            UpdateDatabaseTextBox.TabIndex = 20;
+            UpdateDatabaseTextBox.TextChanged += UpdateDatabaseTextBox_TextChanged;
+            // 
+            // UpdateDatabaseLabel
+            // 
+            UpdateDatabaseLabel.AutoSize = true;
+            UpdateDatabaseLabel.Location = new Point(3, 87);
+            UpdateDatabaseLabel.Name = "UpdateDatabaseLabel";
+            UpdateDatabaseLabel.Size = new Size(294, 28);
+            UpdateDatabaseLabel.TabIndex = 19;
+            UpdateDatabaseLabel.Text = "Добавить информацию в базу";
+            // 
+            // panel2
+            // 
+            panel2.Controls.Add(label5);
+            panel2.Controls.Add(textBox4);
+            panel2.Controls.Add(checkBox2);
+            panel2.Controls.Add(label4);
+            panel2.Controls.Add(textBox3);
+            panel2.Controls.Add(checkBox1);
+            panel2.Location = new Point(3, 208);
+            panel2.Name = "panel2";
+            panel2.Size = new Size(596, 88);
+            panel2.TabIndex = 18;
+            panel2.Visible = false;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(321, 45);
+            label5.Name = "label5";
+            label5.Size = new Size(267, 28);
+            label5.TabIndex = 22;
+            label5.Text = "символов на предложения.";
+            // 
+            // textBox4
+            // 
+            textBox4.Location = new Point(272, 44);
+            textBox4.Name = "textBox4";
+            textBox4.Size = new Size(43, 34);
+            textBox4.TabIndex = 21;
+            textBox4.Text = "100";
+            // 
+            // checkBox2
+            // 
+            checkBox2.AutoSize = true;
+            checkBox2.Location = new Point(3, 41);
+            checkBox2.Name = "checkBox2";
+            checkBox2.Size = new Size(260, 32);
+            checkBox2.TabIndex = 20;
+            checkBox2.Text = "Разбивать текст длиннее";
+            checkBox2.UseVisualStyleBackColor = true;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(321, 4);
+            label4.Name = "label4";
+            label4.Size = new Size(108, 28);
+            label4.TabIndex = 19;
+            label4.Text = "символов.";
+            // 
+            // textBox3
+            // 
+            textBox3.Location = new Point(272, 3);
+            textBox3.Name = "textBox3";
+            textBox3.Size = new Size(43, 34);
+            textBox3.TabIndex = 18;
+            textBox3.Text = "100";
+            // 
+            // checkBox1
+            // 
+            checkBox1.AutoSize = true;
+            checkBox1.Location = new Point(3, 3);
+            checkBox1.Name = "checkBox1";
+            checkBox1.Size = new Size(274, 32);
+            checkBox1.TabIndex = 17;
+            checkBox1.Text = "Пропускать текст длиннее";
+            checkBox1.UseVisualStyleBackColor = true;
+            // 
+            // RewritePanel
+            // 
+            RewritePanel.Controls.Add(RewriteLabel);
+            RewritePanel.Controls.Add(RewriteRadioButtonFalse);
+            RewritePanel.Controls.Add(RewriteRadioButtonTrue);
+            RewritePanel.Location = new Point(6, 164);
+            RewritePanel.Name = "RewritePanel";
+            RewritePanel.Size = new Size(766, 38);
+            RewritePanel.TabIndex = 16;
+            // 
+            // RewriteLabel
+            // 
+            RewriteLabel.AutoSize = true;
+            RewriteLabel.Location = new Point(0, 7);
+            RewriteLabel.Name = "RewriteLabel";
+            RewriteLabel.Size = new Size(75, 28);
+            RewriteLabel.TabIndex = 23;
+            RewriteLabel.Text = "Дубли:";
+            // 
+            // RewriteRadioButtonFalse
+            // 
+            RewriteRadioButtonFalse.AutoSize = true;
+            RewriteRadioButtonFalse.Location = new Point(266, 5);
+            RewriteRadioButtonFalse.Name = "RewriteRadioButtonFalse";
+            RewriteRadioButtonFalse.Size = new Size(140, 32);
+            RewriteRadioButtonFalse.TabIndex = 16;
+            RewriteRadioButtonFalse.Text = "Пропускать";
+            RewriteRadioButtonFalse.UseVisualStyleBackColor = true;
+            // 
+            // RewriteRadioButtonTrue
+            // 
+            RewriteRadioButtonTrue.AutoSize = true;
+            RewriteRadioButtonTrue.Checked = true;
+            RewriteRadioButtonTrue.Location = new Point(76, 5);
+            RewriteRadioButtonTrue.Name = "RewriteRadioButtonTrue";
+            RewriteRadioButtonTrue.Size = new Size(184, 32);
+            RewriteRadioButtonTrue.TabIndex = 15;
+            RewriteRadioButtonTrue.TabStop = true;
+            RewriteRadioButtonTrue.Text = "Перезаписывать";
+            RewriteRadioButtonTrue.UseVisualStyleBackColor = true;
+            // 
+            // CreateDatabaseButton
+            // 
+            CreateDatabaseButton.Font = new Font("Segoe UI", 12F);
+            CreateDatabaseButton.Location = new Point(775, 46);
+            CreateDatabaseButton.Name = "CreateDatabaseButton";
+            CreateDatabaseButton.Size = new Size(162, 34);
+            CreateDatabaseButton.TabIndex = 12;
+            CreateDatabaseButton.Text = "Создать";
+            CreateDatabaseButton.UseVisualStyleBackColor = true;
+            CreateDatabaseButton.Click += CreateDatabaseButton_Click;
+            // 
+            // SelectModButton
+            // 
+            SelectModButton.Font = new Font("Segoe UI", 12F);
+            SelectModButton.Location = new Point(775, 371);
+            SelectModButton.Name = "SelectModButton";
+            SelectModButton.Size = new Size(162, 34);
+            SelectModButton.TabIndex = 9;
+            SelectModButton.Text = "Выбрать";
+            SelectModButton.UseVisualStyleBackColor = true;
+            SelectModButton.Click += SelectModButton_Click;
+            // 
+            // SelectModTextBox
+            // 
+            SelectModTextBox.Location = new Point(6, 371);
+            SelectModTextBox.Name = "SelectModTextBox";
+            SelectModTextBox.Size = new Size(763, 34);
+            SelectModTextBox.TabIndex = 8;
+            SelectModTextBox.TextChanged += SelectModTextBox_TextChanged;
+            // 
+            // SelectDatabaseButton
+            // 
+            SelectDatabaseButton.Font = new Font("Segoe UI", 12F);
+            SelectDatabaseButton.Location = new Point(775, 6);
+            SelectDatabaseButton.Name = "SelectDatabaseButton";
+            SelectDatabaseButton.Size = new Size(162, 34);
+            SelectDatabaseButton.TabIndex = 3;
+            SelectDatabaseButton.Text = "Выбрать файл";
+            SelectDatabaseButton.UseVisualStyleBackColor = true;
+            SelectDatabaseButton.Click += SelectDatabaseButton_Click;
+            // 
+            // SelectDatabaseTextBox
+            // 
+            SelectDatabaseTextBox.Location = new Point(6, 46);
+            SelectDatabaseTextBox.Name = "SelectDatabaseTextBox";
+            SelectDatabaseTextBox.Size = new Size(763, 34);
+            SelectDatabaseTextBox.TabIndex = 1;
+            SelectDatabaseTextBox.TextChanged += SelectDatabaseTextBox_TextChanged;
+            // 
             // MenuStripMaster
             // 
             MenuStripMaster.ImageScalingSize = new Size(20, 20);
@@ -500,12 +790,18 @@
             Controls.Add(VersionLabel);
             Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "MainForm";
-            Text = "RimWorld Language Kit by OliveWizard";
+            Text = "Программа для перевода RimWorld от OliveWizard";
             MainTabs.ResumeLayout(false);
             tabPage1.ResumeLayout(false);
             tabPage1.PerformLayout();
             tabPage2.ResumeLayout(false);
             tabPage2.PerformLayout();
+            tabPage3.ResumeLayout(false);
+            tabPage3.PerformLayout();
+            panel2.ResumeLayout(false);
+            panel2.PerformLayout();
+            RewritePanel.ResumeLayout(false);
+            RewritePanel.PerformLayout();
             MenuStripMaster.ResumeLayout(false);
             MenuStripMaster.PerformLayout();
             ResumeLayout(false);
@@ -549,5 +845,29 @@
         private ToolStripMenuItem ToolStripMenuItemAutoUpdateCheck;
         private ToolStripMenuItem ToolStripMenuItemCheckUpdate;
         private ToolStripMenuItem ToolStripMenuItemGuide;
+        private TabPage tabPage3;
+        private TextBox SelectDatabaseTextBox;
+        private Button SelectDatabaseButton;
+        private Button SelectModButton;
+        private TextBox SelectModTextBox;
+        private Label CheckDatabaseLabel;
+        private Button CreateDatabaseButton;
+        private Panel RewritePanel;
+        private RadioButton RewriteRadioButtonFalse;
+        private RadioButton RewriteRadioButtonTrue;
+        private CheckBox checkBox1;
+        private Panel panel2;
+        private Label label5;
+        private TextBox textBox4;
+        private CheckBox checkBox2;
+        private Label label4;
+        private TextBox textBox3;
+        private Label DatabaseLabel;
+        private Label UpdateDatabaseLabel;
+        private Label RewriteLabel;
+        private TextBox UpdateDatabaseTextBox;
+        private Button UpdateDatabaseButton;
+        private Button SelectForUpdateDatabaseButton;
+        private Button AutoTranslateButton;
     }
 }

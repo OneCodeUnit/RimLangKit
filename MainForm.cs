@@ -1,6 +1,10 @@
-﻿using RimLangKit.Properties;
-using RimLanguageCore.Activities;
-using RimLanguageCore.Misc;
+﻿using RimLangKit.Checks;
+using RimLangKit.Modules.AutoTranslation;
+using RimLangKit.Modules.GameLocalization;
+using RimLangKit.Processors;
+using RimLangKit.Properties;
+using RimLangKit.Services;
+using RimLangKit.Utilities;
 using System.Diagnostics;
 using System.Reflection;
 
@@ -11,6 +15,9 @@ namespace RimLangKit
         private static string DirectoryPath = string.Empty;
         private static string GamePath = string.Empty;
         private static string AdditionalFolder = string.Empty;
+        private static string SelectedDBPath = string.Empty;
+        private static string TranslationFolder = string.Empty;
+        private static string AutoTranslateModFolder = string.Empty;
         private readonly Color goodColor = Color.FromArgb(0, 130, 0);
         private readonly Color badColor = Color.FromArgb(130, 0, 0);
 
@@ -326,7 +333,7 @@ namespace RimLangKit
                 // Если нашлись слова в данном DefType, то создаются файлы
                 if (count > 0)
                 {
-                    int? limit = MorpherHttpClient.GetMorpherRequestLimit();
+                    int? limit = MorpherService.GetMorpherRequestLimit();
                     if (!limit.HasValue)
                     {
                         InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Ошибка получения лимита слов для {defType}. Проблемы с интернетом?");
@@ -655,13 +662,13 @@ namespace RimLangKit
 
         private static bool CheckVersion()
         {
-            var json = GitHubHttpClient.GetGithubJson();
+            var json = GitHubService.GetGithubJson();
             if (json is null)
             {
                 MessageBox.Show("Не удалось проверить обновления. Проверьте подключение к интернету.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
             }
-            var newVersion = json.TagName.ToString()[1..];
+            var newVersion = json?.TagName?.ToString()[1..];
             var oldVersion = Assembly.GetEntryAssembly()?.GetName().Version?.ToString()[..^2];
             if (oldVersion == newVersion)
             {
@@ -670,10 +677,10 @@ namespace RimLangKit
             }
             else
             {
-                var dr = MessageBox.Show($"Доступно обновление до версии {newVersion}!\nПерейти на страницу загрузки?\n\nВ новой версии:\n{json.Body}", "Обновление", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                var dr = MessageBox.Show($"Доступно обновление до версии {newVersion}!\nПерейти на страницу загрузки?\n\nВ новой версии:\n{json?.Body}", "Обновление", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
                 if (dr == DialogResult.Yes)
                 {
-                    Process.Start(new ProcessStartInfo { FileName = json.HtmlUrl.ToString(), UseShellExecute = true });
+                    Process.Start(new ProcessStartInfo { FileName = json?.HtmlUrl?.ToString(), UseShellExecute = true });
                 }
                 return true;
             }
@@ -691,5 +698,142 @@ namespace RimLangKit
             Process.Start(new ProcessStartInfo { FileName = @"https://github.com/OneCodeUnit/RimLangKit/blob/master/README.md", UseShellExecute = true });
         }
         #endregion
+
+        #region Загрузка базы данных
+        // Выбор базы данных для загрузки
+        private void SelectDatabaseButton_Click(object sender, EventArgs e)
+        {
+            FileDialog fileDialog = new OpenFileDialog
+            {
+                Filter = "База данных (*.db)|*.db|All files (*.*)|*.*",
+            };
+            DialogResult dr = fileDialog.ShowDialog();
+            if (dr == DialogResult.OK)
+            {
+                SelectedDBPath = fileDialog.FileName;
+                SelectDatabaseTextBox.Text = SelectedDBPath;
+            }
+
+        }
+
+        // Обработка изменения пути к базе данных
+        private void SelectDatabaseTextBox_TextChanged(object sender, EventArgs e)
+        {
+            string path = SelectDatabaseTextBox.Text;
+            SelectedDBPath = path;
+            if (File.Exists(path) && path.EndsWith(".db", StringComparison.OrdinalIgnoreCase))
+            {
+                // Загрузка базы данных (проверка её содержимого)
+                var result = AutoTranslator.LoadDatabase(SelectedDBPath);
+                CheckDatabaseLabel.Text = $"Сейчас в базе: {result.Message}";
+            }
+            else
+            {
+
+            }
+        }
+
+        #endregion
+
+        // Создание новой базы данных
+        private void CreateDatabaseButton_Click(object sender, EventArgs e)
+        {
+            string executableDirectory;
+            if (SelectedDBPath == string.Empty)
+                executableDirectory = AppContext.BaseDirectory + "RimLang.db";
+            else
+                executableDirectory = SelectedDBPath;
+
+            var dr = MessageBox.Show($"База данных будет создана по адресу {executableDirectory}.\nСоздать?", "Создание базы данных", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+            if (dr == DialogResult.Yes)
+            {
+                AutoTranslator.NewDatabase(executableDirectory);
+                MessageBox.Show("База данных создана", "Создание базы данных", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                SelectedDBPath = executableDirectory;
+                SelectDatabaseTextBox.Text = SelectedDBPath;
+                // Загрузка базы данных (проверка её содержимого)
+                var result = AutoTranslator.LoadDatabase(SelectedDBPath);
+                CheckDatabaseLabel.Text = $"Сейчас в базе: {result.Message}";
+            }
+        }
+
+        // Добавление файлов из папки в базу данных
+        private void UpdateDatabaseButton_Click(object sender, EventArgs e)
+        {
+            bool rewrite = false;
+            if (RewriteRadioButtonTrue.Checked)
+                rewrite = true;
+            if (RewriteRadioButtonFalse.Checked)
+                rewrite = false;
+
+            string[] allFiles = Directory.GetFiles(TranslationFolder, "*.xml", SearchOption.AllDirectories);
+            List<XmlError> results = [];
+            foreach (string currentFile in allFiles)
+            {
+                var result = AutoTranslator.CreateDatabase(SelectedDBPath, currentFile, "translated_tags", rewrite);
+                results.Add(new XmlError(result.IsValid, $"{currentFile}: {result.Message}"));
+            }
+
+            MessageBox.Show("Данные добавлены", "Обновление базы данных", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            // Загрузка базы данных (проверка её содержимого)
+            var checkResult = AutoTranslator.LoadDatabase(SelectedDBPath);
+            CheckDatabaseLabel.Text = $"Сейчас в базе: {checkResult.Message}";
+        }
+
+        // Выбор папки с переводами
+        private void SelectForUpdateDatabaseButton_Click(object sender, EventArgs e)
+        {
+            using FolderBrowserDialog ofd = new();
+            DialogResult dr = ofd.ShowDialog();
+            if (dr == DialogResult.OK)
+            {
+                TranslationFolder = ofd.SelectedPath;
+                UpdateDatabaseTextBox.Text = TranslationFolder;
+            }
+        }
+
+        // Обработка изменения адреса папки с переводами
+        private void UpdateDatabaseTextBox_TextChanged(object sender, EventArgs e)
+        {
+            string path = UpdateDatabaseTextBox.Text;
+            if (Directory.Exists(path))
+            {
+                TranslationFolder = path;
+            }
+        }
+
+        // Автоперевод файлов из папки
+        private void AutoTranslateButton_Click(object sender, EventArgs e)
+        {
+            string[] allFiles = Directory.GetFiles(AutoTranslateModFolder, "*.xml", SearchOption.AllDirectories);
+            List<XmlError> results = [];
+            foreach (string currentFile in allFiles)
+            {
+                var result = AutoTranslator.TranslateFile(SelectedDBPath, currentFile, "translated_tags");
+                results.Add(new XmlError(result.IsValid, $"{currentFile}: {result.Message}"));
+            }
+            MessageBox.Show("Файлы переведы", "Автоперевод", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        // Выбор папки с модом для автоперевода
+        private void SelectModButton_Click(object sender, EventArgs e)
+        {
+            using FolderBrowserDialog ofd = new();
+            DialogResult dr = ofd.ShowDialog();
+            if (dr == DialogResult.OK)
+            {
+                AutoTranslateModFolder = ofd.SelectedPath;
+                SelectModTextBox.Text = AutoTranslateModFolder;
+            }
+        }
+
+        private void SelectModTextBox_TextChanged(object sender, EventArgs e)
+        {
+            string path = SelectModTextBox.Text;
+            if (Directory.Exists(path))
+            {
+                AutoTranslateModFolder = path;
+            }
+        }
     }
 }

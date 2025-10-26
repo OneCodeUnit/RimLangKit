@@ -1,7 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.Xml.Serialization;
-using RimLanguageCore.TextExporter;
 
 namespace TextExporter
 {
@@ -17,12 +16,13 @@ namespace TextExporter
             string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
             foreach (string tempFile in allFiles)
             {
-                RimFile file = new(tempFile);
-                file.Open();
-                file.Save();
+                Parser.ParseAndSaveToDatabase(tempFile);
+                //RimFile file = new(tempFile);
+                //file.Open();
+                //file.Save();
 
             }
-            //Console.ReadKey();
+            Console.ReadKey();
         }
 
         static void FindDefs(string currentFile)

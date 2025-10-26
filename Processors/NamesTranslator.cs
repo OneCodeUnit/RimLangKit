@@ -1,9 +1,6 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Globalization;
+﻿using System.Globalization;
 
-namespace RimLanguageCore.Activities
+namespace RimLangKit.Processors
 {
     public static class NamesTranslator
     {
@@ -35,7 +32,7 @@ namespace RimLanguageCore.Activities
             while (true)
             {
                 // Чтение строки
-                string sourceLine = sourceText.ReadLine().Trim();
+                string? sourceLine = sourceText.ReadLine()?.Trim();
                 if (sourceLine is null)
                 {
                     break;

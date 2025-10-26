@@ -1,12 +1,8 @@
-﻿using RimLanguageCore.Misc;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using RimLangKit.Checks;
 using System.Text;
 using System.Xml.Linq;
 
-namespace RimLanguageCore.Activities
+namespace RimLangKit.Processors
 {
     public static class TagCollector
     {
@@ -30,7 +26,7 @@ namespace RimLanguageCore.Activities
             {
                 Defs.Add(def);
                 DefsSpread.Add(def, 1);
-                TagList.Add(def, new List<string>());
+                TagList.Add(def, []);
             }
             else
             {
@@ -54,7 +50,7 @@ namespace RimLanguageCore.Activities
             }
 
             XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
-            XElement root = xDoc.Element("LanguageData");
+            XElement? root = xDoc.Element("LanguageData");
 
             // DefName текущего файла
             string def = ParseDefName(currentFile);
@@ -159,7 +155,7 @@ namespace RimLanguageCore.Activities
         {
             // Удаление составных (временно)
             Defs.Remove("RulePackDef");
-            List<string> deleted = new();
+            List<string> deleted = [];
             foreach (string def in Defs)
             {
                 if (def.Contains('.'))

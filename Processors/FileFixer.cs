@@ -1,14 +1,11 @@
-﻿using RimLanguageCore.Misc;
-using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using RimLangKit.Checks;
 using System.Xml.Linq;
 
-namespace RimLanguageCore.Activities
+namespace RimLangKit.Processors
 {
     public static class FileFixer
     {
-        private static readonly Dictionary<string, string> BrokenFiles = new();
+        private static readonly Dictionary<string, string> BrokenFiles = [];
 
         public static (bool, string) FileFixerActivity(string currentFile)
         {
@@ -28,7 +25,7 @@ namespace RimLanguageCore.Activities
             XDocument xDoc = XDocument.Load(currentFile, LoadOptions.PreserveWhitespace);
 
             // Проверка декларации
-            string Declaration = xDoc.Declaration?.ToString();
+            string? Declaration = xDoc.Declaration?.ToString();
             if (Declaration is null)
             {
                 BrokenFiles.Add(currentFile, "Отсутствует декларация");

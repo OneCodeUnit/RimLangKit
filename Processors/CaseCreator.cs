@@ -1,10 +1,8 @@
-﻿using RimLanguageCore.Misc;
-using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using RimLangKit.Models.Morpher;
+using RimLangKit.Services;
 using System.Xml.Linq;
 
-namespace RimLanguageCore.Activities
+namespace RimLangKit.Processors
 {
     public static class CaseCreator
     {
@@ -13,14 +11,14 @@ namespace RimLanguageCore.Activities
         private static List<string> ExtractWords(string file)
         {
             XDocument xDoc = XDocument.Load(file, LoadOptions.PreserveWhitespace);
-            XElement root = xDoc.Element("LanguageData");
-            List<string> words = new();
+            XElement? root = xDoc.Element("LanguageData");
+            List<string> words = [];
             if (root is null) { return words; }
             foreach (XElement node in root.Elements())
             {
                 string nodeName = node.Name.ToString();
                 StringComparison nodeComparison = StringComparison.OrdinalIgnoreCase;
-                if ((nodeName.EndsWith(".label", nodeComparison) && !nodeName.Contains(".stages.") && !nodeName.Contains(".verbs.")) || nodeName.EndsWith(".chargeNoun", nodeComparison))
+                if (nodeName.EndsWith(".label", nodeComparison) && !nodeName.Contains(".stages.") && !nodeName.Contains(".verbs.") || nodeName.EndsWith(".chargeNoun", nodeComparison))
                 {
                     words.Add(node.Value);
                 }
@@ -56,7 +54,7 @@ namespace RimLanguageCore.Activities
                 }
 
                 string tempWord = word.Key;
-                WordForms result = MorpherHttpClient.GetMorpherWords(tempWord);
+                WordForms? result = MorpherService.GetMorpherWords(tempWord);
                 // Case.txt
                 string tempStringCase = result is null
                     ? $"{tempWord}; {tempWord}; {tempWord}; {tempWord}; {tempWord}; {tempWord}"
@@ -107,9 +105,9 @@ namespace RimLanguageCore.Activities
                 {
                     continue;
                 }
-                else if ((!word.Key.EndsWith("а", StringComparison.OrdinalIgnoreCase)) && (!word.Key.EndsWith("я", StringComparison.OrdinalIgnoreCase))
-                && (!word.Key.EndsWith("о", StringComparison.OrdinalIgnoreCase)) && (!word.Key.EndsWith("е", StringComparison.OrdinalIgnoreCase))
-                && (!word.Key.EndsWith("ы", StringComparison.OrdinalIgnoreCase)) && (!word.Key.EndsWith("и", StringComparison.OrdinalIgnoreCase)))
+                else if (!word.Key.EndsWith("а", StringComparison.OrdinalIgnoreCase) && !word.Key.EndsWith("я", StringComparison.OrdinalIgnoreCase)
+                && !word.Key.EndsWith("о", StringComparison.OrdinalIgnoreCase) && !word.Key.EndsWith("е", StringComparison.OrdinalIgnoreCase)
+                && !word.Key.EndsWith("ы", StringComparison.OrdinalIgnoreCase) && !word.Key.EndsWith("и", StringComparison.OrdinalIgnoreCase))
                 {
                     writerMale.WriteLine(word.Key);
                     words.Remove(word.Key);

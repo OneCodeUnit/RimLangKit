@@ -1,7 +1,6 @@
-﻿using System;
-using System.Globalization;
+﻿using System.Globalization;
 
-namespace RimLanguageCore.Misc
+namespace RimLangKit.Utilities
 {
     public static class TimeSetter
     {

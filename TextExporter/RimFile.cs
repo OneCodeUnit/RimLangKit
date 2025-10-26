@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Xml.Linq;
+﻿using System.Xml.Linq;
 
-namespace RimLanguageCore.Model
+namespace TextExporter
 {
     public class RimFile
     {
@@ -83,7 +79,7 @@ namespace RimLanguageCore.Model
 
                         XComment comment = new($" EN: {tag.GetTagText()} ");
                         languageData.Add(comment);
-                        XElement extractedTag = new($"{tag.GetDefName()}.{tag.GetTagKey()}", tag.GetTagText());
+                        XElement extractedTag = new($"{tag.GetDefName()}.{tag.GetDefName()}", tag.GetTagText());
                         languageData.Add(extractedTag);
                     }
                 }
