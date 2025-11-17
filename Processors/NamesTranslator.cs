@@ -2,6 +2,13 @@
 
 namespace RimLangKit.Processors
 {
+    /// <summary>
+    /// Транслитерирует английские имена на русский язык по правилам фонетической транслитерации.
+    /// </summary>
+    /// <remarks>
+    /// Использует таблицы соответствий для преобразования английских буквосочетаний в русские.
+    /// Обрабатывает особые случаи начала и окончания слов.
+    /// </remarks>
     public static class NamesTranslator
     {
         private static readonly string line4 = "land:ленд,aire:эр,lare:лер,augh:о,aughe:о,wich:идж,chia:шия,chio:шио,eigh:ай,ewer:оуэр,tion:шен,oore:ор,ough:ау,ower:оуэр,ture:чер";
@@ -96,6 +103,11 @@ namespace RimLangKit.Processors
                 : (false, errors + " имён записано с ошибкой. Ищите слова \"Ошибка\" в получившихся файлах");
         }
 
+        /// <summary>
+        /// Создает словарь транслитерации из строки формата "ключ:значение,ключ:значение,...".
+        /// </summary>
+        /// <param name="line">Строка с правилами транслитерации.</param>
+        /// <returns>Словарь соответствий английских буквосочетаний русским.</returns>
         private static Dictionary<string, string> SetDictionary(string line)
         {
             Dictionary<string, string> dictionary = new();
@@ -107,6 +119,11 @@ namespace RimLangKit.Processors
             return dictionary;
         }
 
+        /// <summary>
+        /// Создает словарь транслитерации из массива строк формата "ключ:значение,ключ:значение,...".
+        /// </summary>
+        /// <param name="lines">Массив строк с правилами транслитерации.</param>
+        /// <returns>Объединенный словарь соответствий английских буквосочетаний русским.</returns>
         private static Dictionary<string, string> SetDictionary(string[] lines)
         {
             Dictionary<string, string> dictionary = new();

@@ -1,14 +1,30 @@
 ﻿namespace RimLangKit.Models
 {
+    /// <summary>
+    /// Представляет тег перевода из XML-файла RimWorld.
+    /// </summary>
+    /// <remarks>
+    /// Содержит информацию о теге: его имя (defName), текст перевода, английский комментарий и тип.
+    /// Поля public для совместимости с LiteDB.
+    /// </remarks>
     public class RimTag
     {
-        // Поля public, потому что иначе LiteDB не сможет их обрабатывать
+        /// <summary>Имя определения тега (defName), например "ThingDef.label".</summary>
         public string TagDef { get; set; }
+        /// <summary>Текст перевода (русский).</summary>
         public string TagText { get; set; }
+        /// <summary>Английский текст из комментария "<!-- EN: ... -->".</summary>
         public string TagComment { get; set; }
+        /// <summary>Тип тега (обычно имя родительской папки, например "Defs").</summary>
         public string TagType { get; set; }
 
-        // Полный конструктор используется для сбора данных из существующего перевода
+        /// <summary>
+        /// Создает тег с полной информацией (используется при сборе данных из существующего перевода).
+        /// </summary>
+        /// <param name="tagDef">Имя определения тега.</param>
+        /// <param name="tagText">Текст перевода.</param>
+        /// <param name="tagComment">Английский текст из комментария.</param>
+        /// <param name="tagType">Тип тега.</param>
         public RimTag(string tagDef, string tagText, string tagComment, string tagType)
         {
             TagDef = tagDef;
@@ -17,7 +33,15 @@
             TagType = tagType;
         }
 
-        // Конструктор без комментария используется при сборе данных переводимого текста. TagComment все равно будет идентичен TagText
+        /// <summary>
+        /// Создает тег без английского комментария (используется при сборе данных переводимого текста).
+        /// </summary>
+        /// <param name="tagDef">Имя определения тега.</param>
+        /// <param name="tagText">Текст для перевода (английский).</param>
+        /// <param name="tagType">Тип тега.</param>
+        /// <remarks>
+        /// TagComment устанавливается в пустую строку.
+        /// </remarks>
         public RimTag(string tagDef, string tagText, string tagType)
         {
             TagDef = tagDef;
@@ -26,7 +50,9 @@
             TagType = tagType;
         }
 
-        // Пустой конструктор необходим для LiteDB
+        /// <summary>
+        /// Создает пустой тег (необходим для десериализации LiteDB).
+        /// </summary>
         public RimTag()
         {
             TagDef = string.Empty;

@@ -5,12 +5,34 @@ using RimLangKit.Checks;
 
 namespace RimLangKit.Processors
 {
+    /// <summary>
+    /// Находит различия между файлами переводов и файлами модов.
+    /// </summary>
+    /// <remarks>
+    /// Сравнивает английские комментарии в файлах перевода с содержимым файлов мода,
+    /// чтобы обнаружить изменения, добавления и удаления.
+    /// </remarks>
     public class ChangesFinder
     {
+        /// <summary>Словарь данных из файлов перевода (ключ тега - английский комментарий).</summary>
         private static Dictionary<string, string> TranslationData = [];
+        /// <summary>Словарь данных из файлов мода (ключ тега - значение).</summary>
         private static Dictionary<string, string> ModData = [];
+        /// <summary>Словарь измененных данных (ключ тега - новое значение из мода).</summary>
         private static Dictionary<string, string> ChangedData = [];
 
+        /// <summary>
+        /// Извлекает данные из файла перевода, читая английские комментарии.
+        /// </summary>
+        /// <param name="currentFile">Полный путь к XML-файлу перевода.</param>
+        /// <returns>
+        /// Кортеж, содержащий:
+        /// - bool: true при успешном извлечении данных, false при ошибке.
+        /// - string: Пустая строка при успехе, сообщение об ошибке при неудаче.
+        /// </returns>
+        /// <remarks>
+        /// Метод извлекает текст из комментариев формата "<!-- EN: ... -->" и связывает его с именами тегов.
+        /// </remarks>
         public static (bool, string) GetTranslationData(string currentFile)
         {
             (bool, string) result = XmlErrorChecker.XmlErrorCheck(currentFile);
@@ -51,6 +73,18 @@ namespace RimLangKit.Processors
             return (true, string.Empty);
         }
 
+        /// <summary>
+        /// Извлекает данные из файла мода.
+        /// </summary>
+        /// <param name="currentFile">Полный путь к XML-файлу мода.</param>
+        /// <returns>
+        /// Кортеж, содержащий:
+        /// - bool: true при успешном извлечении данных, false при ошибке.
+        /// - string: Пустая строка при успехе, сообщение об ошибке при неудаче.
+        /// </returns>
+        /// <remarks>
+        /// Метод извлекает имена тегов и их значения из файла мода.
+        /// </remarks>
         public static (bool, string) GetModData(string currentFile)
         {
             (bool, string) result = XmlErrorChecker.XmlErrorCheck(currentFile);
@@ -74,6 +108,12 @@ namespace RimLangKit.Processors
             return (true, string.Empty);
         }
 
+        /// <summary>
+        /// Сравнивает данные перевода с данными мода и находит изменения.
+        /// </summary>
+        /// <remarks>
+        /// Метод заполняет словарь ChangedData изменениями, где английский текст отличается от значения в моде.
+        /// </remarks>
         public static void FindChangesInFiles()
         {
             foreach (var line in TranslationData)
@@ -90,6 +130,16 @@ namespace RimLangKit.Processors
             }
         }
 
+        /// <summary>
+        /// Записывает найденные изменения в текстовые файлы.
+        /// </summary>
+        /// <returns>Сообщение с информацией о найденных изменениях и созданных файлах.</returns>
+        /// <remarks>
+        /// Создает до трех файлов в текущей директории:
+        /// - ChangedData.txt - теги с измененными значениями
+        /// - ModData.txt - теги, присутствующие только в моде
+        /// - TranslationData.txt - теги, присутствующие только в переводе
+        /// </remarks>
         public static string WriteChanges()
         {
             string resultString = string.Empty;

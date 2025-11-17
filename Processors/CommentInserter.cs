@@ -5,12 +5,26 @@ using RimLangKit.Models;
 namespace RimLangKit.Processors
 {
     /// <summary>
-    /// Вставляет комментарий с содержимым тега перед каждым элементом в указанном XML-файле.
+    /// Вставляет комментарии с содержимым тегов в XML-файлы переводов.
     /// </summary>
-    /// <param name="currentFile">Путь к текущему XML-файлу.</param>
-    /// <returns>Кортеж, содержащий статус операции (true - успех, false - ошибка) и сообщение об ошибке.</returns>
+    /// <remarks>
+    /// Используется для добавления комментариев <!-- EN: ... --> перед каждым тегом перевода,
+    /// чтобы переводчики могли видеть оригинальный английский текст.
+    /// </remarks>
     public static class CommentInserter
     {
+        /// <summary>
+        /// Вставляет комментарий с содержимым тега перед каждым элементом в указанном XML-файле.
+        /// </summary>
+        /// <param name="currentFile">Полный путь к текущему XML-файлу.</param>
+        /// <returns>
+        /// Кортеж, содержащий:
+        /// - bool: true при успешной вставке комментариев, false при ошибке.
+        /// - string: Пустая строка при успехе, сообщение об ошибке при неудаче.
+        /// </returns>
+        /// <remarks>
+        /// Метод создает комментарии вида "<!-- EN: [содержимое тега] -->" перед каждым элементом в LanguageData.
+        /// </remarks>
         public static (bool, string) InsertComments(string currentFile)
         {
             (bool, string) result = XmlErrorChecker.XmlErrorCheck(currentFile);

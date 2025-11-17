@@ -2,8 +2,27 @@
 
 namespace RimLangKit.Checks
 {
+    /// <summary>
+    /// Проверяет корректность XML-файлов переводов RimWorld.
+    /// </summary>
+    /// <remarks>
+    /// Проверяет возможность загрузки XML, наличие корневого элемента LanguageData и дочерних элементов.
+    /// Предоставляет два метода: устаревший с кортежами и новый с XmlError.
+    /// </remarks>
     public static class XmlErrorChecker
     {
+        /// <summary>
+        /// Проверяет корректность XML-файла перевода (устаревший метод, использует кортежи).
+        /// </summary>
+        /// <param name="currentFile">Полный путь к XML-файлу для проверки.</param>
+        /// <returns>
+        /// Кортеж, содержащий:
+        /// - bool: true если файл корректный, false при ошибке.
+        /// - string: Пустая строка при успехе, описание ошибки при неудаче.
+        /// </returns>
+        /// <remarks>
+        /// Устаревший метод. Рекомендуется использовать CheckXml(string).
+        /// </remarks>
         public static (bool, string) XmlErrorCheck(string currentFile)
         {
             XDocument xDoc;
@@ -35,7 +54,21 @@ namespace RimLangKit.Checks
             }
         }
 
-        // Новая версия, использующая XmlError вместо кортежей. Перевести логику на неё
+        /// <summary>
+        /// Проверяет корректность XML-файла перевода (новый метод, использует XmlError).
+        /// </summary>
+        /// <param name="currentFile">Полный путь к XML-файлу для проверки.</param>
+        /// <returns>
+        /// Объект XmlError с результатом проверки:
+        /// - IsValid=true и пустое сообщение при успехе.
+        /// - IsValid=false и описание ошибки при неудаче.
+        /// </returns>
+        /// <remarks>
+        /// Проверяет:
+        /// 1. Возможность загрузки XML-файла
+        /// 2. Наличие корневого элемента "LanguageData"
+        /// 3. Наличие дочерних элементов в "LanguageData"
+        /// </remarks>
         public static XmlError CheckXml(string currentFile)
         {
             XDocument xDoc;

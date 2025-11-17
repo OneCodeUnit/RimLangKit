@@ -4,10 +4,22 @@ using System.Xml.Linq;
 
 namespace RimLangKit.Processors
 {
+    /// <summary>
+    /// Создает падежные формы и информацию о роде для русских слов из файлов переводов.
+    /// </summary>
+    /// <remarks>
+    /// Использует сервис Morpher для получения падежных форм и определяет род по окончаниям слов.
+    /// </remarks>
     public static class CaseCreator
     {
+        /// <summary>Относительный путь к папке с информацией о словах.</summary>
         private const string CasePath = "\\Languages\\Russian\\WordInfo";
 
+        /// <summary>
+        /// Извлекает слова из XML-файла для обработки.
+        /// </summary>
+        /// <param name="file">Путь к XML-файлу.</param>
+        /// <returns>Список слов, извлеченных из тегов label и chargeNoun.</returns>
         private static List<string> ExtractWords(string file)
         {
             XDocument xDoc = XDocument.Load(file, LoadOptions.PreserveWhitespace);
@@ -26,6 +38,12 @@ namespace RimLangKit.Processors
             return words;
         }
 
+        /// <summary>
+        /// Обрабатывает файл и извлекает слова, если файл соответствует указанному типу определения.
+        /// </summary>
+        /// <param name="currentFile">Полный путь к XML-файлу.</param>
+        /// <param name="defType">Тип определения для фильтрации файлов.</param>
+        /// <returns>Список извлеченных слов или пустой список, если файл не соответствует defType.</returns>
         public static List<string> FindWordsProcessing(string currentFile, string defType)
         {
             List<string> words = new();
@@ -37,6 +55,17 @@ namespace RimLangKit.Processors
             return words;
         }
 
+        /// <summary>
+        /// Создает файлы с падежными формами и формами множественного числа для указанных слов.
+        /// </summary>
+        /// <param name="directoryPath">Путь к корневой директории мода/игры.</param>
+        /// <param name="words">Словарь слов, где ключ - слово, значение - тип определения.</param>
+        /// <param name="defType">Тип определения для фильтрации слов.</param>
+        /// <remarks>
+        /// Создает файлы Case.txt (падежные формы) и Plural.txt (формы множественного числа)
+        /// в папке Languages\Russian\WordInfo.
+        /// Использует сервис Morpher для получения форм слов.
+        /// </remarks>
         public static void CreateCase(string directoryPath, Dictionary<string, string> words, string defType)
         {
             string path = directoryPath + CasePath;
@@ -73,6 +102,20 @@ namespace RimLangKit.Processors
             writerPlural.Close();
         }
 
+        /// <summary>
+        /// Создает файлы с классификацией слов по родам на основе их окончаний.
+        /// </summary>
+        /// <param name="directoryPath">Путь к корневой директории мода/игры.</param>
+        /// <param name="words">Словарь слов, где ключ - слово, значение - тип определения.</param>
+        /// <param name="defType">Тип определения для фильтрации слов.</param>
+        /// <remarks>
+        /// Создает файлы в папке Languages\Russian\WordInfo\Gender:
+        /// - Female.txt (женский род: слова на -а, -я)
+        /// - Male.txt (мужской род: согласные окончания)
+        /// - Neuter.txt (средний род: слова на -о, -е)
+        /// - Plural.txt (множественное число: слова на -ы, -и)
+        /// - Undefined.txt (неопределенные слова)
+        /// </remarks>
         public static void CreateGender(string directoryPath, Dictionary<string, string> words, string defType)
         {
             string pathGender = directoryPath + CasePath + "\\Gender";

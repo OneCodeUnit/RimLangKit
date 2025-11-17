@@ -3,10 +3,31 @@ using System.Xml.Linq;
 
 namespace RimLangKit.Processors
 {
+    /// <summary>
+    /// Проверяет XML-файлы на наличие ошибок и собирает информацию о проблемных файлах.
+    /// </summary>
+    /// <remarks>
+    /// Проверяет корректность XML-структуры и наличие правильной декларации в файлах переводов.
+    /// </remarks>
     public static class FileFixer
     {
+        /// <summary>Словарь сломанных файлов (путь к файлу - описание ошибки).</summary>
         private static readonly Dictionary<string, string> BrokenFiles = [];
 
+        /// <summary>
+        /// Проверяет указанный файл на наличие ошибок XML и корректность декларации.
+        /// </summary>
+        /// <param name="currentFile">Полный путь к XML-файлу для проверки.</param>
+        /// <returns>
+        /// Кортеж, содержащий:
+        /// - bool: всегда true (метод не прерывает обработку при обнаружении ошибок).
+        /// - string: всегда пустая строка.
+        /// </returns>
+        /// <remarks>
+        /// Метод пропускает технические файлы About.xml и LoadFolders.xml.
+        /// Проверяет наличие и корректность XML-декларации (должна быть "<?xml version="1.0" encoding="utf-8"?>").
+        /// Сломанные файлы добавляются в словарь BrokenFiles для последующей записи.
+        /// </remarks>
         public static (bool, string) FileFixerActivity(string currentFile)
         {
             // Технические файлы
@@ -40,7 +61,14 @@ namespace RimLangKit.Processors
             return (true, string.Empty);
         }
 
-        // Запись изменений
+        /// <summary>
+        /// Записывает информацию о сломанных файлах в текстовый файл.
+        /// </summary>
+        /// <returns>Сообщение о количестве найденных сломанных файлов и расположении отчета.</returns>
+        /// <remarks>
+        /// Создает файл BrokenFiles.txt в текущей директории, содержащий список проблемных файлов и их ошибок.
+        /// Очищает словарь BrokenFiles после записи.
+        /// </remarks>
         public static string BrokenFilesWriterActivity()
         {
             if (BrokenFiles.Count == 0)

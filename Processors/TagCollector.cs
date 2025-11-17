@@ -4,20 +4,31 @@ using System.Xml.Linq;
 
 namespace RimLangKit.Processors
 {
+    /// <summary>
+    /// Собирает и анализирует теги и определения (defs) из XML-файлов переводов RimWorld.
+    /// </summary>
+    /// <remarks>
+    /// Класс собирает статистику по уникальным тегам и определениям, их распространенности,
+    /// и может генерировать C# классы на основе собранных данных.
+    /// </remarks>
     public static class TagCollector
     {
-        // Уникальные Tags
+        /// <summary>Список уникальных тегов.</summary>
         private static List<string> Tags = new();
-        // Уникальные Defs
+        /// <summary>Список уникальных определений (defs).</summary>
         private static List<string> Defs = new();
-        // Список Tags для каждого Defs
+        /// <summary>Словарь тегов для каждого определения.</summary>
         private static Dictionary<string, List<string>> TagList = new();
-        // Распространенность Tags длятекущего перевода
+        /// <summary>Распространенность тегов в текущем переводе.</summary>
         private static Dictionary<string, int> TagSpread = new();
-        // Распространенность Defs для текущего перевода
+        /// <summary>Распространенность определений в текущем переводе.</summary>
         private static Dictionary<string, int> DefsSpread = new();
 
-        // Предобработка файла. Сбор данных о тегах в переводе
+        /// <summary>
+        /// Извлекает имя определения (def) из пути файла и обновляет статистику.
+        /// </summary>
+        /// <param name="currentFile">Полный путь к XML-файлу.</param>
+        /// <returns>Имя определения (def), извлеченное из пути файла.</returns>
         private static string ParseDefName(string currentFile)
         {
             string[] path = currentFile.Split('\\');
@@ -35,7 +46,18 @@ namespace RimLangKit.Processors
             return def;
         }
 
-        // Поиск тегов в текущем файле
+        /// <summary>
+        /// Собирает теги из указанного XML-файла и обновляет статистику.
+        /// </summary>
+        /// <param name="currentFile">Полный путь к XML-файлу для анализа.</param>
+        /// <returns>
+        /// Кортеж, содержащий:
+        /// - bool: true при успешном сборе тегов, false при ошибке или пропуске файла.
+        /// - string: Пустая строка при успехе, сообщение об ошибке или причина пропуска при неудаче.
+        /// </returns>
+        /// <remarks>
+        /// Метод пропускает файлы LoadFolders.xml, About.xml и Keyed.xml, так как они не содержат defs.
+        /// </remarks>
         public static (bool, string) TagCollectorActivity(string currentFile)
         {
             if (currentFile.Contains("LoadFolders.xml", StringComparison.OrdinalIgnoreCase) || currentFile.Contains("About.xml", StringComparison.OrdinalIgnoreCase) || currentFile.Contains("Keyed.xml", StringComparison.OrdinalIgnoreCase))
@@ -89,6 +111,18 @@ namespace RimLangKit.Processors
             return (true, string.Empty);
         }
 
+        /// <summary>
+        /// Записывает собранные данные о тегах и определениях в текстовые файлы.
+        /// </summary>
+        /// <returns>Сообщение с информацией о созданных файлах и их расположении.</returns>
+        /// <remarks>
+        /// Создает следующие файлы в текущей директории:
+        /// - TagsByDefs.txt - теги, сгруппированные по определениям
+        /// - UniqueTags.txt - список уникальных тегов
+        /// - UniqueDefs.txt - список уникальных определений
+        /// - SpreadTags.txt - статистика распространенности тегов
+        /// - SpreadDefs.txt - статистика распространенности определений
+        /// </remarks>
         public static string TagWriterActivity()
         {
             // Удаление пустых
@@ -151,6 +185,14 @@ namespace RimLangKit.Processors
             return $"Результат записан в файлы TagsByDefs.txt, UniqueTags.txt, UniqueDefs.txt папки {directory}";
         }
 
+        /// <summary>
+        /// Генерирует C# классы на основе собранных определений и тегов.
+        /// </summary>
+        /// <returns>Сообщение с информацией о созданном файле класса.</returns>
+        /// <remarks>
+        /// Создает файл defsClass.cs в текущей директории, содержащий классы с XML-атрибутами
+        /// для десериализации XML-данных RimWorld.
+        /// </remarks>
         public static string DefsClassGeneratorActivity()
         {
             // Удаление составных (временно)
@@ -238,6 +280,12 @@ namespace RimLangKit.Processors
             return $"Создан класс для извлечения текста в программе и записан в файл defsClass.cs папки {directory}";
         }
 
+        /// <summary>
+        /// Очищает все собранные данные о тегах и определениях.
+        /// </summary>
+        /// <remarks>
+        /// Очищает все внутренние коллекции для подготовки к новому сбору данных.
+        /// </remarks>
         public static void DataCleanerActivity()
         {
             TagList.Clear();
