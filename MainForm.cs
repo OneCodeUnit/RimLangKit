@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using RimLangKit.Checks;
+using RimLangKit.Common;
 using RimLangKit.Modules.AutoTranslation;
 using RimLangKit.Modules.GameLocalization;
 using RimLangKit.Processors;
@@ -16,6 +17,9 @@ namespace RimLangKit
         private readonly IGitHubService _githubService;
         private readonly IMorpherService _morpherService;
         private readonly ILogger<MainForm> _logger;
+
+        // Управление отменой длительных операций
+        private CancellationTokenSource? _currentOperationCts;
 
         private static string DirectoryPath = string.Empty;
         private static string GamePath = string.Empty;
@@ -183,7 +187,159 @@ namespace RimLangKit
         #endregion
 
         #region кнопки функций
+
+        /// <summary>
+        /// Async обработчик файлов с поддержкой прогресса и отмены
+        /// </summary>
+        private async Task ActionHandlerAsync(
+            string operationName,
+            string fileMask,
+            FileProcessorType processorType,
+            IProgress<ProcessingProgress>? progress = null,
+            CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                _logger.LogInformation("Запуск операции: {OperationName}", operationName);
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}Запуск: {operationName}");
+
+                // Получение списка файлов
+                var allFiles = await Task.Run(() =>
+                    Directory.GetFiles(DirectoryPath, fileMask, SearchOption.AllDirectories),
+                    cancellationToken);
+
+                if (allFiles.Length == 0)
+                {
+                    SendToInfoTextBox($"{TimeSetter.PlaceTime()}Не найдено файлов с маской {fileMask}");
+                    _logger.LogWarning("Не найдено файлов с маской {FileMask} в {DirectoryPath}", fileMask, DirectoryPath);
+                    return;
+                }
+
+                int processedCount = 0;
+                int errorCount = 0;
+                var errors = new List<string>();
+
+                // Обработка файлов
+                for (int i = 0; i < allFiles.Length; i++)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var currentFile = allFiles[i];
+                    var fileName = Path.GetFileName(currentFile);
+
+                    // Отчет о прогрессе
+                    progress?.Report(ProcessingProgress.Create(
+                        processedCount: i,
+                        totalCount: allFiles.Length,
+                        skippedCount: errorCount,
+                        currentFile: fileName,
+                        message: $"Обработка {i + 1} из {allFiles.Length}"));
+
+                    // Обработка файла в фоновом потоке
+                    var result = await Task.Run(() => ProcessFile(currentFile, processorType), cancellationToken);
+
+                    if (result.Item1)
+                    {
+                        processedCount++;
+                    }
+                    else
+                    {
+                        errorCount++;
+                        var errorMsg = $"{result.Item2} ({currentFile})";
+                        errors.Add(errorMsg);
+                        _logger.LogWarning("Ошибка обработки файла: {Error}", errorMsg);
+                    }
+                }
+
+                // Постобработка
+                await PerformPostProcessingAsync(processorType, cancellationToken);
+
+                // Финальный отчет
+                var completionMessage = $"Завершено. Обработано файлов - {processedCount}";
+                if (errorCount > 0)
+                {
+                    completionMessage += $"{Environment.NewLine}Пропущено файлов - {errorCount}";
+                }
+
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}{completionMessage}");
+                _logger.LogInformation("Операция завершена: {Message}", completionMessage);
+
+                // Вывод первых 5 ошибок
+                foreach (var error in errors.Take(5))
+                {
+                    SendToInfoTextBox($"{TimeSetter.PlaceTime()}{error}");
+                }
+
+                if (errors.Count > 5)
+                {
+                    SendToInfoTextBox($"{TimeSetter.PlaceTime()}...и еще {errors.Count - 5} ошибок");
+                }
+
+                progress?.Report(ProcessingProgress.Completed(
+                    processedCount, errorCount, allFiles.Length, completionMessage));
+            }
+            catch (OperationCanceledException)
+            {
+                var message = $"Операция '{operationName}' отменена пользователем";
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}{message}");
+                _logger.LogInformation(message);
+                progress?.Report(ProcessingProgress.Cancelled(0, 0, message));
+            }
+            catch (Exception ex)
+            {
+                var message = $"Критическая ошибка при выполнении '{operationName}': {ex.Message}";
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}{message}");
+                _logger.LogError(ex, "Критическая ошибка в ActionHandlerAsync");
+                MessageBox.Show(message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        /// <summary>
+        /// Обработка одного файла
+        /// </summary>
+        private (bool, string) ProcessFile(string filePath, FileProcessorType processorType)
+        {
+            return processorType switch
+            {
+                FileProcessorType.FileRenamer => FileRenamer.FileRenamerActivity(filePath),
+                FileProcessorType.NamesTranslator => NamesTranslator.NamesTranslatorActivity(filePath),
+                FileProcessorType.TagCollector => TagCollector.TagCollectorActivity(filePath),
+                FileProcessorType.FileFixer => FileFixer.FileFixerActivity(filePath),
+                FileProcessorType.EncodingFixer => EncodingFixer.EncodingFixerActivity(filePath),
+                FileProcessorType.CommentInserter => CommentInserter.InsertComments(filePath),
+                _ => (false, "Неизвестный тип процессора")
+            };
+        }
+
+        /// <summary>
+        /// Постобработка после завершения основной операции
+        /// </summary>
+        private async Task PerformPostProcessingAsync(FileProcessorType processorType, CancellationToken cancellationToken)
+        {
+            await Task.Run(() =>
+            {
+                string message;
+                switch (processorType)
+                {
+                    case FileProcessorType.TagCollector:
+                        message = TagCollector.TagWriterActivity();
+                        SendToInfoTextBox($"{TimeSetter.PlaceTime()}{message}");
+                        message = TagCollector.DefsClassGeneratorActivity();
+                        SendToInfoTextBox($"{TimeSetter.PlaceTime()}{message}");
+                        TagCollector.DataCleanerActivity();
+                        break;
+
+                    case FileProcessorType.FileFixer:
+                        message = FileFixer.BrokenFilesWriterActivity();
+                        SendToInfoTextBox($"{TimeSetter.PlaceTime()}{message}");
+                        break;
+                }
+            }, cancellationToken);
+        }
+
+        // УСТАРЕВШИЙ МЕТОД - будет удален в версии 4.0
         // Обработчик нажатий кнопок
+        [Obsolete("Используйте ActionHandlerAsync() вместо этого метода")]
         private void ActionHandler(string name, string mask, string code)
         {
             InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Запуск: {name}");
@@ -252,62 +408,116 @@ namespace RimLangKit
             }
         }
 
-        // Работа без обработчика
-        private void FindChangesButton_Click(object sender, EventArgs e)
+        // Поиск изменений в переводе (async версия)
+        private async void FindChangesButton_Click(object sender, EventArgs e)
         {
             if (AdditionalFolder == string.Empty)
             {
-                InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Ошибка. Не выбран источник данных");
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}Ошибка. Не выбран источник данных");
+                MessageBox.Show("Выберите папку с исходными файлами мода", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            InfoTextBox.AppendText($"{Environment.NewLine}Файлы перевода - {DirectoryPath}.{Environment.NewLine}Исходные файлы мода - {AdditionalFolder}");
+            _currentOperationCts?.Cancel();
+            _currentOperationCts?.Dispose();
+            _currentOperationCts = new CancellationTokenSource();
 
-            InfoTextBox.AppendText($"{TimeSetter.PlaceTime()}Поиск изменений в переводе");
-            string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
-            int count = 0;
-            int errCount = 0;
-            (bool, string) result;
-            foreach (string tempFile in allFiles)
+            try
             {
-                result = ChangesFinder.GetTranslationData(tempFile);
-                if (result.Item1)
-                {
-                    count++;
-                }
-                else
-                {
-                    errCount++;
-                    InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}{result.Item2} ({tempFile})");
-                }
-            }
-            InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Собраны данные перевода. Обработано файлов - {count}.{Environment.NewLine}Пропущено файлов - {errCount}.");
+                _logger.LogInformation("Запуск поиска изменений в переводе");
+                SendToInfoTextBox($"Файлы перевода - {DirectoryPath}.{Environment.NewLine}Исходные файлы мода - {AdditionalFolder}");
 
-            allFiles = Directory.GetFiles(AdditionalFolder, "*.xml", SearchOption.AllDirectories);
-            count = 0;
-            errCount = 0;
-            foreach (string tempFile in allFiles)
+                // Фаза 1: Сбор данных перевода
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}Поиск изменений в переводе");
+
+                var translationFiles = await Task.Run(() =>
+                    Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories),
+                    _currentOperationCts.Token);
+
+                int count = 0;
+                int errCount = 0;
+
+                for (int i = 0; i < translationFiles.Length; i++)
+                {
+                    _currentOperationCts.Token.ThrowIfCancellationRequested();
+
+                    var result = await Task.Run(() =>
+                        ChangesFinder.GetTranslationData(translationFiles[i]),
+                        _currentOperationCts.Token);
+
+                    if (result.Item1)
+                        count++;
+                    else
+                    {
+                        errCount++;
+                        SendToInfoTextBox($"{TimeSetter.PlaceTime()}{result.Item2} ({translationFiles[i]})");
+                    }
+                }
+
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}Собраны данные перевода. Обработано файлов - {count}. Пропущено файлов - {errCount}.");
+
+                // Фаза 2: Сбор исходных данных
+                var modFiles = await Task.Run(() =>
+                    Directory.GetFiles(AdditionalFolder, "*.xml", SearchOption.AllDirectories),
+                    _currentOperationCts.Token);
+
+                count = 0;
+                errCount = 0;
+
+                for (int i = 0; i < modFiles.Length; i++)
+                {
+                    _currentOperationCts.Token.ThrowIfCancellationRequested();
+
+                    var result = await Task.Run(() =>
+                        ChangesFinder.GetModData(modFiles[i]),
+                        _currentOperationCts.Token);
+
+                    if (result.Item1)
+                        count++;
+                    else
+                    {
+                        errCount++;
+                        SendToInfoTextBox($"{TimeSetter.PlaceTime()}{result.Item2} ({modFiles[i]})");
+                    }
+                }
+
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}Собраны исходные данные. Обработано файлов - {count}. Пропущено файлов - {errCount}.");
+
+                // Фаза 3: Поиск изменений и запись
+                await Task.Run(() =>
+                {
+                    ChangesFinder.FindChangesInFiles();
+                    var writeResult = ChangesFinder.WriteChanges();
+                    SendToInfoTextBox($"{TimeSetter.PlaceTime()}{writeResult}");
+                }, _currentOperationCts.Token);
+
+                _logger.LogInformation("Поиск изменений завершен успешно");
+            }
+            catch (OperationCanceledException)
             {
-                result = ChangesFinder.GetModData(tempFile);
-                if (result.Item1)
-                {
-                    count++;
-                }
-                else
-                {
-                    errCount++;
-                    InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}{result.Item2} ({tempFile})");
-                }
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}Операция отменена пользователем");
+                _logger.LogInformation("Поиск изменений отменен пользователем");
             }
-            InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Собраны исходные данные. Обработано файлов - {count}.{Environment.NewLine}Пропущено файлов - {errCount}.");
-
-            ChangesFinder.FindChangesInFiles();
-            string writeResult = ChangesFinder.WriteChanges();
-            InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}{writeResult}");
+            catch (Exception ex)
+            {
+                var message = $"Ошибка при поиске изменений: {ex.Message}";
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}{message}");
+                _logger.LogError(ex, "Ошибка в FindChangesButton_Click");
+                MessageBox.Show(message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                _currentOperationCts?.Dispose();
+                _currentOperationCts = null;
+            }
         }
 
+        // TODO: Переписать на async с использованием _morpherService.GetRequestLimitAsync() и GetWordFormsAsync()
+        // TODO: Добавить CancellationToken для возможности отмены
+        // TODO: Добавить Progress<ProcessingProgress> для отображения прогресса
         private void CaseCreatorButton_Click(object sender, EventArgs e)
         {
+            _logger.LogInformation("Запуск создания вспомогательных файлов");
             InfoTextBox.AppendText($"{TimeSetter.PlaceTime()}Создание вспомогательных файлов");
             string[] defTypeList = ["AbilityDef", "BodyDef", "BodyPartDef", "BodyPartGroupDef", "ChemicalDef", "FactionDef", "HediffDef", "MemeDef", "MentalBreakDef", "MentalFitDef", "MentalStateDef", "OrderedTakeGroupDef", "PawnCapacityDef", "PawnKindDef", "ScenarioDef", "SitePartDef", "SkillDef", "StyleCategoryDef", "ThingDef", "ToolCapacityDef", "WorldObjectDef", "XenotypeDef"];
             //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
@@ -366,11 +576,17 @@ namespace RimLangKit
             InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Завершено");
         }
 
+        // TODO: Переписать на async с CancellationToken
+        // TODO: Добавить Progress<ProcessingProgress> для отображения прогресса
+        // TODO: Вынести длительные операции в фоновый поток
         private void PreTranslatorButton_Click(object sender, EventArgs e)
         {
+            _logger.LogInformation("Запуск предварительного перевода");
+
             if (AdditionalFolder == string.Empty)
             {
                 InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Ошибка. Не выбран источник данных");
+                MessageBox.Show("Выберите папку с исходными файлами для перевода", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -421,35 +637,96 @@ namespace RimLangKit
             InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Обработано файлов - {count}. Пропущено файлов - {errCount}.");
         }
 
-        // Вызов обработчика из кнопок
-        private void FileRenamerButton_Click(object sender, EventArgs e)
+        // Вызов обработчика из кнопок (новая async версия)
+        private async void FileRenamerButton_Click(object sender, EventArgs e)
         {
-            ActionHandler("Переименование файлов", "*.xml", "FileRenamer");
+            await RunOperationWithCancellationAsync(
+                "Переименование файлов",
+                "*.xml",
+                FileProcessorType.FileRenamer);
         }
 
-        private void NamesTranslatorButton_Click(object sender, EventArgs e)
+        private async void NamesTranslatorButton_Click(object sender, EventArgs e)
         {
-            ActionHandler("Транскрипция имён", "*.txt", "NamesTranslator");
+            await RunOperationWithCancellationAsync(
+                "Транскрипция имён",
+                "*.txt",
+                FileProcessorType.NamesTranslator);
         }
 
-        private void TagCollectorButton_Click(object sender, EventArgs e)
+        private async void TagCollectorButton_Click(object sender, EventArgs e)
         {
-            ActionHandler("Сбор статистики тегов", "*.xml", "TagCollector");
+            await RunOperationWithCancellationAsync(
+                "Сбор статистики тегов",
+                "*.xml",
+                FileProcessorType.TagCollector);
         }
 
-        private void FileFixerButton_Click(object sender, EventArgs e)
+        private async void FileFixerButton_Click(object sender, EventArgs e)
         {
-            ActionHandler("Поиск сломанных файлов", "*.xml", "FileFixer");
+            await RunOperationWithCancellationAsync(
+                "Поиск сломанных файлов",
+                "*.xml",
+                FileProcessorType.FileFixer);
         }
 
-        private void EncodingFixerButton_Click(object sender, EventArgs e)
+        private async void EncodingFixerButton_Click(object sender, EventArgs e)
         {
-            ActionHandler("Исправление кодировки", "*.xml", "EncodingFixer");
+            await RunOperationWithCancellationAsync(
+                "Исправление кодировки",
+                "*.xml",
+                FileProcessorType.EncodingFixer);
         }
 
-        private void CommentInserterButton_Click(object sender, EventArgs e)
+        private async void CommentInserterButton_Click(object sender, EventArgs e)
         {
-            ActionHandler("Добавление комментариев", "*.xml", "CommentInserter");
+            await RunOperationWithCancellationAsync(
+                "Добавление комментариев",
+                "*.xml",
+                FileProcessorType.CommentInserter);
+        }
+
+        /// <summary>
+        /// Запуск операции с возможностью отмены
+        /// </summary>
+        private async Task RunOperationWithCancellationAsync(
+            string operationName,
+            string fileMask,
+            FileProcessorType processorType)
+        {
+            // Отменяем предыдущую операцию если она еще выполняется
+            _currentOperationCts?.Cancel();
+            _currentOperationCts?.Dispose();
+
+            // Создаем новый токен отмены
+            _currentOperationCts = new CancellationTokenSource();
+
+            try
+            {
+                // TODO: Здесь можно добавить прогресс-бар в UI
+                // var progress = new Progress<ProcessingProgress>(p => UpdateProgressBar(p));
+
+                await ActionHandlerAsync(
+                    operationName,
+                    fileMask,
+                    processorType,
+                    progress: null, // Пока без прогресс-бара
+                    cancellationToken: _currentOperationCts.Token);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при выполнении операции {OperationName}", operationName);
+                MessageBox.Show(
+                    $"Ошибка: {ex.Message}",
+                    "Ошибка выполнения",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
+            }
+            finally
+            {
+                _currentOperationCts?.Dispose();
+                _currentOperationCts = null;
+            }
         }
         #endregion
 
