@@ -1,83 +1,65 @@
-﻿using Microsoft.Extensions.Logging;
-using RimLangKit.Checks;
-using RimLangKit.Common;
-using RimLangKit.Modules.AutoTranslation;
-using RimLangKit.Modules.GameLocalization;
-using RimLangKit.Processors;
+﻿using RimLangKit.Common;
+using RimLangKit.Models;
+using RimLangKit.Presenters;
 using RimLangKit.Properties;
-using RimLangKit.Services;
-using RimLangKit.Utilities;
+using RimLangKit.Views.Interfaces;
 using System.Diagnostics;
 using System.Reflection;
 
 namespace RimLangKit
 {
-    public partial class MainForm : Form
+    public partial class MainForm : Form,
+        IMainView,
+        IFileProcessingView,
+        IDatabaseView,
+        ILanguageUpdateView
     {
-        private readonly IGitHubService _githubService;
-        private readonly IMorpherService _morpherService;
-        private readonly ILogger<MainForm> _logger;
+        private readonly MainFormPresenter _presenter;
+        private readonly Color _goodColor = Color.FromArgb(0, 130, 0);
+        private readonly Color _badColor = Color.FromArgb(130, 0, 0);
 
-        // Управление отменой длительных операций
-        private CancellationTokenSource? _currentOperationCts;
+        // Свойства IMainView
+        public Color GoodColor => _goodColor;
+        public Color BadColor => _badColor;
 
-        // Данные для TagCollector (замена статических коллекций)
-        private readonly TagCollectorData _tagCollectorData = new();
-
-        private static string DirectoryPath = string.Empty;
-        private static string GamePath = string.Empty;
-        private static string AdditionalFolder = string.Empty;
-        private static string SelectedDBPath = string.Empty;
-        private static string TranslationFolder = string.Empty;
-        private static string AutoTranslateModFolder = string.Empty;
-        private readonly Color goodColor = Color.FromArgb(0, 130, 0);
-        private readonly Color badColor = Color.FromArgb(130, 0, 0);
-
-        public MainForm(IGitHubService githubService, IMorpherService morpherService, ILogger<MainForm> logger)
+        public MainForm(MainFormPresenter presenter)
         {
-            _githubService = githubService ?? throw new ArgumentNullException(nameof(githubService));
-            _morpherService = morpherService ?? throw new ArgumentNullException(nameof(morpherService));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-            _logger.LogInformation("Инициализация главной формы");
+            _presenter = presenter ?? throw new ArgumentNullException(nameof(presenter));
 
             InitializeComponent();
-            FolderTextBox.Text = DirectoryPath;
 
-            // Обновление настроек при первом запуске
+            // Инициализация через презентер
+            _presenter.Initialize();
+
+            // Загрузка состояния в UI
+            var state = _presenter.GetApplicationState();
+            FolderTextBox.Text = state.DirectoryPath;
+            FolderTextBox2.Text = state.GamePath;
+
+            // Первый запуск
             if (Settings.Default.firstLaunch)
             {
                 Settings.Default.Upgrade();
                 Settings.Default.firstLaunch = false;
                 Settings.Default.Save();
-                SendToInfoTextBox("Первый запуск. Обновление настроек завершено");
+                ShowMessage("Первый запуск. Обновление настроек завершено");
             }
 
-            // Инициализация меню "О программе"
+            // Версия приложения
             ToolStripMenuItemVersion.Text += Assembly.GetEntryAssembly()?.GetName().Version?.ToString()[..^2];
-
-            // Инициализация меню "Автор"
             ToolStripMenuItemCreator.Text += " OliveWizard";
 
-            // Автоматическая проверка обновлений (перенесено в Load событие)
+            // Автообновление
             if (Settings.Default.isAutoUpdateActive)
             {
                 ToolStripMenuItemAutoUpdateCheck.Checked = true;
-                this.Load += async (s, e) => await PerformAutoUpdateCheckAsync();
+                this.Load += async (s, e) => await _presenter.PerformAutoUpdateCheckAsync();
             }
 
-            // Восстановление последней вкладки
-            MainTabs.SelectTab(Settings.Default.lastTab);
-
-            // Установка размера вкладок
+            // Вкладки
+            MainTabs.SelectTab(state.LastSelectedTab);
             MainTabs.SizeMode = TabSizeMode.Fixed;
             MainTabs.ItemSize = new Size((MainTabs.Width / MainTabs.TabPages.Count) - 2, MainTabs.ItemSize.Height);
-
-            // Восстановление пути к папке игры
-            GamePath = Settings.Default.savedDirectory;
-            if (!Directory.Exists(GamePath))
-                GamePath = string.Empty;
-            FolderTextBox2.Text = GamePath;
 
             LanguageInput.Text = Settings.Default.language;
             RepoInput.Text = Settings.Default.repo;
@@ -86,344 +68,30 @@ namespace RimLangKit
         // Выбор папки
         private void FolderButton_Click(object sender, EventArgs e)
         {
-            using FolderBrowserDialog ofd = new();
-            DialogResult dr = ofd.ShowDialog();
-            if (dr == DialogResult.OK)
-            {
-                string selectedPath = ofd.SelectedPath;
-
-                // Валидация пути
-                if (!PathValidator.IsPathSafe(selectedPath, out string? errorMessage))
-                {
-                    _logger.LogWarning("Выбран небезопасный путь: {Path}. Причина: {Error}", selectedPath, errorMessage);
-                    MessageBox.Show(
-                        $"Выбранный путь небезопасен:\n{errorMessage}",
-                        "Ошибка выбора папки",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
-                    return;
-                }
-
-                DirectoryPath = selectedPath;
-                FolderTextBox.Text = DirectoryPath;
-                _logger.LogInformation("Выбрана папка для работы: {Path}", DirectoryPath);
-            }
+            _presenter.FileProcessing.HandleFolderSelection();
+            FolderTextBox.Text = _presenter.GetApplicationState().DirectoryPath;
         }
 
         // Обработка изменения адреса папки
         private void FolderTextBox_TextChanged(object sender, EventArgs e)
         {
-            DirectoryPath = FolderTextBox.Text;
-            // Кнопки доступны только тогда, когда директория существует
-            // Проверка что это не папка Steam (294100 - RimWorld App ID)
-            if (Directory.Exists(FolderTextBox.Text) && !FolderTextBox.Text.Contains(Constants.Paths.SteamRimWorldAppId))
-            {
-                LabelCheck.ForeColor = goodColor;
-                LabelCheck.Text = "ОК";
-                CommentInserterButton.Enabled = true;
-                FileRenamerButton.Enabled = true;
-                NamesTranslatorButton.Enabled = true;
-                CaseCreatorButton.Enabled = true;
-                EncodingFixerButton.Enabled = true;
-                TagCollectorButton.Enabled = true;
-                FileFixerButton.Enabled = true;
-                FindChangesButton.Enabled = true;
-                PreTranslatorButton.Enabled = true;
-                AdditionalFolderButton.Enabled = true;
-            }
-            else
-            {
-                LabelCheck.ForeColor = badColor;
-                LabelCheck.Text = "Ошибка: некорректная папка";
-                CommentInserterButton.Enabled = false;
-                FileRenamerButton.Enabled = false;
-                NamesTranslatorButton.Enabled = false;
-                CaseCreatorButton.Enabled = false;
-                EncodingFixerButton.Enabled = false;
-                TagCollectorButton.Enabled = false;
-                FileFixerButton.Enabled = false;
-                FindChangesButton.Enabled = false;
-                PreTranslatorButton.Enabled = false;
-                AdditionalFolderButton.Enabled = false;
-            }
+            _presenter.FileProcessing.ValidateDirectoryPath(FolderTextBox.Text);
         }
 
         #region прочие объекты
 
         private void AdditionalFolderButton_Click(object sender, EventArgs e)
         {
-            FolderBrowserDialog ofd = new();
-            DialogResult dr = ofd.ShowDialog();
-            if (dr == DialogResult.OK)
-            {
-                string selectedPath = ofd.SelectedPath;
-
-                // Валидация пути
-                if (!PathValidator.IsPathSafe(selectedPath, out string? errorMessage))
-                {
-                    _logger.LogWarning("Выбран небезопасный дополнительный путь: {Path}. Причина: {Error}", selectedPath, errorMessage);
-                    MessageBox.Show(
-                        $"Выбранный путь небезопасен:\n{errorMessage}",
-                        "Ошибка выбора папки",
-                        MessageBoxButtons.OK,
-                        MessageBoxIcon.Warning);
-                    return;
-                }
-
-                AdditionalFolder = selectedPath;
-                _logger.LogInformation("Выбрана дополнительная папка: {Path}", AdditionalFolder);
-            }
-            AdditionalFolderButton.BackColor = goodColor;
-        }
-
-        /// <summary>
-        /// Добавляет текст в соответствующее текстовое поле в зависимости от выбранной вкладки
-        /// </summary>
-        /// <param name="text">Текст для добавления</param>
-        /// <param name="tabId">ID вкладки (0 или 1). Если null, используется текущая выбранная вкладка</param>
-        private void SendToInfoTextBox(string text, int? tabId = null)
-        {
-            // Определяем ID вкладки: если не указан явно, берем из настроек
-            int targetTab = tabId ?? Settings.Default.lastTab;
-
-            // Выбираем целевой TextBox
-            var targetTextBox = targetTab == 0 ? InfoTextBox : InfoTextBox2;
-
-            // Добавляем текст с переносом строки, если уже есть содержимое
-            if (targetTextBox.Text == string.Empty)
-                targetTextBox.AppendText(text);
-            else
-                targetTextBox.AppendText($"{Environment.NewLine}{text}");
+            _presenter.FileProcessing.HandleAdditionalFolderSelection();
         }
 
         private void MainTabs_IndexChange(object sender, EventArgs e)
         {
-            Settings.Default.lastTab = MainTabs.SelectedIndex;
-            Settings.Default.Save();
+            _presenter.HandleTabChange(MainTabs.SelectedIndex);
         }
         #endregion
 
         #region кнопки функций
-
-        /// <summary>
-        /// Async обработчик файлов с поддержкой прогресса и отмены
-        /// </summary>
-        private async Task ActionHandlerAsync(
-            string operationName,
-            string fileMask,
-            FileProcessorType processorType,
-            IProgress<ProcessingProgress>? progress = null,
-            CancellationToken cancellationToken = default)
-        {
-            try
-            {
-                _logger.LogInformation("Запуск операции: {OperationName}", operationName);
-                SendToInfoTextBox($"{TimeSetter.PlaceTime()}Запуск: {operationName}");
-
-                // Получение списка файлов
-                var allFiles = await Task.Run(() =>
-                    Directory.GetFiles(DirectoryPath, fileMask, SearchOption.AllDirectories),
-                    cancellationToken);
-
-                if (allFiles.Length == 0)
-                {
-                    SendToInfoTextBox($"{TimeSetter.PlaceTime()}Не найдено файлов с маской {fileMask}");
-                    _logger.LogWarning("Не найдено файлов с маской {FileMask} в {DirectoryPath}", fileMask, DirectoryPath);
-                    return;
-                }
-
-                int processedCount = 0;
-                int errorCount = 0;
-                var errors = new List<string>();
-
-                // Обработка файлов
-                for (int i = 0; i < allFiles.Length; i++)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    var currentFile = allFiles[i];
-                    var fileName = Path.GetFileName(currentFile);
-
-                    // Отчет о прогрессе
-                    progress?.Report(ProcessingProgress.Create(
-                        processedCount: i,
-                        totalCount: allFiles.Length,
-                        skippedCount: errorCount,
-                        currentFile: fileName,
-                        message: $"Обработка {i + 1} из {allFiles.Length}"));
-
-                    // Обработка файла в фоновом потоке
-                    var result = await Task.Run(() => ProcessFile(currentFile, processorType), cancellationToken);
-
-                    if (result.Item1)
-                    {
-                        processedCount++;
-                    }
-                    else
-                    {
-                        errorCount++;
-                        var errorMsg = $"{result.Item2} ({currentFile})";
-                        errors.Add(errorMsg);
-                        _logger.LogWarning("Ошибка обработки файла: {Error}", errorMsg);
-                    }
-                }
-
-                // Постобработка
-                await PerformPostProcessingAsync(processorType, cancellationToken);
-
-                // Финальный отчет
-                var completionMessage = $"Завершено. Обработано файлов - {processedCount}";
-                if (errorCount > 0)
-                {
-                    completionMessage += $"{Environment.NewLine}Пропущено файлов - {errorCount}";
-                }
-
-                SendToInfoTextBox($"{TimeSetter.PlaceTime()}{completionMessage}");
-                _logger.LogInformation("Операция завершена: {Message}", completionMessage);
-
-                // Вывод первых ошибок
-                foreach (var error in errors.Take(Constants.UI.MaxErrorsToDisplay))
-                {
-                    SendToInfoTextBox($"{TimeSetter.PlaceTime()}{error}");
-                }
-
-                if (errors.Count > Constants.UI.MaxErrorsToDisplay)
-                {
-                    SendToInfoTextBox($"{TimeSetter.PlaceTime()}...и еще {errors.Count - Constants.UI.MaxErrorsToDisplay} ошибок");
-                }
-
-                progress?.Report(ProcessingProgress.Completed(
-                    processedCount, errorCount, allFiles.Length, completionMessage));
-            }
-            catch (OperationCanceledException)
-            {
-                var message = $"Операция '{operationName}' отменена пользователем";
-                SendToInfoTextBox($"{TimeSetter.PlaceTime()}{message}");
-                _logger.LogInformation(message);
-                progress?.Report(ProcessingProgress.Cancelled(0, 0, message));
-            }
-            catch (Exception ex)
-            {
-                var message = $"Критическая ошибка при выполнении '{operationName}': {ex.Message}";
-                SendToInfoTextBox($"{TimeSetter.PlaceTime()}{message}");
-                _logger.LogError(ex, "Критическая ошибка в ActionHandlerAsync");
-                MessageBox.Show(message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        /// <summary>
-        /// Обработка одного файла
-        /// </summary>
-        private (bool, string) ProcessFile(string filePath, FileProcessorType processorType)
-        {
-            return processorType switch
-            {
-                FileProcessorType.FileRenamer => FileRenamer.FileRenamerActivity(filePath),
-                FileProcessorType.NamesTranslator => NamesTranslator.NamesTranslatorActivity(filePath),
-                FileProcessorType.TagCollector => TagCollector.TagCollectorActivity(filePath, _tagCollectorData),
-                FileProcessorType.FileFixer => FileFixer.FileFixerActivity(filePath),
-                FileProcessorType.EncodingFixer => EncodingFixer.EncodingFixerActivity(filePath),
-                FileProcessorType.CommentInserter => CommentInserter.InsertComments(filePath),
-                _ => (false, "Неизвестный тип процессора")
-            };
-        }
-
-        /// <summary>
-        /// Постобработка после завершения основной операции
-        /// </summary>
-        private async Task PerformPostProcessingAsync(FileProcessorType processorType, CancellationToken cancellationToken)
-        {
-            await Task.Run(() =>
-            {
-                string message;
-                switch (processorType)
-                {
-                    case FileProcessorType.TagCollector:
-                        message = TagCollector.TagWriterActivity(_tagCollectorData);
-                        SendToInfoTextBox($"{TimeSetter.PlaceTime()}{message}");
-                        message = TagCollector.DefsClassGeneratorActivity(_tagCollectorData);
-                        SendToInfoTextBox($"{TimeSetter.PlaceTime()}{message}");
-                        _tagCollectorData.Clear();
-                        break;
-
-                    case FileProcessorType.FileFixer:
-                        message = FileFixer.BrokenFilesWriterActivity();
-                        SendToInfoTextBox($"{TimeSetter.PlaceTime()}{message}");
-                        break;
-                }
-            }, cancellationToken);
-        }
-
-        // УСТАРЕВШИЙ МЕТОД - будет удален в версии 4.0
-        // Обработчик нажатий кнопок
-        [Obsolete("Используйте ActionHandlerAsync() вместо этого метода")]
-        private void ActionHandler(string name, string mask, string code)
-        {
-            InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Запуск: {name}");
-            // Получение списка всех файлов в заданой папке и во всех вложенных подпапках за счёт SearchOption
-            string[] allFiles = Directory.GetFiles(DirectoryPath, mask, SearchOption.AllDirectories);
-            int count = 0;
-            int errCount = 0;
-            (bool, string) result = (false, string.Empty);
-            string message;
-            foreach (string currentFile in allFiles)
-            {
-                switch (code)
-                {
-                    case "FileRenamer":
-                        result = FileRenamer.FileRenamerActivity(currentFile);
-                        break;
-                    case "NamesTranslator":
-                        result = NamesTranslator.NamesTranslatorActivity(currentFile);
-                        break;
-                    case "TagCollector":
-                        result = TagCollector.TagCollectorActivity(currentFile);
-                        break;
-                    case "FileFixer":
-                        result = FileFixer.FileFixerActivity(currentFile);
-                        break;
-                    case "EncodingFixer":
-                        result = EncodingFixer.EncodingFixerActivity(currentFile);
-                        break;
-                    case "CommentInserter":
-                        result = CommentInserter.InsertComments(currentFile);
-                        break;
-                    default:
-                        break;
-                }
-                if (result.Item1)
-                    count++;
-                else
-                {
-                    errCount++;
-                    InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}{result.Item2} ({currentFile})");
-                }
-            }
-
-            InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Завершено. Обработано файлов - {count}");
-            if (errCount != 0)
-            {
-                InfoTextBox.AppendText($"{Environment.NewLine}Пропущено файлов - {errCount}");
-            }
-
-            // Постобработка
-            switch (code)
-            {
-                case "TagCollector":
-                    message = TagCollector.TagWriterActivity();
-                    InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}{message}");
-                    message = TagCollector.DefsClassGeneratorActivity();
-                    InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}{message}");
-                    TagCollector.DataCleanerActivity();
-                    break;
-                case "FileFixer":
-                    message = FileFixer.BrokenFilesWriterActivity();
-                    InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}{message}");
-                    break;
-                default:
-                    break;
-            }
-        }
 
         // Поиск изменений в переводе (async версия)
         private async void FindChangesButton_Click(object sender, EventArgs e)
@@ -1334,11 +1002,130 @@ namespace RimLangKit
 
         private void SelectModTextBox_TextChanged(object sender, EventArgs e)
         {
-            string path = SelectModTextBox.Text;
-            if (Directory.Exists(path))
-            {
-                AutoTranslateModFolder = path;
-            }
+            _presenter.Database.ValidateModFolder(SelectModTextBox.Text);
         }
+
+        #region IMainView Implementation
+
+        public void ShowMessage(string message, int? tabId = null)
+        {
+            int targetTab = tabId ?? Settings.Default.lastTab;
+            var targetTextBox = targetTab == 0 ? InfoTextBox : InfoTextBox2;
+
+            if (targetTextBox.Text == string.Empty)
+                targetTextBox.AppendText(message);
+            else
+                targetTextBox.AppendText($"{Environment.NewLine}{message}");
+        }
+
+        public void ShowMessageBox(string message, string title, MessageBoxIcon icon = MessageBoxIcon.Information)
+        {
+            MessageBox.Show(message, title, MessageBoxButtons.OK, icon);
+        }
+
+        public bool ShowConfirmation(string message, string title)
+        {
+            return MessageBox.Show(message, title, MessageBoxButtons.YesNo, MessageBoxIcon.Information) == DialogResult.Yes;
+        }
+
+        public void SetProcessingButtonsEnabled(bool enabled)
+        {
+            CommentInserterButton.Enabled = enabled;
+            FileRenamerButton.Enabled = enabled;
+            NamesTranslatorButton.Enabled = enabled;
+            CaseCreatorButton.Enabled = enabled;
+            EncodingFixerButton.Enabled = enabled;
+            TagCollectorButton.Enabled = enabled;
+            FileFixerButton.Enabled = enabled;
+            FindChangesButton.Enabled = enabled;
+            PreTranslatorButton.Enabled = enabled;
+            AdditionalFolderButton.Enabled = enabled;
+        }
+
+        public void SetDirectoryCheckStatus(string text, bool isValid)
+        {
+            LabelCheck.Text = text;
+            LabelCheck.ForeColor = isValid ? _goodColor : _badColor;
+        }
+
+        public void OpenUrl(string url)
+        {
+            Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+        }
+
+        public void SetAdditionalFolderButtonColor(bool isValid)
+        {
+            AdditionalFolderButton.BackColor = isValid ? _goodColor : _badColor;
+        }
+
+        public void SetGameFolderButtonColor(Color color)
+        {
+            FolderButton2.BackColor = color;
+        }
+
+        public void SetDatabaseCheckLabelText(string text)
+        {
+            CheckDatabaseLabel.Text = text;
+        }
+
+        public void SetLanguageUpdateButtonsEnabled(bool enabled)
+        {
+            ButtonLanguageUpdate.Enabled = enabled;
+            ResetButton.Enabled = enabled;
+        }
+
+        #endregion
+
+        #region IFileProcessingView Implementation
+
+        public bool ShowFolderBrowserDialog(out string selectedPath)
+        {
+            using FolderBrowserDialog ofd = new();
+            DialogResult dr = ofd.ShowDialog();
+            selectedPath = ofd.SelectedPath;
+            return dr == DialogResult.OK;
+        }
+
+        public void UpdateProgress(ProcessingProgress progress)
+        {
+            // TODO: Реализовать когда будет добавлен ProgressBar UI
+        }
+
+        public IProgress<ProcessingProgress>? GetProgressReporter()
+        {
+            // TODO: Вернуть Progress<T> когда будет добавлен ProgressBar
+            return null;
+        }
+
+        #endregion
+
+        #region IDatabaseView Implementation
+
+        public bool ShowDatabaseFileDialog(out string selectedPath)
+        {
+            FileDialog fileDialog = new OpenFileDialog
+            {
+                Filter = $"База данных (*{Constants.Files.DatabaseExtension})|*{Constants.Files.DatabaseExtension}|All files (*.*)|*.*",
+            };
+            DialogResult dr = fileDialog.ShowDialog();
+            selectedPath = fileDialog.FileName;
+            return dr == DialogResult.OK;
+        }
+
+        public bool GetRewriteMode()
+        {
+            return RewriteRadioButtonTrue.Checked;
+        }
+
+        #endregion
+
+        #region ILanguageUpdateView Implementation
+
+        public string GetLanguageValue() => LanguageInput.Text;
+        public string GetRepositoryValue() => RepoInput.Text;
+        public void SetLanguageValue(string value) => LanguageInput.Text = value;
+        public void SetRepositoryValue(string value) => RepoInput.Text = value;
+
+        #endregion
     }
 }
