@@ -26,7 +26,7 @@ public class XmlErrorCheckerTests
             // Assert
             result.Should().NotBeNull();
             result.IsValid.Should().BeTrue();
-            result.ErrorMessage.Should().BeNullOrEmpty();
+            result.Message.Should().BeNullOrEmpty();
         }
         finally
         {
@@ -55,7 +55,7 @@ public class XmlErrorCheckerTests
             // Assert
             result.Should().NotBeNull();
             result.IsValid.Should().BeFalse();
-            result.ErrorMessage.Should().NotBeNullOrEmpty();
+            result.Message.Should().NotBeNullOrEmpty();
         }
         finally
         {
@@ -84,7 +84,7 @@ public class XmlErrorCheckerTests
             // Assert
             result.Should().NotBeNull();
             result.IsValid.Should().BeFalse();
-            result.ErrorMessage.Should().Contain("LanguageData");
+            result.Message.Should().Contain("LanguageData");
         }
         finally
         {
@@ -126,7 +126,7 @@ public class XmlErrorCheckerTests
         // Assert
         result.Should().NotBeNull();
         result.IsValid.Should().BeFalse();
-        result.ErrorMessage.Should().NotBeNullOrEmpty();
+        result.Message.Should().NotBeNullOrEmpty();
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public class XmlErrorCheckerTests
             // Assert
             result.Should().NotBeNull();
             result.IsValid.Should().BeFalse();
-            result.ErrorMessage.Should().Contain("не содержит дочерних элементов");
+            result.Message.Should().Contain("не содержит дочерних элементов");
         }
         finally
         {

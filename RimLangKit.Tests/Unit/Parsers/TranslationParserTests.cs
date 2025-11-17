@@ -53,7 +53,7 @@ public class TranslationParserTests : IDisposable
 
             // Assert
             result.IsValid.Should().BeTrue();
-            result.ErrorMessage.Should().Contain("2 тегов сохранено");
+            result.Message.Should().Contain("2 тегов сохранено");
 
             // Verify tags were saved
             using (var db = new LiteDatabase(_tempDbPath))
@@ -109,7 +109,7 @@ public class TranslationParserTests : IDisposable
 
             // Assert
             result.IsValid.Should().BeFalse();
-            result.ErrorMessage.Should().Contain("не найдено тегов");
+            result.Message.Should().Contain("не найдено тегов");
         }
         finally
         {
@@ -232,7 +232,7 @@ public class TranslationParserTests : IDisposable
 
             // Assert
             result.IsValid.Should().BeTrue();
-            result.ErrorMessage.Should().Contain("Автоматически переведено 2 тегов");
+            result.Message.Should().Contain("Автоматически переведено 2 тегов");
 
             // Verify file was updated
             var updatedContent = File.ReadAllText(filePath);
@@ -272,7 +272,7 @@ public class TranslationParserTests : IDisposable
 
             // Assert
             result.IsValid.Should().BeTrue();
-            result.ErrorMessage.Should().Contain("Автоматически переведено 0 тегов");
+            result.Message.Should().Contain("Автоматически переведено 0 тегов");
 
             var updatedContent = File.ReadAllText(filePath);
             updatedContent.Should().Contain("<Gun_AssaultRifle.label>rifle</Gun_AssaultRifle.label>");
@@ -310,7 +310,7 @@ public class TranslationParserTests : IDisposable
 
             // Assert
             result.IsValid.Should().BeFalse();
-            result.ErrorMessage.Should().NotBeEmpty();
+            result.Message.Should().NotBeEmpty();
         }
         finally
         {
@@ -346,7 +346,7 @@ public class TranslationParserTests : IDisposable
 
             // Assert
             result.IsValid.Should().BeFalse();
-            result.ErrorMessage.Should().Contain("не найдено тегов");
+            result.Message.Should().Contain("не найдено тегов");
         }
         finally
         {

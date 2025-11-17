@@ -154,7 +154,7 @@ public class TranslationRepositoryTests : IDisposable
 
         // Assert
         result.IsValid.Should().BeTrue();
-        result.ErrorMessage.Should().Contain("3 тегов");
+        result.Message.Should().Contain("3 тегов");
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public class TranslationRepositoryTests : IDisposable
 
         // Assert
         result.IsValid.Should().BeFalse();
-        result.ErrorMessage.Should().Contain("ничего нет");
+        result.Message.Should().Contain("ничего нет");
     }
 
     [Fact]
@@ -185,7 +185,7 @@ public class TranslationRepositoryTests : IDisposable
 
         // Assert
         result.IsValid.Should().BeTrue();
-        result.ErrorMessage.Should().Contain("Удалено 3 записей");
+        result.Message.Should().Contain("Удалено 3 записей");
 
         using (var db = new LiteDatabase(_tempDbPath))
         {
