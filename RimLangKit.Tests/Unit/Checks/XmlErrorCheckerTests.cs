@@ -25,7 +25,7 @@ public class XmlErrorCheckerTests
 
             // Assert
             result.Should().NotBeNull();
-            result.IsError.Should().BeFalse();
+            result.IsValid.Should().BeTrue();
             result.ErrorMessage.Should().BeNullOrEmpty();
         }
         finally
@@ -54,7 +54,7 @@ public class XmlErrorCheckerTests
 
             // Assert
             result.Should().NotBeNull();
-            result.IsError.Should().BeTrue();
+            result.IsValid.Should().BeFalse();
             result.ErrorMessage.Should().NotBeNullOrEmpty();
         }
         finally
@@ -83,7 +83,7 @@ public class XmlErrorCheckerTests
 
             // Assert
             result.Should().NotBeNull();
-            result.IsError.Should().BeTrue();
+            result.IsValid.Should().BeFalse();
             result.ErrorMessage.Should().Contain("LanguageData");
         }
         finally
@@ -106,7 +106,7 @@ public class XmlErrorCheckerTests
 
             // Assert
             result.Should().NotBeNull();
-            result.IsError.Should().BeTrue();
+            result.IsValid.Should().BeFalse();
         }
         finally
         {
@@ -125,7 +125,35 @@ public class XmlErrorCheckerTests
 
         // Assert
         result.Should().NotBeNull();
-        result.IsError.Should().BeTrue();
+        result.IsValid.Should().BeFalse();
         result.ErrorMessage.Should().NotBeNullOrEmpty();
+    }
+
+    [Fact]
+    public void CheckXml_WithEmptyLanguageData_ShouldReturnError()
+    {
+        // Arrange
+        var emptyLanguageData = """
+            <?xml version="1.0" encoding="utf-8"?>
+            <LanguageData>
+            </LanguageData>
+            """;
+        var tempFile = Path.GetTempFileName();
+        File.WriteAllText(tempFile, emptyLanguageData);
+
+        try
+        {
+            // Act
+            var result = XmlErrorChecker.CheckXml(tempFile);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.IsValid.Should().BeFalse();
+            result.ErrorMessage.Should().Contain("не содержит дочерних элементов");
+        }
+        finally
+        {
+            File.Delete(tempFile);
+        }
     }
 }

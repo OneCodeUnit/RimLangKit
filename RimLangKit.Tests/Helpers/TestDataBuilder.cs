@@ -11,13 +11,16 @@ public static class TestDataBuilder
     /// Creates a sample RimTag with default values
     /// </summary>
     public static RimTag CreateSampleTag(
-        string defName = "TestDef",
+        string tagDef = "TestDef",
+        string tagText = "Тестовый перевод",
         string tagType = "label",
-        string original = "Test Original",
-        string translation = "Тестовый перевод",
-        string comment = "")
+        string tagComment = "")
     {
-        return new RimTag(defName, tagType, original, translation, comment);
+        if (string.IsNullOrEmpty(tagComment))
+        {
+            return new RimTag(tagDef, tagText, tagType);
+        }
+        return new RimTag(tagDef, tagText, tagComment, tagType);
     }
 
     /// <summary>
@@ -29,10 +32,10 @@ public static class TestDataBuilder
         for (int i = 1; i <= count; i++)
         {
             tags.Add(new RimTag(
-                defName: $"TestDef{i}",
-                tagType: i % 2 == 0 ? "description" : "label",
-                original: $"Original Text {i}",
-                translation: $"Переведенный текст {i}"
+                tagDef: $"TestDef{i}",
+                tagText: $"Переведенный текст {i}",
+                tagComment: $"Original Text {i}",
+                tagType: i % 2 == 0 ? "description" : "label"
             ));
         }
         return tags;
@@ -44,6 +47,20 @@ public static class TestDataBuilder
     public static string CreateValidXml(params (string tag, string value)[] elements)
     {
         var content = string.Join("\n    ", elements.Select(e => $"<{e.tag}>{e.value}</{e.tag}>"));
+        return $"""
+            <?xml version="1.0" encoding="utf-8"?>
+            <LanguageData>
+                {content}
+            </LanguageData>
+            """;
+    }
+
+    /// <summary>
+    /// Creates a valid XML string with comments for LanguageData
+    /// </summary>
+    public static string CreateValidXmlWithComments(params (string tag, string comment, string value)[] elements)
+    {
+        var content = string.Join("\n    ", elements.Select(e => $"<!-- EN: {e.comment} -->\n    <{e.tag}>{e.value}</{e.tag}>"));
         return $"""
             <?xml version="1.0" encoding="utf-8"?>
             <LanguageData>
@@ -73,13 +90,32 @@ public static class TestDataBuilder
     }
 
     /// <summary>
+    /// Creates a directory structure for RimWorld mod testing
+    /// Example: ModName\Languages\Russian\DefInjected\ThingDef\
+    /// </summary>
+    public static string CreateModDirectoryStructure(string moduleName = "TestMod", string defType = "ThingDef")
+    {
+        var tempDir = CreateTempDirectory();
+        var fullPath = Path.Combine(tempDir, moduleName, "Languages", "Russian", "DefInjected", defType);
+        Directory.CreateDirectory(fullPath);
+        return fullPath;
+    }
+
+    /// <summary>
     /// Cleans up a temporary file
     /// </summary>
     public static void CleanupFile(string filePath)
     {
         if (File.Exists(filePath))
         {
-            File.Delete(filePath);
+            try
+            {
+                File.Delete(filePath);
+            }
+            catch
+            {
+                // Ignore cleanup errors in tests
+            }
         }
     }
 
@@ -90,7 +126,14 @@ public static class TestDataBuilder
     {
         if (Directory.Exists(directoryPath))
         {
-            Directory.Delete(directoryPath, recursive: true);
+            try
+            {
+                Directory.Delete(directoryPath, recursive: true);
+            }
+            catch
+            {
+                // Ignore cleanup errors in tests
+            }
         }
     }
 }

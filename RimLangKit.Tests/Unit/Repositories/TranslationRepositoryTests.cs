@@ -7,19 +7,18 @@ namespace RimLangKit.Tests.Unit.Repositories;
 
 public class TranslationRepositoryTests : IDisposable
 {
-    private readonly LiteDatabase _database;
+    private readonly TranslationRepository _repository;
     private readonly string _tempDbPath;
 
     public TranslationRepositoryTests()
     {
         // Create a temporary database for each test
         _tempDbPath = Path.GetTempFileName();
-        _database = new LiteDatabase(_tempDbPath);
+        _repository = new TranslationRepository(_tempDbPath);
     }
 
     public void Dispose()
     {
-        _database?.Dispose();
         if (File.Exists(_tempDbPath))
         {
             File.Delete(_tempDbPath);
@@ -27,179 +26,193 @@ public class TranslationRepositoryTests : IDisposable
     }
 
     [Fact]
-    public void SaveTag_NewTag_ShouldSaveSuccessfully()
+    public void SaveTags_NewTags_ShouldSaveSuccessfully()
     {
         // Arrange
-        var tag = new RimTag
+        var tags = new List<RimTag>
         {
-            DefName = "TestDef",
-            TagType = "label",
-            Original = "Original Text",
-            Translation = "Переведенный текст"
+            new RimTag("TestDef1", "Перевод 1", "label"),
+            new RimTag("TestDef2", "Перевод 2", "description")
         };
 
         // Act
-        TranslationRepository.SaveTag(_database, tag);
+        _repository.SaveTags(tags, "TestCollection", rewrite: false);
 
         // Assert
-        var collection = _database.GetCollection<RimTag>("RimTags");
-        var savedTag = collection.FindOne(x => x.DefName == "TestDef" && x.TagType == "label");
-
-        savedTag.Should().NotBeNull();
-        savedTag.Original.Should().Be("Original Text");
-        savedTag.Translation.Should().Be("Переведенный текст");
-    }
-
-    [Fact]
-    public void SaveTag_WithComment_ShouldSaveComment()
-    {
-        // Arrange
-        var tag = new RimTag("TestDef", "description", "English", "Русский", "Test Comment");
-
-        // Act
-        TranslationRepository.SaveTag(_database, tag);
-
-        // Assert
-        var collection = _database.GetCollection<RimTag>("RimTags");
-        var savedTag = collection.FindOne(x => x.DefName == "TestDef");
-
-        savedTag.Should().NotBeNull();
-        savedTag.Comment.Should().Be("Test Comment");
-    }
-
-    [Fact]
-    public void SaveTag_WithOverwrite_ShouldUpdateExisting()
-    {
-        // Arrange
-        var originalTag = new RimTag
+        using (var db = new LiteDatabase(_tempDbPath))
         {
-            DefName = "TestDef",
-            TagType = "label",
-            Original = "Old Text",
-            Translation = "Старый текст"
-        };
+            var collection = db.GetCollection<RimTag>("TestCollection");
+            collection.Count().Should().Be(2);
 
-        var updatedTag = new RimTag
-        {
-            DefName = "TestDef",
-            TagType = "label",
-            Original = "New Text",
-            Translation = "Новый текст"
-        };
-
-        // Act
-        TranslationRepository.SaveTag(_database, originalTag, overwrite: false);
-        TranslationRepository.SaveTag(_database, updatedTag, overwrite: true);
-
-        // Assert
-        var collection = _database.GetCollection<RimTag>("RimTags");
-        var tags = collection.Find(x => x.DefName == "TestDef").ToList();
-
-        tags.Should().HaveCount(1);
-        tags[0].Original.Should().Be("New Text");
-        tags[0].Translation.Should().Be("Новый текст");
-    }
-
-    [Fact]
-    public void SaveTag_WithoutOverwrite_ShouldNotUpdateExisting()
-    {
-        // Arrange
-        var originalTag = new RimTag
-        {
-            DefName = "TestDef",
-            TagType = "label",
-            Original = "Old Text",
-            Translation = "Старый текст"
-        };
-
-        var updatedTag = new RimTag
-        {
-            DefName = "TestDef",
-            TagType = "label",
-            Original = "New Text",
-            Translation = "Новый текст"
-        };
-
-        // Act
-        TranslationRepository.SaveTag(_database, originalTag, overwrite: false);
-        TranslationRepository.SaveTag(_database, updatedTag, overwrite: false);
-
-        // Assert
-        var collection = _database.GetCollection<RimTag>("RimTags");
-        var tags = collection.Find(x => x.DefName == "TestDef").ToList();
-
-        tags.Should().HaveCount(1);
-        tags[0].Original.Should().Be("Old Text");
-        tags[0].Translation.Should().Be("Старый текст");
-    }
-
-    [Fact]
-    public void GetTag_ExistingTag_ShouldReturnTag()
-    {
-        // Arrange
-        var tag = new RimTag
-        {
-            DefName = "TestDef",
-            TagType = "label",
-            Original = "Test",
-            Translation = "Тест"
-        };
-        TranslationRepository.SaveTag(_database, tag);
-
-        // Act
-        var result = TranslationRepository.GetTag(_database, "TestDef", "label");
-
-        // Assert
-        result.Should().NotBeNull();
-        result.DefName.Should().Be("TestDef");
-        result.TagType.Should().Be("label");
-    }
-
-    [Fact]
-    public void GetTag_NonExistentTag_ShouldReturnNull()
-    {
-        // Act
-        var result = TranslationRepository.GetTag(_database, "NonExistent", "label");
-
-        // Assert
-        result.Should().BeNull();
-    }
-
-    [Fact]
-    public void ClearCollection_ShouldRemoveAllTags()
-    {
-        // Arrange
-        TranslationRepository.SaveTag(_database, new RimTag { DefName = "Tag1", TagType = "label" });
-        TranslationRepository.SaveTag(_database, new RimTag { DefName = "Tag2", TagType = "description" });
-        TranslationRepository.SaveTag(_database, new RimTag { DefName = "Tag3", TagType = "label" });
-
-        // Act
-        TranslationRepository.ClearCollection(_database);
-
-        // Assert
-        var collection = _database.GetCollection<RimTag>("RimTags");
-        collection.Count().Should().Be(0);
-    }
-
-    [Fact]
-    public void SaveMultipleTags_WithDifferentTypes_ShouldSaveAll()
-    {
-        // Arrange
-        var tags = new[]
-        {
-            new RimTag { DefName = "Def1", TagType = "label", Translation = "Метка" },
-            new RimTag { DefName = "Def1", TagType = "description", Translation = "Описание" },
-            new RimTag { DefName = "Def2", TagType = "label", Translation = "Метка 2" }
-        };
-
-        // Act
-        foreach (var tag in tags)
-        {
-            TranslationRepository.SaveTag(_database, tag);
+            var savedTag1 = collection.FindOne(x => x.TagDef == "TestDef1");
+            savedTag1.Should().NotBeNull();
+            savedTag1.TagText.Should().Be("Перевод 1");
+            savedTag1.TagType.Should().Be("label");
         }
+    }
+
+    [Fact]
+    public void SaveTags_WithRewrite_ShouldUpdateExisting()
+    {
+        // Arrange
+        var originalTags = new List<RimTag>
+        {
+            new RimTag("TestDef", "Старый перевод", "label")
+        };
+        var updatedTags = new List<RimTag>
+        {
+            new RimTag("TestDef", "Новый перевод", "label")
+        };
+
+        // Act
+        _repository.SaveTags(originalTags, "TestCollection", rewrite: false);
+        _repository.SaveTags(updatedTags, "TestCollection", rewrite: true);
 
         // Assert
-        var collection = _database.GetCollection<RimTag>("RimTags");
-        collection.Count().Should().Be(3);
+        using (var db = new LiteDatabase(_tempDbPath))
+        {
+            var collection = db.GetCollection<RimTag>("TestCollection");
+            var tags = collection.Find(x => x.TagDef == "TestDef").ToList();
+            tags.Should().HaveCount(1);
+            tags[0].TagText.Should().Be("Новый перевод");
+        }
+    }
+
+    [Fact]
+    public void SaveTags_WithoutRewrite_ShouldNotUpdateExisting()
+    {
+        // Arrange
+        var originalTags = new List<RimTag>
+        {
+            new RimTag("TestDef", "Старый перевод", "label")
+        };
+        var updatedTags = new List<RimTag>
+        {
+            new RimTag("TestDef", "Новый перевод", "label")
+        };
+
+        // Act
+        _repository.SaveTags(originalTags, "TestCollection", rewrite: false);
+        _repository.SaveTags(updatedTags, "TestCollection", rewrite: false);
+
+        // Assert
+        using (var db = new LiteDatabase(_tempDbPath))
+        {
+            var collection = db.GetCollection<RimTag>("TestCollection");
+            var tags = collection.Find(x => x.TagDef == "TestDef").ToList();
+            tags.Should().HaveCount(1);
+            tags[0].TagText.Should().Be("Старый перевод");
+        }
+    }
+
+    [Fact]
+    public void GetTag_ExistingTag_ShouldReturnTranslation()
+    {
+        // Arrange
+        var tags = new List<RimTag>
+        {
+            new RimTag("TestDef", "Перевод", "English", "label")
+        };
+        _repository.SaveTags(tags, "TestCollection", rewrite: false);
+
+        var searchTag = new RimTag("TestDef", "English", "label");
+
+        // Act
+        var result = _repository.GetTag(searchTag, "TestCollection");
+
+        // Assert
+        result.Should().Be("Перевод");
+    }
+
+    [Fact]
+    public void GetTag_NonExistentTag_ShouldReturnEmpty()
+    {
+        // Arrange
+        var searchTag = new RimTag("NonExistent", "Some text", "label");
+
+        // Act
+        var result = _repository.GetTag(searchTag, "TestCollection");
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public void Analyze_WithData_ShouldReturnCount()
+    {
+        // Arrange
+        var tags = new List<RimTag>
+        {
+            new RimTag("Def1", "Перевод 1", "label"),
+            new RimTag("Def2", "Перевод 2", "label"),
+            new RimTag("Def3", "Перевод 3", "description")
+        };
+        _repository.SaveTags(tags, "TestCollection", rewrite: false);
+
+        // Act
+        var result = _repository.Analyze("TestCollection");
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+        result.ErrorMessage.Should().Contain("3 тегов");
+    }
+
+    [Fact]
+    public void Analyze_WithoutData_ShouldReturnError()
+    {
+        // Act
+        var result = _repository.Analyze("EmptyCollection");
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("ничего нет");
+    }
+
+    [Fact]
+    public void Clear_ShouldRemoveAllTags()
+    {
+        // Arrange
+        var tags = new List<RimTag>
+        {
+            new RimTag("Def1", "Перевод 1", "label"),
+            new RimTag("Def2", "Перевод 2", "description"),
+            new RimTag("Def3", "Перевод 3", "label")
+        };
+        _repository.SaveTags(tags, "TestCollection", rewrite: false);
+
+        // Act
+        var result = _repository.Clear("TestCollection");
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+        result.ErrorMessage.Should().Contain("Удалено 3 записей");
+
+        using (var db = new LiteDatabase(_tempDbPath))
+        {
+            var collection = db.GetCollection<RimTag>("TestCollection");
+            collection.Count().Should().Be(0);
+        }
+    }
+
+    [Fact]
+    public void SaveTags_WithDifferentTypes_ShouldSaveAll()
+    {
+        // Arrange
+        var tags = new List<RimTag>
+        {
+            new RimTag("Def1", "Метка", "label"),
+            new RimTag("Def1", "Описание", "description"),
+            new RimTag("Def2", "Метка 2", "label")
+        };
+
+        // Act
+        _repository.SaveTags(tags, "TestCollection", rewrite: false);
+
+        // Assert
+        using (var db = new LiteDatabase(_tempDbPath))
+        {
+            var collection = db.GetCollection<RimTag>("TestCollection");
+            collection.Count().Should().Be(3);
+        }
     }
 }

@@ -9,28 +9,26 @@ public class RimTagTests
     public void Constructor_WithoutComment_ShouldCreateTag()
     {
         // Act
-        var tag = new RimTag("TestDef", "label", "Original", "Translation");
+        var tag = new RimTag("TestDef", "Translation", "label");
 
         // Assert
-        tag.DefName.Should().Be("TestDef");
+        tag.TagDef.Should().Be("TestDef");
+        tag.TagText.Should().Be("Translation");
         tag.TagType.Should().Be("label");
-        tag.Original.Should().Be("Original");
-        tag.Translation.Should().Be("Translation");
-        tag.Comment.Should().BeEmpty();
+        tag.TagComment.Should().BeEmpty();
     }
 
     [Fact]
     public void Constructor_WithComment_ShouldCreateTagWithComment()
     {
         // Act
-        var tag = new RimTag("TestDef", "description", "Original", "Translation", "Test Comment");
+        var tag = new RimTag("TestDef", "Translation", "Test Comment", "description");
 
         // Assert
-        tag.DefName.Should().Be("TestDef");
+        tag.TagDef.Should().Be("TestDef");
+        tag.TagText.Should().Be("Translation");
+        tag.TagComment.Should().Be("Test Comment");
         tag.TagType.Should().Be("description");
-        tag.Original.Should().Be("Original");
-        tag.Translation.Should().Be("Translation");
-        tag.Comment.Should().Be("Test Comment");
     }
 
     [Fact]
@@ -40,11 +38,10 @@ public class RimTagTests
         var tag = new RimTag();
 
         // Assert
-        tag.DefName.Should().BeNull();
-        tag.TagType.Should().BeNull();
-        tag.Original.Should().BeNull();
-        tag.Translation.Should().BeNull();
-        tag.Comment.Should().BeNull();
+        tag.TagDef.Should().BeEmpty();
+        tag.TagText.Should().BeEmpty();
+        tag.TagComment.Should().BeEmpty();
+        tag.TagType.Should().BeEmpty();
     }
 
     [Fact]
@@ -54,34 +51,31 @@ public class RimTagTests
         var tag = new RimTag();
 
         // Act
-        tag.DefName = "NewDef";
+        tag.TagDef = "NewDef";
+        tag.TagText = "New Translation";
+        tag.TagComment = "New Comment";
         tag.TagType = "label";
-        tag.Original = "New Original";
-        tag.Translation = "New Translation";
-        tag.Comment = "New Comment";
 
         // Assert
-        tag.DefName.Should().Be("NewDef");
+        tag.TagDef.Should().Be("NewDef");
+        tag.TagText.Should().Be("New Translation");
+        tag.TagComment.Should().Be("New Comment");
         tag.TagType.Should().Be("label");
-        tag.Original.Should().Be("New Original");
-        tag.Translation.Should().Be("New Translation");
-        tag.Comment.Should().Be("New Comment");
     }
 
     [Theory]
-    [InlineData("", "", "", "")]
-    [InlineData("Def", "label", "", "")]
-    [InlineData("Def", "", "Original", "")]
-    [InlineData("Def", "label", "Original", "")]
-    public void Constructor_WithEmptyStrings_ShouldAcceptValues(string defName, string tagType, string original, string translation)
+    [InlineData("", "", "")]
+    [InlineData("Def", "Translation", "")]
+    [InlineData("Def", "", "label")]
+    [InlineData("Def", "Translation", "label")]
+    public void Constructor_WithEmptyStrings_ShouldAcceptValues(string tagDef, string tagText, string tagType)
     {
         // Act
-        var tag = new RimTag(defName, tagType, original, translation);
+        var tag = new RimTag(tagDef, tagText, tagType);
 
         // Assert
-        tag.DefName.Should().Be(defName);
+        tag.TagDef.Should().Be(tagDef);
+        tag.TagText.Should().Be(tagText);
         tag.TagType.Should().Be(tagType);
-        tag.Original.Should().Be(original);
-        tag.Translation.Should().Be(translation);
     }
 }
