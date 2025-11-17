@@ -87,8 +87,23 @@ namespace RimLangKit
             DialogResult dr = ofd.ShowDialog();
             if (dr == DialogResult.OK)
             {
-                DirectoryPath = ofd.SelectedPath;
+                string selectedPath = ofd.SelectedPath;
+
+                // Валидация пути
+                if (!PathValidator.IsPathSafe(selectedPath, out string? errorMessage))
+                {
+                    _logger.LogWarning("Выбран небезопасный путь: {Path}. Причина: {Error}", selectedPath, errorMessage);
+                    MessageBox.Show(
+                        $"Выбранный путь небезопасен:\n{errorMessage}",
+                        "Ошибка выбора папки",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+
+                DirectoryPath = selectedPath;
                 FolderTextBox.Text = DirectoryPath;
+                _logger.LogInformation("Выбрана папка для работы: {Path}", DirectoryPath);
             }
         }
 
@@ -97,7 +112,8 @@ namespace RimLangKit
         {
             DirectoryPath = FolderTextBox.Text;
             // Кнопки доступны только тогда, когда директория существует
-            if (Directory.Exists(FolderTextBox.Text) && !FolderTextBox.Text.Contains("294100"))
+            // Проверка что это не папка Steam (294100 - RimWorld App ID)
+            if (Directory.Exists(FolderTextBox.Text) && !FolderTextBox.Text.Contains(Constants.Paths.SteamRimWorldAppId))
             {
                 LabelCheck.ForeColor = goodColor;
                 LabelCheck.Text = "ОК";
@@ -137,46 +153,44 @@ namespace RimLangKit
             DialogResult dr = ofd.ShowDialog();
             if (dr == DialogResult.OK)
             {
-                AdditionalFolder = ofd.SelectedPath;
+                string selectedPath = ofd.SelectedPath;
+
+                // Валидация пути
+                if (!PathValidator.IsPathSafe(selectedPath, out string? errorMessage))
+                {
+                    _logger.LogWarning("Выбран небезопасный дополнительный путь: {Path}. Причина: {Error}", selectedPath, errorMessage);
+                    MessageBox.Show(
+                        $"Выбранный путь небезопасен:\n{errorMessage}",
+                        "Ошибка выбора папки",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+
+                AdditionalFolder = selectedPath;
+                _logger.LogInformation("Выбрана дополнительная папка: {Path}", AdditionalFolder);
             }
             AdditionalFolderButton.BackColor = goodColor;
         }
 
-        // Выбор текстового поля в зависимости от выбранной вкладки
-        private void SendToInfoTextBox(string text)
+        /// <summary>
+        /// Добавляет текст в соответствующее текстовое поле в зависимости от выбранной вкладки
+        /// </summary>
+        /// <param name="text">Текст для добавления</param>
+        /// <param name="tabId">ID вкладки (0 или 1). Если null, используется текущая выбранная вкладка</param>
+        private void SendToInfoTextBox(string text, int? tabId = null)
         {
-            if (Settings.Default.lastTab == 0)
-            {
-                if (InfoTextBox.Text == string.Empty)
-                    InfoTextBox.AppendText($"{text}");
-                else
-                    InfoTextBox.AppendText($"{Environment.NewLine}{text}");
-            }
-            else
-            {
-                if (InfoTextBox2.Text == string.Empty)
-                    InfoTextBox2.AppendText($"{text}");
-                else
-                    InfoTextBox2.AppendText($"{Environment.NewLine}{text}");
-            }
-        }
+            // Определяем ID вкладки: если не указан явно, берем из настроек
+            int targetTab = tabId ?? Settings.Default.lastTab;
 
-        private void SendToInfoTextBox(string text, int id)
-        {
-            if (id == 0)
-            {
-                if (InfoTextBox.Text == string.Empty)
-                    InfoTextBox.AppendText($"{text}");
-                else
-                    InfoTextBox.AppendText($"{Environment.NewLine}{text}");
-            }
+            // Выбираем целевой TextBox
+            var targetTextBox = targetTab == 0 ? InfoTextBox : InfoTextBox2;
+
+            // Добавляем текст с переносом строки, если уже есть содержимое
+            if (targetTextBox.Text == string.Empty)
+                targetTextBox.AppendText(text);
             else
-            {
-                if (InfoTextBox2.Text == string.Empty)
-                    InfoTextBox2.AppendText($"{text}");
-                else
-                    InfoTextBox2.AppendText($"{Environment.NewLine}{text}");
-            }
+                targetTextBox.AppendText($"{Environment.NewLine}{text}");
         }
 
         private void MainTabs_IndexChange(object sender, EventArgs e)
@@ -264,15 +278,15 @@ namespace RimLangKit
                 SendToInfoTextBox($"{TimeSetter.PlaceTime()}{completionMessage}");
                 _logger.LogInformation("Операция завершена: {Message}", completionMessage);
 
-                // Вывод первых 5 ошибок
-                foreach (var error in errors.Take(5))
+                // Вывод первых ошибок
+                foreach (var error in errors.Take(Constants.UI.MaxErrorsToDisplay))
                 {
                     SendToInfoTextBox($"{TimeSetter.PlaceTime()}{error}");
                 }
 
-                if (errors.Count > 5)
+                if (errors.Count > Constants.UI.MaxErrorsToDisplay)
                 {
-                    SendToInfoTextBox($"{TimeSetter.PlaceTime()}...и еще {errors.Count - 5} ошибок");
+                    SendToInfoTextBox($"{TimeSetter.PlaceTime()}...и еще {errors.Count - Constants.UI.MaxErrorsToDisplay} ошибок");
                 }
 
                 progress?.Report(ProcessingProgress.Completed(
@@ -431,7 +445,7 @@ namespace RimLangKit
                 SendToInfoTextBox($"{TimeSetter.PlaceTime()}Поиск изменений в переводе");
 
                 var translationFiles = await Task.Run(() =>
-                    Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories),
+                    Directory.GetFiles(DirectoryPath, Constants.Files.XmlMask, SearchOption.AllDirectories),
                     _currentOperationCts.Token);
 
                 int count = 0;
@@ -458,7 +472,7 @@ namespace RimLangKit
 
                 // Фаза 2: Сбор исходных данных
                 var modFiles = await Task.Run(() =>
-                    Directory.GetFiles(AdditionalFolder, "*.xml", SearchOption.AllDirectories),
+                    Directory.GetFiles(AdditionalFolder, Constants.Files.XmlMask, SearchOption.AllDirectories),
                     _currentOperationCts.Token);
 
                 count = 0;
@@ -519,13 +533,13 @@ namespace RimLangKit
         {
             _logger.LogInformation("Запуск создания вспомогательных файлов");
             InfoTextBox.AppendText($"{TimeSetter.PlaceTime()}Создание вспомогательных файлов");
-            string[] defTypeList = ["AbilityDef", "BodyDef", "BodyPartDef", "BodyPartGroupDef", "ChemicalDef", "FactionDef", "HediffDef", "MemeDef", "MentalBreakDef", "MentalFitDef", "MentalStateDef", "OrderedTakeGroupDef", "PawnCapacityDef", "PawnKindDef", "ScenarioDef", "SitePartDef", "SkillDef", "StyleCategoryDef", "ThingDef", "ToolCapacityDef", "WorldObjectDef", "XenotypeDef"];
+            string[] defTypeList = Constants.DefTypes.SupportedTypes;
             //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
-            string[] allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
+            string[] allFiles = Directory.GetFiles(DirectoryPath, Constants.Files.XmlMask, SearchOption.AllDirectories);
             Dictionary<string, string> words = [];
 
             // Поиск подходящей директории
-            string directory = Directory.Exists(DirectoryPath + "\\Common") ? DirectoryPath + "\\Common" : DirectoryPath;
+            string directory = Directory.Exists(DirectoryPath + $"\\{Constants.Paths.CommonFolderName}") ? DirectoryPath + $"\\{Constants.Paths.CommonFolderName}" : DirectoryPath;
             int typeCount = 0;
             // Проверяется каждый подходящий DefType из списка
             foreach (string defType in defTypeList)
@@ -592,7 +606,7 @@ namespace RimLangKit
 
             InfoTextBox.AppendText($"{Environment.NewLine}Переводимые файлы - {DirectoryPath}.{Environment.NewLine}Исходные файлы для предварительного перевода - {AdditionalFolder}");
             InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Сбор данных для перевода");
-            string[] allFiles = Directory.GetFiles(AdditionalFolder, "*.xml", SearchOption.AllDirectories);
+            string[] allFiles = Directory.GetFiles(AdditionalFolder, Constants.Files.XmlMask, SearchOption.AllDirectories);
             int count = 0;
             int errCount = 0;
             (bool, string) result = (false, string.Empty);
@@ -618,7 +632,7 @@ namespace RimLangKit
 
 
             InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Начат предварительный перевод");
-            allFiles = Directory.GetFiles(DirectoryPath, "*.xml", SearchOption.AllDirectories);
+            allFiles = Directory.GetFiles(DirectoryPath, Constants.Files.XmlMask, SearchOption.AllDirectories);
             count = 0;
             errCount = 0;
             foreach (string tempFile in allFiles)
@@ -642,7 +656,7 @@ namespace RimLangKit
         {
             await RunOperationWithCancellationAsync(
                 "Переименование файлов",
-                "*.xml",
+                Constants.Files.XmlMask,
                 FileProcessorType.FileRenamer);
         }
 
@@ -650,7 +664,7 @@ namespace RimLangKit
         {
             await RunOperationWithCancellationAsync(
                 "Транскрипция имён",
-                "*.txt",
+                Constants.Files.TxtMask,
                 FileProcessorType.NamesTranslator);
         }
 
@@ -658,7 +672,7 @@ namespace RimLangKit
         {
             await RunOperationWithCancellationAsync(
                 "Сбор статистики тегов",
-                "*.xml",
+                Constants.Files.XmlMask,
                 FileProcessorType.TagCollector);
         }
 
@@ -666,7 +680,7 @@ namespace RimLangKit
         {
             await RunOperationWithCancellationAsync(
                 "Поиск сломанных файлов",
-                "*.xml",
+                Constants.Files.XmlMask,
                 FileProcessorType.FileFixer);
         }
 
@@ -674,7 +688,7 @@ namespace RimLangKit
         {
             await RunOperationWithCancellationAsync(
                 "Исправление кодировки",
-                "*.xml",
+                Constants.Files.XmlMask,
                 FileProcessorType.EncodingFixer);
         }
 
@@ -682,7 +696,7 @@ namespace RimLangKit
         {
             await RunOperationWithCancellationAsync(
                 "Добавление комментариев",
-                "*.xml",
+                Constants.Files.XmlMask,
                 FileProcessorType.CommentInserter);
         }
 
@@ -775,9 +789,9 @@ namespace RimLangKit
         private void ResetButton_Click(object sender, EventArgs e)
         {
             // Получение списка дополнений
-            if (Directory.Exists($"{Settings.Default.savedDirectory}\\Data"))
+            if (Directory.Exists($"{Settings.Default.savedDirectory}\\{Constants.Paths.DataFolderName}"))
             {
-                string[] modules = Directory.GetDirectories($"{Settings.Default.savedDirectory}\\Data");
+                string[] modules = Directory.GetDirectories($"{Settings.Default.savedDirectory}\\{Constants.Paths.DataFolderName}");
                 if (modules.Length == 0)
                 {
                     MessageBox.Show("В указанной папке нет дополнений", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -806,7 +820,7 @@ namespace RimLangKit
                         var dr = MessageBox.Show($"Вы собираетесь удалить перевод, созданный в этой программе. Другие переводы затронуты не будут.\nБудут удалены следующие папки:\n\n{modulesList}", "Удаление", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
                         if (dr == DialogResult.Yes)
                         {
-                            Settings.Default.sha = "00000000";
+                            Settings.Default.sha = Constants.Repository.DefaultSha;
                             Settings.Default.Save();
                             foreach (var path in languagePathList)
                             {
@@ -829,14 +843,14 @@ namespace RimLangKit
             var dr = MessageBox.Show("Вы действительно хотите вернуть все параметры в этом окне к изначальным?", "Сброс настроек", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
             if (dr == DialogResult.Yes)
             {
-                Settings.Default.sha = "00000000";
-                Settings.Default.repo = "Ludeon/RimWorld-ru";
-                Settings.Default.language = "Russian (GitHub)";
+                Settings.Default.sha = Constants.Repository.DefaultSha;
+                Settings.Default.repo = Constants.Repository.DefaultRepo;
+                Settings.Default.language = Constants.Repository.DefaultLanguage;
                 Settings.Default.savedDirectory = string.Empty;
                 Settings.Default.Save();
 
-                LanguageInput.Text = "Russian (GitHub)";
-                RepoInput.Text = "Ludeon/RimWorld-ru";
+                LanguageInput.Text = Constants.Repository.DefaultLanguage;
+                RepoInput.Text = Constants.Repository.DefaultRepo;
                 FolderTextBox2.Text = string.Empty;
                 MessageBox.Show("Параметры сброшены", "Сброс настроек", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -878,8 +892,23 @@ namespace RimLangKit
             DialogResult dr = ofd.ShowDialog();
             if (dr == DialogResult.OK)
             {
-                GamePath = ofd.SelectedPath;
+                string selectedPath = ofd.SelectedPath;
+
+                // Валидация пути
+                if (!PathValidator.IsPathSafe(selectedPath, out string? errorMessage))
+                {
+                    _logger.LogWarning("Выбран небезопасный путь игры: {Path}. Причина: {Error}", selectedPath, errorMessage);
+                    MessageBox.Show(
+                        $"Выбранный путь небезопасен:\n{errorMessage}",
+                        "Ошибка выбора папки",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+
+                GamePath = selectedPath;
                 FolderTextBox2.Text = GamePath;
+                _logger.LogInformation("Выбрана папка игры: {Path}", GamePath);
             }
         }
 
@@ -890,9 +919,9 @@ namespace RimLangKit
             if (Directory.Exists(tempPath))
             {
                 FolderButton2.BackColor = goodColor;
-                if (Directory.Exists($"{tempPath}\\Data"))
+                if (Directory.Exists($"{tempPath}\\{Constants.Paths.DataFolderName}"))
                 {
-                    string[] modules = Directory.GetDirectories($"{tempPath}\\Data");
+                    string[] modules = Directory.GetDirectories($"{tempPath}\\{Constants.Paths.DataFolderName}");
                     if (modules.Length == 0)
                     {
                         SendToInfoTextBox("Нет модулей", 1);
@@ -1033,7 +1062,7 @@ namespace RimLangKit
         {
             FileDialog fileDialog = new OpenFileDialog
             {
-                Filter = "База данных (*.db)|*.db|All files (*.*)|*.*",
+                Filter = $"База данных (*{Constants.Files.DatabaseExtension})|*{Constants.Files.DatabaseExtension}|All files (*.*)|*.*",
             };
             DialogResult dr = fileDialog.ShowDialog();
             if (dr == DialogResult.OK)
@@ -1049,7 +1078,7 @@ namespace RimLangKit
         {
             string path = SelectDatabaseTextBox.Text;
             SelectedDBPath = path;
-            if (File.Exists(path) && path.EndsWith(".db", StringComparison.OrdinalIgnoreCase))
+            if (File.Exists(path) && path.EndsWith(Constants.Files.DatabaseExtension, StringComparison.OrdinalIgnoreCase))
             {
                 // Загрузка базы данных (проверка её содержимого)
                 var result = AutoTranslator.LoadDatabase(SelectedDBPath);
@@ -1068,7 +1097,7 @@ namespace RimLangKit
         {
             string executableDirectory;
             if (SelectedDBPath == string.Empty)
-                executableDirectory = AppContext.BaseDirectory + "RimLang.db";
+                executableDirectory = Path.Combine(AppContext.BaseDirectory, Constants.Files.DefaultDatabaseName);
             else
                 executableDirectory = SelectedDBPath;
 
@@ -1094,7 +1123,7 @@ namespace RimLangKit
             if (RewriteRadioButtonFalse.Checked)
                 rewrite = false;
 
-            string[] allFiles = Directory.GetFiles(TranslationFolder, "*.xml", SearchOption.AllDirectories);
+            string[] allFiles = Directory.GetFiles(TranslationFolder, Constants.Files.XmlMask, SearchOption.AllDirectories);
             List<XmlError> results = [];
             foreach (string currentFile in allFiles)
             {
@@ -1115,8 +1144,23 @@ namespace RimLangKit
             DialogResult dr = ofd.ShowDialog();
             if (dr == DialogResult.OK)
             {
-                TranslationFolder = ofd.SelectedPath;
+                string selectedPath = ofd.SelectedPath;
+
+                // Валидация пути
+                if (!PathValidator.IsPathSafe(selectedPath, out string? errorMessage))
+                {
+                    _logger.LogWarning("Выбран небезопасный путь для БД: {Path}. Причина: {Error}", selectedPath, errorMessage);
+                    MessageBox.Show(
+                        $"Выбранный путь небезопасен:\n{errorMessage}",
+                        "Ошибка выбора папки",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+
+                TranslationFolder = selectedPath;
                 UpdateDatabaseTextBox.Text = TranslationFolder;
+                _logger.LogInformation("Выбрана папка с переводами: {Path}", TranslationFolder);
             }
         }
 
@@ -1133,7 +1177,7 @@ namespace RimLangKit
         // Автоперевод файлов из папки
         private void AutoTranslateButton_Click(object sender, EventArgs e)
         {
-            string[] allFiles = Directory.GetFiles(AutoTranslateModFolder, "*.xml", SearchOption.AllDirectories);
+            string[] allFiles = Directory.GetFiles(AutoTranslateModFolder, Constants.Files.XmlMask, SearchOption.AllDirectories);
             List<XmlError> results = [];
             foreach (string currentFile in allFiles)
             {
@@ -1150,8 +1194,23 @@ namespace RimLangKit
             DialogResult dr = ofd.ShowDialog();
             if (dr == DialogResult.OK)
             {
-                AutoTranslateModFolder = ofd.SelectedPath;
+                string selectedPath = ofd.SelectedPath;
+
+                // Валидация пути
+                if (!PathValidator.IsPathSafe(selectedPath, out string? errorMessage))
+                {
+                    _logger.LogWarning("Выбран небезопасный путь мода: {Path}. Причина: {Error}", selectedPath, errorMessage);
+                    MessageBox.Show(
+                        $"Выбранный путь небезопасен:\n{errorMessage}",
+                        "Ошибка выбора папки",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning);
+                    return;
+                }
+
+                AutoTranslateModFolder = selectedPath;
                 SelectModTextBox.Text = AutoTranslateModFolder;
+                _logger.LogInformation("Выбрана папка с модом: {Path}", AutoTranslateModFolder);
             }
         }
 
