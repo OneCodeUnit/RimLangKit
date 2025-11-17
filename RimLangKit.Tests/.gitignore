@@ -1,0 +1,14 @@
+# Test results
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+
+# Test databases
+*.db
+*.db-shm
+*.db-wal
+
+# Temporary test files
+**/temp/
+**/tmp/
