@@ -169,5 +169,53 @@ namespace RimLangKit.Processors
             writerUndefined.WriteLine();
             writerUndefined.Close();
         }
+
+        /// <summary>
+        /// Async версия CreateCase с использованием IMorpherService
+        /// </summary>
+        public static async Task CreateCaseAsync(
+            string directoryPath,
+            Dictionary<string, string> words,
+            string defType,
+            IMorpherService morpherService,
+            CancellationToken cancellationToken = default)
+        {
+            string path = directoryPath + CasePath;
+            Directory.CreateDirectory(path);
+
+            await using StreamWriter writerCase = new(path + "\\Case.txt", true, System.Text.Encoding.UTF8);
+            await using StreamWriter writerPlural = new(path + "\\Plural.txt", true, System.Text.Encoding.UTF8);
+
+            await writerCase.WriteLineAsync("// " + defType);
+            await writerPlural.WriteLineAsync("// " + defType);
+
+            foreach (var word in words)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (word.Value != defType)
+                {
+                    continue;
+                }
+
+                string tempWord = word.Key;
+                var result = await morpherService.GetWordFormsAsync(tempWord);
+
+                // Case.txt
+                string tempStringCase = result == null || !result.IsSuccess
+                    ? $"{tempWord}; {tempWord}; {tempWord}; {tempWord}; {tempWord}; {tempWord}"
+                    : $"{tempWord}; {result.Value!.Genitive}; {result.Value.Dative}; {result.Value.Accusative}; {result.Value.Instrumental}; {result.Value.Prepositional}";
+                await writerCase.WriteLineAsync(tempStringCase);
+
+                // Plural.txt
+                tempStringCase = result == null || !result.IsSuccess
+                    ? $"{tempWord}; {tempWord}"
+                    : result.Value!.Plural is null ? string.Empty : $"{tempWord}; {result.Value.Plural.Nominative}";
+                await writerPlural.WriteLineAsync(tempStringCase);
+            }
+
+            await writerCase.WriteLineAsync();
+            await writerPlural.WriteLineAsync();
+        }
     }
 }

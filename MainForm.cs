@@ -21,6 +21,9 @@ namespace RimLangKit
         // Управление отменой длительных операций
         private CancellationTokenSource? _currentOperationCts;
 
+        // Данные для TagCollector (замена статических коллекций)
+        private readonly TagCollectorData _tagCollectorData = new();
+
         private static string DirectoryPath = string.Empty;
         private static string GamePath = string.Empty;
         private static string AdditionalFolder = string.Empty;
@@ -317,7 +320,7 @@ namespace RimLangKit
             {
                 FileProcessorType.FileRenamer => FileRenamer.FileRenamerActivity(filePath),
                 FileProcessorType.NamesTranslator => NamesTranslator.NamesTranslatorActivity(filePath),
-                FileProcessorType.TagCollector => TagCollector.TagCollectorActivity(filePath),
+                FileProcessorType.TagCollector => TagCollector.TagCollectorActivity(filePath, _tagCollectorData),
                 FileProcessorType.FileFixer => FileFixer.FileFixerActivity(filePath),
                 FileProcessorType.EncodingFixer => EncodingFixer.EncodingFixerActivity(filePath),
                 FileProcessorType.CommentInserter => CommentInserter.InsertComments(filePath),
@@ -336,11 +339,11 @@ namespace RimLangKit
                 switch (processorType)
                 {
                     case FileProcessorType.TagCollector:
-                        message = TagCollector.TagWriterActivity();
+                        message = TagCollector.TagWriterActivity(_tagCollectorData);
                         SendToInfoTextBox($"{TimeSetter.PlaceTime()}{message}");
-                        message = TagCollector.DefsClassGeneratorActivity();
+                        message = TagCollector.DefsClassGeneratorActivity(_tagCollectorData);
                         SendToInfoTextBox($"{TimeSetter.PlaceTime()}{message}");
-                        TagCollector.DataCleanerActivity();
+                        _tagCollectorData.Clear();
                         break;
 
                     case FileProcessorType.FileFixer:
@@ -526,129 +529,244 @@ namespace RimLangKit
             }
         }
 
-        // TODO: Переписать на async с использованием _morpherService.GetRequestLimitAsync() и GetWordFormsAsync()
-        // TODO: Добавить CancellationToken для возможности отмены
-        // TODO: Добавить Progress<ProcessingProgress> для отображения прогресса
-        private void CaseCreatorButton_Click(object sender, EventArgs e)
+        // Async версия создания вспомогательных файлов с CancellationToken
+        private async void CaseCreatorButton_Click(object sender, EventArgs e)
         {
-            _logger.LogInformation("Запуск создания вспомогательных файлов");
-            InfoTextBox.AppendText($"{TimeSetter.PlaceTime()}Создание вспомогательных файлов");
-            string[] defTypeList = Constants.DefTypes.SupportedTypes;
-            //Получение списка всех файлов в заданой директории и во всех вложенных подпапках за счёт SearchOption
-            string[] allFiles = Directory.GetFiles(DirectoryPath, Constants.Files.XmlMask, SearchOption.AllDirectories);
-            Dictionary<string, string> words = [];
+            // Отменяем предыдущую операцию если она еще выполняется
+            _currentOperationCts?.Cancel();
+            _currentOperationCts?.Dispose();
+            _currentOperationCts = new CancellationTokenSource();
 
-            // Поиск подходящей директории
-            string directory = Directory.Exists(DirectoryPath + $"\\{Constants.Paths.CommonFolderName}") ? DirectoryPath + $"\\{Constants.Paths.CommonFolderName}" : DirectoryPath;
-            int typeCount = 0;
-            // Проверяется каждый подходящий DefType из списка
-            foreach (string defType in defTypeList)
+            try
             {
-                int count = 0;
-                foreach (string tempFile in allFiles)
+                _logger.LogInformation("Запуск создания вспомогательных файлов");
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}Создание вспомогательных файлов");
+
+                string[] defTypeList = Constants.DefTypes.SupportedTypes;
+
+                // Получение списка всех файлов в фоновом потоке
+                string[] allFiles = await Task.Run(() =>
+                    Directory.GetFiles(DirectoryPath, Constants.Files.XmlMask, SearchOption.AllDirectories),
+                    _currentOperationCts.Token);
+
+                Dictionary<string, string> words = [];
+
+                // Поиск подходящей директории
+                string directory = Directory.Exists(DirectoryPath + $"\\{Constants.Paths.CommonFolderName}")
+                    ? DirectoryPath + $"\\{Constants.Paths.CommonFolderName}"
+                    : DirectoryPath;
+
+                int typeCount = 0;
+
+                // Проверяется каждый подходящий DefType из списка
+                foreach (string defType in defTypeList)
                 {
-                    // Каждый файл проверяется на соотвествие этому типу. Если не соотвествует, возвращает пустой список
-                    List<string> tempWords = CaseCreator.FindWordsProcessing(tempFile, defType);
-                    foreach (string word in tempWords)
+                    _currentOperationCts.Token.ThrowIfCancellationRequested();
+
+                    int count = 0;
+                    words.Clear();
+
+                    // Сбор слов в фоновом потоке
+                    await Task.Run(() =>
                     {
-                        bool result = words.TryAdd(word, defType);
-                        if (result) { count++; }
+                        foreach (string tempFile in allFiles)
+                        {
+                            _currentOperationCts.Token.ThrowIfCancellationRequested();
+
+                            // Каждый файл проверяется на соответствие этому типу
+                            List<string> tempWords = CaseCreator.FindWordsProcessing(tempFile, defType);
+                            foreach (string word in tempWords)
+                            {
+                                bool result = words.TryAdd(word, defType);
+                                if (result) { count++; }
+                            }
+                        }
+                    }, _currentOperationCts.Token);
+
+                    // Если нашлись слова в данном DefType, то создаются файлы
+                    if (count > 0)
+                    {
+                        // Получение лимита запросов через async версию
+                        var limitResult = await _morpherService.GetRequestLimitAsync();
+
+                        if (!limitResult.IsSuccess || limitResult.Value == null)
+                        {
+                            SendToInfoTextBox($"{TimeSetter.PlaceTime()}Ошибка получения лимита слов для {defType}: {limitResult.ErrorMessage ?? "Проблемы с интернетом?"}");
+                            _logger.LogWarning("Не удалось получить лимит Morpher для {DefType}: {Error}", defType, limitResult.ErrorMessage);
+                            continue;
+                        }
+
+                        int limit = limitResult.Value.Value;
+
+                        if (limit < words.Count)
+                        {
+                            SendToInfoTextBox($"{TimeSetter.PlaceTime()}Превышен лимит. Доступно сегодня {limit}, требуется для {defType} - {words.Count}. Стоит убрать уже обработанные папки и попробовать завтра. Или сменить IP.");
+                            _logger.LogWarning("Превышен лимит Morpher: доступно {Limit}, требуется {Required} для {DefType}", limit, words.Count, defType);
+                            continue;
+                        }
+
+                        SendToInfoTextBox($"{TimeSetter.PlaceTime()}Доступно запросов - {limit}");
+                        _logger.LogInformation("Доступно запросов Morpher: {Limit} для {DefType}", limit, defType);
+
+                        // Создание файлов Case и Plural через async версию
+                        await CaseCreator.CreateCaseAsync(directory, words, defType, _morpherService, _currentOperationCts.Token);
+
+                        // CreateGender остается синхронным (не делает сетевых запросов)
+                        await Task.Run(() =>
+                            CaseCreator.CreateGender(directory, words, defType),
+                            _currentOperationCts.Token);
+
+                        SendToInfoTextBox($"{TimeSetter.PlaceTime()}Обработано {count} объектов типа {defType}");
+                        _logger.LogInformation("Обработано {Count} объектов типа {DefType}", count, defType);
+                        typeCount++;
                     }
                 }
-                // Если нашлись слова в данном DefType, то создаются файлы
-                if (count > 0)
+
+                if (typeCount > 0)
                 {
-                    int? limit = MorpherService.GetMorpherRequestLimit();
-                    if (!limit.HasValue)
+                    SendToInfoTextBox($"{TimeSetter.PlaceTime()}Созданы файлы по адресу {directory}\\Languages\\Russian\\WordInfo");
+                    _logger.LogInformation("Созданы файлы WordInfo для {TypeCount} типов DefType", typeCount);
+                }
+                else
+                {
+                    SendToInfoTextBox($"{TimeSetter.PlaceTime()}Файлы не созданы");
+                    _logger.LogInformation("Файлы WordInfo не созданы - не найдено подходящих слов");
+                }
+
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}Завершено");
+            }
+            catch (OperationCanceledException)
+            {
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}Операция создания файлов отменена пользователем");
+                _logger.LogInformation("Создание вспомогательных файлов отменено пользователем");
+            }
+            catch (Exception ex)
+            {
+                var message = $"Ошибка при создании вспомогательных файлов: {ex.Message}";
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}{message}");
+                _logger.LogError(ex, "Ошибка в CaseCreatorButton_Click");
+                MessageBox.Show(message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            finally
+            {
+                _currentOperationCts?.Dispose();
+                _currentOperationCts = null;
+            }
+        }
+
+        // Async версия предварительного перевода с CancellationToken
+        private async void PreTranslatorButton_Click(object sender, EventArgs e)
+        {
+            // Отменяем предыдущую операцию если она еще выполняется
+            _currentOperationCts?.Cancel();
+            _currentOperationCts?.Dispose();
+            _currentOperationCts = new CancellationTokenSource();
+
+            try
+            {
+                _logger.LogInformation("Запуск предварительного перевода");
+
+                if (AdditionalFolder == string.Empty)
+                {
+                    SendToInfoTextBox($"{TimeSetter.PlaceTime()}Ошибка. Не выбран источник данных");
+                    MessageBox.Show("Выберите папку с исходными файлами для перевода", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                // Очистка предыдущих данных перевода
+                PreTranslator.ClearTranslationData();
+
+                SendToInfoTextBox($"Переводимые файлы - {DirectoryPath}.{Environment.NewLine}Исходные файлы для предварительного перевода - {AdditionalFolder}");
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}Сбор данных для перевода");
+
+                // Фаза 1: Сбор данных для перевода
+                string[] allFiles = await Task.Run(() =>
+                    Directory.GetFiles(AdditionalFolder, Constants.Files.XmlMask, SearchOption.AllDirectories),
+                    _currentOperationCts.Token);
+
+                int count = 0;
+                int errCount = 0;
+                (bool, string) result = (false, string.Empty);
+
+                for (int i = 0; i < allFiles.Length; i++)
+                {
+                    _currentOperationCts.Token.ThrowIfCancellationRequested();
+
+                    string tempFile = allFiles[i];
+
+                    if (tempFile.StartsWith(DirectoryPath, StringComparison.OrdinalIgnoreCase))
                     {
-                        InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Ошибка получения лимита слов для {defType}. Проблемы с интернетом?");
-                        continue;
+                        SendToInfoTextBox($"{TimeSetter.PlaceTime()}Включать переводимый мод в исходные файлы - плохая идея.");
+                        _logger.LogWarning("Попытка включить переводимый мод в исходные файлы: {File}", tempFile);
+                        return;
                     }
-                    else if (limit < words.Count)
+
+                    result = await PreTranslator.BuildDatabaseAsync(tempFile, _currentOperationCts.Token);
+                    if (result.Item1)
                     {
-                        InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Превышен лимит. Доступно сегодня {limit}, требуется для {defType} - {words.Count}. Стоит убрать уже обработанные папки и попробовать завтра. Или сменить IP.");
-                        continue;
+                        count++;
                     }
                     else
                     {
-                        InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Доступно запросов - {limit}");
+                        errCount++;
+                        SendToInfoTextBox($"{TimeSetter.PlaceTime()}{result.Item2} ({tempFile})");
+                        _logger.LogWarning("Ошибка сбора данных из {File}: {Error}", tempFile, result.Item2);
                     }
-                    CaseCreator.CreateCase(directory, words, defType);
-                    CaseCreator.CreateGender(directory, words, defType);
-                    InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Обработано {count} объектов типа {defType}");
-                    typeCount++;
                 }
-            }
-            if (typeCount > 0)
-            {
-                InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Созданы файлы по адресу {directory}\\Languages\\Russian\\WordInfo");
-            }
-            else
-            {
-                InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Файлы не созданы");
-            }
-            InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Завершено");
-        }
 
-        // TODO: Переписать на async с CancellationToken
-        // TODO: Добавить Progress<ProcessingProgress> для отображения прогресса
-        // TODO: Вынести длительные операции в фоновый поток
-        private void PreTranslatorButton_Click(object sender, EventArgs e)
-        {
-            _logger.LogInformation("Запуск предварительного перевода");
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}Собрано {result.Item2} пар перевода. Обработано файлов - {count}. Пропущено файлов - {errCount}.");
+                _logger.LogInformation("Фаза 1 завершена: собрано {Pairs} пар, обработано {Count} файлов, пропущено {Errors}", result.Item2, count, errCount);
 
-            if (AdditionalFolder == string.Empty)
-            {
-                InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Ошибка. Не выбран источник данных");
-                MessageBox.Show("Выберите папку с исходными файлами для перевода", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                // Фаза 2: Применение перевода
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}Начат предварительный перевод");
+
+                allFiles = await Task.Run(() =>
+                    Directory.GetFiles(DirectoryPath, Constants.Files.XmlMask, SearchOption.AllDirectories),
+                    _currentOperationCts.Token);
+
+                count = 0;
+                errCount = 0;
+
+                for (int i = 0; i < allFiles.Length; i++)
+                {
+                    _currentOperationCts.Token.ThrowIfCancellationRequested();
+
+                    string tempFile = allFiles[i];
+                    result = await PreTranslator.TranslationAsync(tempFile, _currentOperationCts.Token);
+
+                    if (result.Item1)
+                    {
+                        count++;
+                    }
+                    else
+                    {
+                        errCount++;
+                        SendToInfoTextBox($"{TimeSetter.PlaceTime()}{result.Item2} ({tempFile})");
+                        _logger.LogWarning("Ошибка перевода {File}: {Error}", tempFile, result.Item2);
+                    }
+                }
+
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}Обработано файлов - {count}. Пропущено файлов - {errCount}.");
+                _logger.LogInformation("Фаза 2 завершена: обработано {Count} файлов, пропущено {Errors}", count, errCount);
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}Предварительный перевод завершен");
             }
-
-            InfoTextBox.AppendText($"{Environment.NewLine}Переводимые файлы - {DirectoryPath}.{Environment.NewLine}Исходные файлы для предварительного перевода - {AdditionalFolder}");
-            InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Сбор данных для перевода");
-            string[] allFiles = Directory.GetFiles(AdditionalFolder, Constants.Files.XmlMask, SearchOption.AllDirectories);
-            int count = 0;
-            int errCount = 0;
-            (bool, string) result = (false, string.Empty);
-            foreach (string tempFile in allFiles)
+            catch (OperationCanceledException)
             {
-                if (tempFile.StartsWith(DirectoryPath, StringComparison.OrdinalIgnoreCase))
-                {
-                    InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Включать переводимый мод в исходные файлы - плохая идея.");
-                    return;
-                }
-                result = PreTranslator.BuildDatabase(tempFile);
-                if (result.Item1)
-                {
-                    count++;
-                }
-                else
-                {
-                    errCount++;
-                    InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}{result.Item2} ({tempFile})");
-                }
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}Операция предварительного перевода отменена пользователем");
+                _logger.LogInformation("Предварительный перевод отменен пользователем");
             }
-            InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Собрано {result.Item2} пар перевода. Обработано файлов - {count}. Пропущено файлов - {errCount}.");
-
-
-            InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Начат предварительный перевод");
-            allFiles = Directory.GetFiles(DirectoryPath, Constants.Files.XmlMask, SearchOption.AllDirectories);
-            count = 0;
-            errCount = 0;
-            foreach (string tempFile in allFiles)
+            catch (Exception ex)
             {
-                result = PreTranslator.Translation(tempFile);
-                if (result.Item1)
-                {
-                    count++;
-                }
-                else
-                {
-                    errCount++;
-                    InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}{result.Item2} ({tempFile})");
-                }
+                var message = $"Ошибка при предварительном переводе: {ex.Message}";
+                SendToInfoTextBox($"{TimeSetter.PlaceTime()}{message}");
+                _logger.LogError(ex, "Ошибка в PreTranslatorButton_Click");
+                MessageBox.Show(message, "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            InfoTextBox.AppendText($"{Environment.NewLine}{TimeSetter.PlaceTime()}Обработано файлов - {count}. Пропущено файлов - {errCount}.");
+            finally
+            {
+                _currentOperationCts?.Dispose();
+                _currentOperationCts = null;
+            }
         }
 
         // Вызов обработчика из кнопок (новая async версия)

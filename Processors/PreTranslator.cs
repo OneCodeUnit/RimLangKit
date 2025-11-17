@@ -107,5 +107,37 @@ namespace RimLangKit.Processors
             xDoc.Save(currentFile);
             return (true, string.Empty);
         }
+
+        /// <summary>
+        /// Async версия BuildDatabase с CancellationToken
+        /// </summary>
+        public static async Task<(bool, string)> BuildDatabaseAsync(string currentFile, CancellationToken cancellationToken = default)
+        {
+            return await Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return BuildDatabase(currentFile);
+            }, cancellationToken);
+        }
+
+        /// <summary>
+        /// Async версия Translation с CancellationToken
+        /// </summary>
+        public static async Task<(bool, string)> TranslationAsync(string currentFile, CancellationToken cancellationToken = default)
+        {
+            return await Task.Run(() =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                return Translation(currentFile);
+            }, cancellationToken);
+        }
+
+        /// <summary>
+        /// Очистка статического словаря переводов
+        /// </summary>
+        public static void ClearTranslationData()
+        {
+            TranslationData.Clear();
+        }
     }
 }
