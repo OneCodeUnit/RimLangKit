@@ -1,5 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using RimLangKit.Models;
+using RimLangKit.Presenters;
 using RimLangKit.Services;
 using Serilog;
 
@@ -74,6 +76,15 @@ namespace RimLangKit
             // Регистрация сервисов
             services.AddSingleton<IGitHubService, GitHubService>();
             services.AddSingleton<IMorpherService, MorpherService>();
+
+            // Регистрация Models (состояние приложения)
+            services.AddSingleton<ApplicationState>();
+
+            // Регистрация Presenters (MVP паттерн)
+            services.AddTransient<FileProcessingPresenter>();
+            services.AddTransient<DatabasePresenter>();
+            services.AddTransient<LanguageUpdatePresenter>();
+            services.AddTransient<MainFormPresenter>();
 
             // Регистрация главной формы
             services.AddTransient<MainForm>();
