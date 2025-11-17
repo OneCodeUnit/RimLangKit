@@ -1,4 +1,5 @@
-﻿using RimLangKit.Checks;
+﻿using Microsoft.Extensions.Logging;
+using RimLangKit.Checks;
 using RimLangKit.Modules.AutoTranslation;
 using RimLangKit.Modules.GameLocalization;
 using RimLangKit.Processors;
@@ -12,6 +13,10 @@ namespace RimLangKit
 {
     public partial class MainForm : Form
     {
+        private readonly IGitHubService _githubService;
+        private readonly IMorpherService _morpherService;
+        private readonly ILogger<MainForm> _logger;
+
         private static string DirectoryPath = string.Empty;
         private static string GamePath = string.Empty;
         private static string AdditionalFolder = string.Empty;
@@ -21,8 +26,14 @@ namespace RimLangKit
         private readonly Color goodColor = Color.FromArgb(0, 130, 0);
         private readonly Color badColor = Color.FromArgb(130, 0, 0);
 
-        public MainForm()
+        public MainForm(IGitHubService githubService, IMorpherService morpherService, ILogger<MainForm> logger)
         {
+            _githubService = githubService ?? throw new ArgumentNullException(nameof(githubService));
+            _morpherService = morpherService ?? throw new ArgumentNullException(nameof(morpherService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            _logger.LogInformation("Инициализация главной формы");
+
             InitializeComponent();
             FolderTextBox.Text = DirectoryPath;
 
@@ -41,21 +52,11 @@ namespace RimLangKit
             // Инициализация меню "Автор"
             ToolStripMenuItemCreator.Text += " OliveWizard";
 
-            // Автоматическая проверка обновлений
+            // Автоматическая проверка обновлений (перенесено в Load событие)
             if (Settings.Default.isAutoUpdateActive)
             {
                 ToolStripMenuItemAutoUpdateCheck.Checked = true;
-                var oldCheckDate = Settings.Default.lastCheckDate;
-                var newCheckDate = DateTime.Now;
-                if (oldCheckDate.Month != newCheckDate.Month)
-                {
-                    bool result = CheckVersion();
-                    if (result)
-                    {
-                        Settings.Default.lastCheckDate = newCheckDate;
-                        Settings.Default.Save();
-                    }
-                }
+                this.Load += async (s, e) => await PerformAutoUpdateCheckAsync();
             }
 
             // Восстановление последней вкладки
@@ -655,32 +656,55 @@ namespace RimLangKit
         }
 
         // Ручная проверка обновлений
-        private void ToolStripMenuItemCheckUpdate_Click(object sender, EventArgs e)
+        private async void ToolStripMenuItemCheckUpdate_Click(object sender, EventArgs e)
         {
-            CheckVersion();
+            await CheckVersionAsync();
         }
 
-        private static bool CheckVersion()
+        private async Task<bool> CheckVersionAsync()
         {
-            var json = GitHubService.GetGithubJson();
-            if (json is null)
+            _logger.LogInformation("Проверка обновлений приложения");
+
+            var result = await _githubService.GetLatestReleaseAsync();
+
+            if (!result.IsSuccess)
             {
-                MessageBox.Show("Не удалось проверить обновления. Проверьте подключение к интернету.", "Ошибка", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                _logger.LogWarning("Не удалось проверить обновления: {Error}", result.ErrorMessage);
+                MessageBox.Show(
+                    result.ErrorMessage ?? "Не удалось проверить обновления. Проверьте подключение к интернету.",
+                    "Ошибка",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error);
                 return false;
             }
+
+            var json = result.Value;
             var newVersion = json?.TagName?.ToString()[1..];
             var oldVersion = Assembly.GetEntryAssembly()?.GetName().Version?.ToString()[..^2];
+
             if (oldVersion == newVersion)
             {
+                _logger.LogInformation("Приложение обновлено до последней версии {Version}", oldVersion);
                 MessageBox.Show("Обновление не требуется", "Обновление", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return true;
             }
             else
             {
-                var dr = MessageBox.Show($"Доступно обновление до версии {newVersion}!\nПерейти на страницу загрузки?\n\nВ новой версии:\n{json?.Body}", "Обновление", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                _logger.LogInformation("Доступна новая версия {NewVersion} (текущая: {OldVersion})", newVersion, oldVersion);
+                var dr = MessageBox.Show(
+                    $"Доступно обновление до версии {newVersion}!\nПерейти на страницу загрузки?\n\nВ новой версии:\n{json?.Body}",
+                    "Обновление",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Information);
+
                 if (dr == DialogResult.Yes)
                 {
-                    Process.Start(new ProcessStartInfo { FileName = json?.HtmlUrl?.ToString(), UseShellExecute = true });
+                    var url = json?.HtmlUrl?.ToString();
+                    if (!string.IsNullOrEmpty(url))
+                    {
+                        _logger.LogInformation("Открытие страницы релиза: {Url}", url);
+                        Process.Start(new ProcessStartInfo { FileName = url, UseShellExecute = true });
+                    }
                 }
                 return true;
             }
@@ -696,6 +720,33 @@ namespace RimLangKit
         private void ToolStripMenuItemGuide_Click(object sender, EventArgs e)
         {
             Process.Start(new ProcessStartInfo { FileName = @"https://github.com/OneCodeUnit/RimLangKit/blob/master/README.md", UseShellExecute = true });
+        }
+
+        // Автоматическая проверка обновлений при запуске
+        private async Task PerformAutoUpdateCheckAsync()
+        {
+            try
+            {
+                var oldCheckDate = Settings.Default.lastCheckDate;
+                var newCheckDate = DateTime.Now;
+
+                if (oldCheckDate.Month != newCheckDate.Month)
+                {
+                    _logger.LogInformation("Выполнение автоматической проверки обновлений");
+                    bool result = await CheckVersionAsync();
+
+                    if (result)
+                    {
+                        Settings.Default.lastCheckDate = newCheckDate;
+                        Settings.Default.Save();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Ошибка при автоматической проверке обновлений");
+                // Не показываем ошибку пользователю при автоматической проверке
+            }
         }
         #endregion
 
