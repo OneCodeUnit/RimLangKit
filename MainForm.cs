@@ -65,6 +65,10 @@ namespace RimLangKit
             MainTabs.SizeMode = TabSizeMode.Fixed;
             MainTabs.ItemSize = new Size((MainTabs.Width / MainTabs.TabPages.Count) - 2, MainTabs.ItemSize.Height);
 
+            // Настройка масштабируемости окна
+            this.MinimumSize = new Size(800, 600);
+            this.Resize += MainForm_Resize;
+
             // Восстановление пути к папке игры
             GamePath = Settings.Default.savedDirectory;
             if (!Directory.Exists(GamePath))
@@ -178,6 +182,15 @@ namespace RimLangKit
         {
             Settings.Default.lastTab = MainTabs.SelectedIndex;
             Settings.Default.Save();
+        }
+
+        private void MainForm_Resize(object sender, EventArgs e)
+        {
+            // Пересчитываем размер вкладок при изменении окна
+            if (MainTabs.TabPages.Count > 0)
+            {
+                MainTabs.ItemSize = new Size((MainTabs.Width / MainTabs.TabPages.Count) - 2, MainTabs.ItemSize.Height);
+            }
         }
         #endregion
 

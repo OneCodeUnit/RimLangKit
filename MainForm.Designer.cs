@@ -167,9 +167,10 @@
             VersionLabel.Size = new Size(66, 20);
             VersionLabel.TabIndex = 12;
             VersionLabel.Text = "Версия?";
-            // 
+            //
             // FolderButton
-            // 
+            //
+            FolderButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             FolderButton.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
             FolderButton.Location = new Point(796, 6);
             FolderButton.Name = "FolderButton";
@@ -178,14 +179,13 @@
             FolderButton.Text = "Выбрать папку";
             FolderButton.UseVisualStyleBackColor = true;
             FolderButton.Click += FolderButton_Click;
-            // 
+            //
             // FolderTextBox
-            // 
+            //
             FolderTextBox.AllowDrop = true;
+            FolderTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             FolderTextBox.Font = new Font("Segoe UI", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 204);
             FolderTextBox.Location = new Point(11, 13);
-            FolderTextBox.MaximumSize = new Size(779, 30);
-            FolderTextBox.MinimumSize = new Size(779, 30);
             FolderTextBox.Name = "FolderTextBox";
             FolderTextBox.Size = new Size(779, 30);
             FolderTextBox.TabIndex = 1;
@@ -211,11 +211,12 @@
             CommentInserterButton.Text = "Добавить комментарии";
             CommentInserterButton.UseVisualStyleBackColor = true;
             CommentInserterButton.Click += CommentInserterButton_Click;
-            // 
+            //
             // InfoTextBox
-            // 
+            //
             InfoTextBox.AcceptsReturn = true;
             InfoTextBox.AcceptsTab = true;
+            InfoTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             InfoTextBox.Location = new Point(247, 78);
             InfoTextBox.Multiline = true;
             InfoTextBox.Name = "InfoTextBox";
@@ -307,9 +308,10 @@
             FindChangesButton.Text = "Найти изменения текста";
             FindChangesButton.UseVisualStyleBackColor = true;
             FindChangesButton.Click += FindChangesButton_Click;
-            // 
+            //
             // MainTabs
-            // 
+            //
+            MainTabs.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             MainTabs.Controls.Add(tabPage1);
             MainTabs.Controls.Add(tabPage2);
             MainTabs.Controls.Add(tabPage3);
@@ -447,11 +449,12 @@
             ButtonLanguageUpdate.Text = "Обновить локализацию";
             ButtonLanguageUpdate.UseVisualStyleBackColor = true;
             ButtonLanguageUpdate.Click += ButtonLanguageUpdate_Click;
-            // 
+            //
             // InfoTextBox2
-            // 
+            //
             InfoTextBox2.AcceptsReturn = true;
             InfoTextBox2.AcceptsTab = true;
+            InfoTextBox2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             InfoTextBox2.Location = new Point(212, 49);
             InfoTextBox2.Margin = new Padding(4);
             InfoTextBox2.Multiline = true;
@@ -460,10 +463,11 @@
             InfoTextBox2.ScrollBars = ScrollBars.Vertical;
             InfoTextBox2.Size = new Size(724, 613);
             InfoTextBox2.TabIndex = 20;
-            // 
+            //
             // FolderTextBox2
-            // 
+            //
             FolderTextBox2.AllowDrop = true;
+            FolderTextBox2.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             FolderTextBox2.Font = new Font("Segoe UI", 12F);
             FolderTextBox2.Location = new Point(7, 7);
             FolderTextBox2.Margin = new Padding(4);
@@ -507,9 +511,10 @@
             tabPage3.TabIndex = 2;
             tabPage3.Text = "Пред. перевод";
             tabPage3.UseVisualStyleBackColor = true;
-            // 
+            //
             // AutoTranslateButton
-            // 
+            //
+            AutoTranslateButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             AutoTranslateButton.Font = new Font("Segoe UI", 12F);
             AutoTranslateButton.Location = new Point(775, 411);
             AutoTranslateButton.Name = "AutoTranslateButton";
@@ -518,9 +523,10 @@
             AutoTranslateButton.Text = "Перевести";
             AutoTranslateButton.UseVisualStyleBackColor = true;
             AutoTranslateButton.Click += AutoTranslateButton_Click;
-            // 
+            //
             // UpdateDatabaseButton
-            // 
+            //
+            UpdateDatabaseButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             UpdateDatabaseButton.Font = new Font("Segoe UI", 12F);
             UpdateDatabaseButton.Location = new Point(775, 164);
             UpdateDatabaseButton.Name = "UpdateDatabaseButton";
@@ -529,9 +535,10 @@
             UpdateDatabaseButton.Text = "Добавить";
             UpdateDatabaseButton.UseVisualStyleBackColor = true;
             UpdateDatabaseButton.Click += UpdateDatabaseButton_Click;
-            // 
+            //
             // SelectForUpdateDatabaseButton
-            // 
+            //
+            SelectForUpdateDatabaseButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             SelectForUpdateDatabaseButton.Font = new Font("Segoe UI", 12F);
             SelectForUpdateDatabaseButton.Location = new Point(775, 124);
             SelectForUpdateDatabaseButton.Name = "SelectForUpdateDatabaseButton";
@@ -540,9 +547,10 @@
             SelectForUpdateDatabaseButton.Text = "Выбрать папку";
             SelectForUpdateDatabaseButton.UseVisualStyleBackColor = true;
             SelectForUpdateDatabaseButton.Click += SelectForUpdateDatabaseButton_Click;
-            // 
+            //
             // UpdateDatabaseTextBox
-            // 
+            //
+            UpdateDatabaseTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             UpdateDatabaseTextBox.Location = new Point(6, 118);
             UpdateDatabaseTextBox.Name = "UpdateDatabaseTextBox";
             UpdateDatabaseTextBox.Size = new Size(763, 34);
@@ -666,9 +674,10 @@
             RewriteRadioButtonTrue.TabStop = true;
             RewriteRadioButtonTrue.Text = "Перезаписывать";
             RewriteRadioButtonTrue.UseVisualStyleBackColor = true;
-            // 
+            //
             // CreateDatabaseButton
-            // 
+            //
+            CreateDatabaseButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             CreateDatabaseButton.Font = new Font("Segoe UI", 12F);
             CreateDatabaseButton.Location = new Point(775, 46);
             CreateDatabaseButton.Name = "CreateDatabaseButton";
@@ -677,9 +686,10 @@
             CreateDatabaseButton.Text = "Создать";
             CreateDatabaseButton.UseVisualStyleBackColor = true;
             CreateDatabaseButton.Click += CreateDatabaseButton_Click;
-            // 
+            //
             // SelectModButton
-            // 
+            //
+            SelectModButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             SelectModButton.Font = new Font("Segoe UI", 12F);
             SelectModButton.Location = new Point(775, 371);
             SelectModButton.Name = "SelectModButton";
@@ -688,17 +698,19 @@
             SelectModButton.Text = "Выбрать";
             SelectModButton.UseVisualStyleBackColor = true;
             SelectModButton.Click += SelectModButton_Click;
-            // 
+            //
             // SelectModTextBox
-            // 
+            //
+            SelectModTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             SelectModTextBox.Location = new Point(6, 371);
             SelectModTextBox.Name = "SelectModTextBox";
             SelectModTextBox.Size = new Size(763, 34);
             SelectModTextBox.TabIndex = 8;
             SelectModTextBox.TextChanged += SelectModTextBox_TextChanged;
-            // 
+            //
             // SelectDatabaseButton
-            // 
+            //
+            SelectDatabaseButton.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             SelectDatabaseButton.Font = new Font("Segoe UI", 12F);
             SelectDatabaseButton.Location = new Point(775, 6);
             SelectDatabaseButton.Name = "SelectDatabaseButton";
@@ -707,9 +719,10 @@
             SelectDatabaseButton.Text = "Выбрать файл";
             SelectDatabaseButton.UseVisualStyleBackColor = true;
             SelectDatabaseButton.Click += SelectDatabaseButton_Click;
-            // 
+            //
             // SelectDatabaseTextBox
-            // 
+            //
+            SelectDatabaseTextBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             SelectDatabaseTextBox.Location = new Point(6, 46);
             SelectDatabaseTextBox.Name = "SelectDatabaseTextBox";
             SelectDatabaseTextBox.Size = new Size(763, 34);
